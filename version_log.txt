@@ -1,0 +1,7 @@
+# 1.0.0
+- Added:	Baudrate Configuration
+- Added:	UART Communication (Read & Write)
+- Added:	Simple Motor Control w/ Value-table
+
+# 1.0.1 <<
+- Added:	GIT integration
