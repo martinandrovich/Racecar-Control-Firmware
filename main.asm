@@ -1,5 +1,5 @@
 ; Racecar Control Firmware
-; Version 1.0.0
+; Version 1.0.1
 ;
 ; RCF.asm
 ;
@@ -17,8 +17,7 @@
 ; >> DEFINITIONS
 
 .ORG	0x60
-	;.EQU	BAUD = 9600
-	.EQU	BAUDRATE = 0xCF
+	.EQU	BAUDRATE = 0xCF					; Baudrate settings for BAUDRATE of 9600
 
 	.DEF	RXREG = R20
 	.DEF	TXREG = R21
@@ -66,8 +65,6 @@ INIT:
 	OUT		OCR2, R16						; ^
 
 	; !!! Works, but needs further analysis.
-
-	(1<<URSEL) | (3<<UCSZ0)
 	
 	LDI		R16, 0x6A						; Initialize Timer2 with 0110_1010
 	OUT		TCCR2, R16						; ^
@@ -88,6 +85,26 @@ MAIN:
 
 	RJMP	MAIN
 
+PARSE_TELEGRAM:
+	
+	CPI		RXREG, 0x00						; Enable motor if RXREG != 0
+	BRNE	ENABLE_MOTOR					; ^
+	
+	RET										; Return
+
+PARSE_TELEGRAM_TYPE:
+	NOP										; No code yet
+	RET										; Return
+
+PARSE_TELEGRAM_COMMAND:
+	NOP										; No code yet
+	RET										; Return
+
+PARSE_TELEGRAM_DATA:
+	NOP										; No code yet
+	RET										; Return
+	
+
 SERIAL_READ:
 	SBIS	UCSRA, RXC						; Wait for Recieve (RXC) flag
 	RJMP	SERIAL_READ						; ^
@@ -95,6 +112,7 @@ SERIAL_READ:
 	IN		RXREG, UDR						; Load data from serial to register
 
 	RET										; Return
+
 
 SERIAL_WRITE:
 	SBIS	UCSRA, UDRE						; Wait for Empty Transmit Buffer (UDRE) flag
@@ -105,9 +123,11 @@ SERIAL_WRITE:
 
 	RET										; Return
 
+
 ENABLE_MOTOR_MAX:
 	SBI 	PORTD, PD7						; Enable BIT on PIN7 of PORTD
 	RJMP	MAIN							; Return
+
 
 ENABLE_MOTOR:
 	LDI		R16, 0x6A						; Initialize Waveform Generator (Timer2) (0110_1010)
