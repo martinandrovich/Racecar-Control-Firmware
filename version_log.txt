@@ -5,4 +5,4 @@
 
 # 1.0.1 <<
 - Added:	GIT integration
-- Added:	Telegram parser (empty)
+- Added:	Placeholder for Telegram parser

@@ -78,7 +78,7 @@ MAIN:
 
 	RCALL	SERIAL_READ						; Begin reading
 
-	CPI		RXREG, 0x00						; Enable motor if command recieved
+	CPI		RXREG, 0x00						; Enable motor if RXREG != 0
 	BRNE	ENABLE_MOTOR					; ^
 	
 	;RCALL	SERIAL_WRITE
