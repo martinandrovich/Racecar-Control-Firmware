@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.7  C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm Mon Mar 19 23:18:17 2018
+AVRASM ver. 2.2.7  C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm Wed Mar 21 23:53:36 2018
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.150\avrasm\inc\m32def.inc'
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.150\avrasm\inc\m32def.inc'
@@ -820,7 +820,7 @@ AVRASM ver. 2.2.7  C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm Mon
                                  #endif  /* _M32DEF_INC_ */
                                  
                                  
-                                 ; Version 1.0.0
+                                 ; Version 1.0.1
                                  ;
                                  ; RCF.asm
                                  ;
@@ -851,11 +851,11 @@ AVRASM ver. 2.2.7  C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm Mon
                                  
                                  	; Stack Pointer
                                  
-000060 e008                      	LDI 	R16, HIGH(RAMEND) 	
-000061 bf0e                      	OUT 	SPH, R16 			
-000062 e50f                      	LDI 	R16, LOW(RAMEND)		
-000063 bf0d                      	OUT 	SPL, R16 
-                                 	
+000060 e008                      	LDI 	R16, HIGH(RAMEND)
+000061 bf0e                      	OUT 	SPH, R16
+000062 e50f                      	LDI 	R16, LOW(RAMEND)
+000063 bf0d                      	OUT 	SPL, R16
+                                 
                                  	; USART Config
                                  
 000064 ec0f                      	LDI		R16, BAUDRATE					; Set Transmission Rate
@@ -870,7 +870,7 @@ AVRASM ver. 2.2.7  C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm Mon
 00006b b90a                      	OUT		UCSRB, R16						; ^
                                  
 00006c e806                      	LDI		R16, (1<<URSEL) | (3<<UCSZ0)	; Set Frame Format (8, N, 1)
-00006d bd00                      	OUT		UCSRC, R16						; ^	
+00006d bd00                      	OUT		UCSRC, R16						; ^
                                  
                                  	; Init Port D
                                  
@@ -886,7 +886,7 @@ AVRASM ver. 2.2.7  C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm Mon
 000073 bd03                      	OUT		OCR2, R16						; ^
                                  
                                  	; !!! Works, but needs further analysis.
-                                 	
+                                 
 000074 e60a                      	LDI		R16, 0x6A						; Initialize Timer2 with 0110_1010
 000075 bd05                      	OUT		TCCR2, R16						; ^
                                  
@@ -897,20 +897,20 @@ AVRASM ver. 2.2.7  C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm Mon
                                  
                                  MAIN:
                                  
-000077 d00a                      	RCALL	SERIAL_READ						; Begin reading
+000077 d00c                      	RCALL	SERIAL_READ						; Begin reading
                                  
-000078 3040                      	CPI		RXREG, 0x00						; Enable motor if command recieved
-000079 f499                      	BRNE	ENABLE_MOTOR					; ^
-                                 	
+000078 3040                      	CPI		RXREG, 0x00						; Enable motor if RXREG != 0
+000079 f4a9                      	BRNE	ENABLE_MOTOR					; ^
+                                 
                                  	;RCALL	SERIAL_WRITE
                                  
 00007a cffc                      	RJMP	MAIN
                                  
                                  PARSE_TELEGRAM:
-                                 	
+                                 
 00007b 3040                      	CPI		RXREG, 0x00						; Enable motor if RXREG != 0
-00007c f481                      	BRNE	ENABLE_MOTOR					; ^
-                                 	
+00007c f491                      	BRNE	ENABLE_MOTOR					; ^
+                                 
 00007d 9508                      	RET										; Return
                                  
                                  PARSE_TELEGRAM_TYPE:
@@ -920,48 +920,52 @@ AVRASM ver. 2.2.7  C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm Mon
                                  PARSE_TELEGRAM_COMMAND:
 000080 0000                      	NOP										; No code yet
 000081 9508                      	RET										; Return
-                                 	
+                                 
+                                 PARSE_TELEGRAM_DATA:
+000082 0000                      	NOP										; No code yet
+000083 9508                      	RET										; Return
+                                 
                                  
                                  SERIAL_READ:
-000082 9b5f                      	SBIS	UCSRA, RXC						; Wait for Recieve (RXC) flag
-000083 cffe                      	RJMP	SERIAL_READ						; ^
+000084 9b5f                      	SBIS	UCSRA, RXC						; Wait for Recieve (RXC) flag
+000085 cffe                      	RJMP	SERIAL_READ						; ^
                                  
-000084 b14c                      	IN		RXREG, UDR						; Load data from serial to register
+000086 b14c                      	IN		RXREG, UDR						; Load data from serial to register
                                  
-000085 9508                      	RET										; Return
+000087 9508                      	RET										; Return
                                  
                                  
                                  SERIAL_WRITE:
-000086 9b5d                      	SBIS	UCSRA, UDRE						; Wait for Empty Transmit Buffer (UDRE) flag
-000087 cffe                      	RJMP	SERIAL_WRITE					; ^
-                                 	
-000088 e305                      	LDI		R16, 0x35
-000089 b90c                      	OUT		UDR, R16						; Load data from register to serial
+000088 9b5d                      	SBIS	UCSRA, UDRE						; Wait for Empty Transmit Buffer (UDRE) flag
+000089 cffe                      	RJMP	SERIAL_WRITE					; ^
                                  
-00008a 9508                      	RET										; Return
+00008a e305                      	LDI		R16, 0x35
+00008b b90c                      	OUT		UDR, R16						; Load data from register to serial
+                                 
+00008c 9508                      	RET										; Return
                                  
                                  
                                  ENABLE_MOTOR_MAX:
-00008b 9a97                      	SBI 	PORTD, PD7						; Enable BIT on PIN7 of PORTD
-00008c cfea                      	RJMP	MAIN							; Return
+00008d 9a97                      	SBI 	PORTD, PD7						; Enable BIT on PIN7 of PORTD
+00008e cfe8                      	RJMP	MAIN							; Return
                                  
                                  
                                  ENABLE_MOTOR:
-00008d e60a                      	LDI		R16, 0x6A						; Initialize Waveform Generator (Timer2) (0110_1010)
-00008e bd05                      	OUT		TCCR2, r16						; ^
+00008f e60a                      	LDI		R16, 0x6A						; Initialize Waveform Generator (Timer2) (0110_1010)
+000090 bd05                      	OUT		TCCR2, r16						; ^
                                  
                                  	; !!! Would be good with some error catching of RXREG
                                  
-00008f e0f1                      	LDI		ZH, HIGH(DUTY_CYCLES*2)			; Initialize Address Pointer
-000090 e2ea                      	LDI 	ZL, LOW(DUTY_CYCLES*2)			; ^
+000091 e0f1                      	LDI		ZH, HIGH(DUTY_CYCLES*2)			; Initialize Address Pointer
+000092 e2ee                      	LDI 	ZL, LOW(DUTY_CYCLES*2)			; ^
                                  
-000091 0fe4                      	ADD		ZL, RXREG						; Set pointer to RXREG value
-000092 9164                      	LPM		MTSPD, Z						; Load the matching duty cycle
+000093 0fe4                      	ADD		ZL, RXREG						; Set pointer to RXREG value
+000094 9164                      	LPM		MTSPD, Z						; Load the matching duty cycle
                                  
-000093 bd63                      	OUT		OCR2, MTSPD						; Set Duty Cycle (0-255)
+000095 bd63                      	OUT		OCR2, MTSPD						; Set Duty Cycle (0-255)
                                  
-000094 cfe2                      	RJMP	MAIN							; Return
-                                 	
+000096 cfe0                      	RJMP	MAIN							; Return
+                                 
                                  
                                  ; ________________________________________________
                                  ; >> SPEED VALUES TABLE:
@@ -969,57 +973,57 @@ AVRASM ver. 2.2.7  C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm Mon
                                  	; !!! Should be moved to EEPROM
                                  
                                  DUTY_CYCLES:
-000095 0100                      	.DB		0, 1    	; 0% and 1%
-000096 0604                      	.DB		4, 6    	; 2% and 3%
-000097 0b09                      	.DB		9, 11       ; 4% and 5%
-000098 100e                      	.DB		14, 16      ; 6% and 7%
-000099 1613                      	.DB		19, 22      ; 8% and 9%
-00009a 1b18                      	.DB		24, 27      ; 10% and 11%
-00009b 201d                      	.DB		29, 32      ; 12% and 13%
-00009c 2522                      	.DB		34, 37      ; 14% and 15%
-00009d 2a27                      	.DB		39, 42      ; 16% and 17%
-00009e 2f2d                      	.DB		45, 47      ; 18% and 19%
-00009f 3432                      	.DB		50, 52      ; 20% and 21%
-0000a0 3937                      	.DB		55, 57      ; 22% and 23%
-0000a1 3f3c                      	.DB		60, 63      ; 24% and 25%
-0000a2 4441                      	.DB		65, 68      ; 26% and 27%
-0000a3 4946                      	.DB		70, 73      ; 28% and 29%
-0000a4 4e4b                      	.DB		75, 78      ; 30% and 31%
-0000a5 5350                      	.DB		80, 83      ; 32% and 33%
-0000a6 5856                      	.DB		86, 88      ; 34% and 35%
-0000a7 5d5b                      	.DB		91, 93      ; 36% and 37%
-0000a8 6260                      	.DB		96, 98    	; 38% and 39%
-0000a9 6765                      	.DB		101, 103    ; 40% and 41%
-0000aa 6d6a                      	.DB		106, 109    ; 42% and 43%
-0000ab 726f                      	.DB		111, 114    ; 44% and 45%
-0000ac 7774                      	.DB		116, 119    ; 46% and 47%
-0000ad 7c79                      	.DB		121, 124    ; 48% and 49%
-0000ae 817f                      	.DB		127, 129    ; 50% and 51%
-0000af 8684                      	.DB		132, 134    ; 52% and 53%
-0000b0 8b89                      	.DB		137, 139    ; 54% and 55%
-0000b1 908e                      	.DB		142, 144    ; 56% and 57%
-0000b2 9693                      	.DB		147, 150    ; 58% and 59%
-0000b3 9b98                      	.DB		152, 155    ; 60% and 61%
-0000b4 a09d                      	.DB		157, 160    ; 62% and 63%
-0000b5 a5a2                      	.DB		162, 165    ; 64% and 65%
-0000b6 aaa7                      	.DB		167, 170    ; 66% and 67%
-0000b7 afad                      	.DB		173, 175    ; 68% and 69%
-0000b8 b4b2                      	.DB		178, 180    ; 70% and 71%
-0000b9 b9b7                      	.DB		183, 185    ; 72% and 73%
-0000ba bfbc                      	.DB		188, 191    ; 74% and 75%
-0000bb c4c1                      	.DB		193, 196    ; 76% and 77%
-0000bc c9c6                      	.DB		198, 201    ; 78% and 79%
-0000bd cecb                      	.DB		203, 206    ; 80% and 81%
-0000be d3d0                      	.DB		208, 211    ; 82% and 83%
-0000bf d8d6                      	.DB		214, 216    ; 84% and 85%
-0000c0 dddb                      	.DB		219, 221    ; 86% and 87%
-0000c1 e2e0                      	.DB		224, 226    ; 88% and 89%
-0000c2 e7e5                      	.DB		229, 231    ; 90% and 91%
-0000c3 edea                      	.DB		234, 237    ; 92% and 93%
-0000c4 f2ef                      	.DB		239, 242    ; 94% and 95%
-0000c5 f7f4                      	.DB		244, 247    ; 96% and 97%
-0000c6 fcf9                      	.DB		249, 252    ; 98% and 99%
-0000c7 00ff                      	.DB		255, 0		; 100%
+000097 0100                      	.DB		0, 1    	; 0% and 1%
+000098 0604                      	.DB		4, 6    	; 2% and 3%
+000099 0b09                      	.DB		9, 11       ; 4% and 5%
+00009a 100e                      	.DB		14, 16      ; 6% and 7%
+00009b 1613                      	.DB		19, 22      ; 8% and 9%
+00009c 1b18                      	.DB		24, 27      ; 10% and 11%
+00009d 201d                      	.DB		29, 32      ; 12% and 13%
+00009e 2522                      	.DB		34, 37      ; 14% and 15%
+00009f 2a27                      	.DB		39, 42      ; 16% and 17%
+0000a0 2f2d                      	.DB		45, 47      ; 18% and 19%
+0000a1 3432                      	.DB		50, 52      ; 20% and 21%
+0000a2 3937                      	.DB		55, 57      ; 22% and 23%
+0000a3 3f3c                      	.DB		60, 63      ; 24% and 25%
+0000a4 4441                      	.DB		65, 68      ; 26% and 27%
+0000a5 4946                      	.DB		70, 73      ; 28% and 29%
+0000a6 4e4b                      	.DB		75, 78      ; 30% and 31%
+0000a7 5350                      	.DB		80, 83      ; 32% and 33%
+0000a8 5856                      	.DB		86, 88      ; 34% and 35%
+0000a9 5d5b                      	.DB		91, 93      ; 36% and 37%
+0000aa 6260                      	.DB		96, 98    	; 38% and 39%
+0000ab 6765                      	.DB		101, 103    ; 40% and 41%
+0000ac 6d6a                      	.DB		106, 109    ; 42% and 43%
+0000ad 726f                      	.DB		111, 114    ; 44% and 45%
+0000ae 7774                      	.DB		116, 119    ; 46% and 47%
+0000af 7c79                      	.DB		121, 124    ; 48% and 49%
+0000b0 817f                      	.DB		127, 129    ; 50% and 51%
+0000b1 8684                      	.DB		132, 134    ; 52% and 53%
+0000b2 8b89                      	.DB		137, 139    ; 54% and 55%
+0000b3 908e                      	.DB		142, 144    ; 56% and 57%
+0000b4 9693                      	.DB		147, 150    ; 58% and 59%
+0000b5 9b98                      	.DB		152, 155    ; 60% and 61%
+0000b6 a09d                      	.DB		157, 160    ; 62% and 63%
+0000b7 a5a2                      	.DB		162, 165    ; 64% and 65%
+0000b8 aaa7                      	.DB		167, 170    ; 66% and 67%
+0000b9 afad                      	.DB		173, 175    ; 68% and 69%
+0000ba b4b2                      	.DB		178, 180    ; 70% and 71%
+0000bb b9b7                      	.DB		183, 185    ; 72% and 73%
+0000bc bfbc                      	.DB		188, 191    ; 74% and 75%
+0000bd c4c1                      	.DB		193, 196    ; 76% and 77%
+0000be c9c6                      	.DB		198, 201    ; 78% and 79%
+0000bf cecb                      	.DB		203, 206    ; 80% and 81%
+0000c0 d3d0                      	.DB		208, 211    ; 82% and 83%
+0000c1 d8d6                      	.DB		214, 216    ; 84% and 85%
+0000c2 dddb                      	.DB		219, 221    ; 86% and 87%
+0000c3 e2e0                      	.DB		224, 226    ; 88% and 89%
+0000c4 e7e5                      	.DB		229, 231    ; 90% and 91%
+0000c5 edea                      	.DB		234, 237    ; 92% and 93%
+0000c6 f2ef                      	.DB		239, 242    ; 94% and 95%
+0000c7 f7f4                      	.DB		244, 247    ; 96% and 97%
+0000c8 fcf9                      	.DB		249, 252    ; 98% and 99%
+0000c9 00ff                      	.DB		255, 0		; 100%
 
 
 RESOURCE USE INFORMATION
@@ -1057,8 +1061,8 @@ cpi   :   2 cpse  :   0 dec   :   0 eor   :   0 fmul  :   0 fmuls :   0
 fmulsu:   0 icall :   0 ijmp  :   0 in    :   1 inc   :   0 jmp   :   0 
 ld    :   0 ldd   :   0 ldi   :  16 lds   :   0 lpm   :   2 lsl   :   0 
 lsr   :   0 mov   :   0 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
-neg   :   0 nop   :   2 or    :   0 ori   :   0 out   :  12 pop   :   0 
-push  :   0 rcall :   1 ret   :   5 reti  :   0 rjmp  :   7 rol   :   0 
+neg   :   0 nop   :   3 or    :   0 ori   :   0 out   :  12 pop   :   0 
+push  :   0 rcall :   1 ret   :   6 reti  :   0 rjmp  :   7 rol   :   0 
 ror   :   0 sbc   :   0 sbci  :   0 sbi   :   2 sbic  :   0 sbis  :   2 
 sbiw  :   0 sbr   :   0 sbrc  :   0 sbrs  :   0 sec   :   0 seh   :   0 
 sei   :   0 sen   :   0 ser   :   0 ses   :   0 set   :   0 sev   :   0 
@@ -1069,7 +1073,7 @@ Instructions used: 13 out of 113 (11.5%)
 "ATmega32" memory use summary [bytes]:
 Segment   Begin    End      Code   Data   Used    Size   Use%
 ---------------------------------------------------------------
-[.cseg] 0x000000 0x000190    108    102    210   32768   0.6%
+[.cseg] 0x000000 0x000194    112    102    214   32768   0.7%
 [.dseg] 0x000060 0x000060      0      0      0    2048   0.0%
 [.eseg] 0x000000 0x000000      0      0      0    1024   0.0%
 

@@ -30,11 +30,11 @@ INIT:
 
 	; Stack Pointer
 
-	LDI 	R16, HIGH(RAMEND) 	
-	OUT 	SPH, R16 			
-	LDI 	R16, LOW(RAMEND)		
-	OUT 	SPL, R16 
-	
+	LDI 	R16, HIGH(RAMEND)
+	OUT 	SPH, R16
+	LDI 	R16, LOW(RAMEND)
+	OUT 	SPL, R16
+
 	; USART Config
 
 	LDI		R16, BAUDRATE					; Set Transmission Rate
@@ -49,7 +49,7 @@ INIT:
 	OUT		UCSRB, R16						; ^
 
 	LDI		R16, (1<<URSEL) | (3<<UCSZ0)	; Set Frame Format (8, N, 1)
-	OUT		UCSRC, R16						; ^	
+	OUT		UCSRC, R16						; ^
 
 	; Init Port D
 
@@ -65,7 +65,7 @@ INIT:
 	OUT		OCR2, R16						; ^
 
 	; !!! Works, but needs further analysis.
-	
+
 	LDI		R16, 0x6A						; Initialize Timer2 with 0110_1010
 	OUT		TCCR2, R16						; ^
 
@@ -80,16 +80,16 @@ MAIN:
 
 	CPI		RXREG, 0x00						; Enable motor if RXREG != 0
 	BRNE	ENABLE_MOTOR					; ^
-	
+
 	;RCALL	SERIAL_WRITE
 
 	RJMP	MAIN
 
 PARSE_TELEGRAM:
-	
+
 	CPI		RXREG, 0x00						; Enable motor if RXREG != 0
 	BRNE	ENABLE_MOTOR					; ^
-	
+
 	RET										; Return
 
 PARSE_TELEGRAM_TYPE:
@@ -103,7 +103,7 @@ PARSE_TELEGRAM_COMMAND:
 PARSE_TELEGRAM_DATA:
 	NOP										; No code yet
 	RET										; Return
-	
+
 
 SERIAL_READ:
 	SBIS	UCSRA, RXC						; Wait for Recieve (RXC) flag
@@ -117,7 +117,7 @@ SERIAL_READ:
 SERIAL_WRITE:
 	SBIS	UCSRA, UDRE						; Wait for Empty Transmit Buffer (UDRE) flag
 	RJMP	SERIAL_WRITE					; ^
-	
+
 	LDI		R16, 0x35
 	OUT		UDR, R16						; Load data from register to serial
 
@@ -144,7 +144,7 @@ ENABLE_MOTOR:
 	OUT		OCR2, MTSPD						; Set Duty Cycle (0-255)
 
 	RJMP	MAIN							; Return
-	
+
 
 ; ________________________________________________
 ; >> SPEED VALUES TABLE:
