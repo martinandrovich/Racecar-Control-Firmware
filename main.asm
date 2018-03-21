@@ -4,7 +4,7 @@
 ; RCF.asm
 ;
 ; Created: 08-03-2018 21:13:20
-; Author : Martin Androvich
+; Author : Martin Androvich & Daniel Tofte Schøn
 ;
 
 ; ________________________________________________
@@ -144,7 +144,6 @@ ENABLE_MOTOR:
 	OUT		OCR2, MTSPD						; Set Duty Cycle (0-255)
 
 	RJMP	MAIN							; Return
-
 
 ; ________________________________________________
 ; >> SPEED VALUES TABLE:
