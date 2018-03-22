@@ -4,7 +4,7 @@
 ; RCF.asm
 ;
 ; Created: 08-03-2018 21:13:20
-; Author : Martin Androvich & Daniel Tofte Schøn
+; Author : Martin Androvich & Daniel Tofte Schï¿½n
 ;
 
 ; ________________________________________________________________________________________________
@@ -41,7 +41,7 @@ INIT:
 
 	LDI		R16, BAUDRATE								; Set Transmission Rate
 	OUT		UBRRL, R16									; ^
-	LDI		R16, 0x00									; ^
+	LDI		R16, 0x00										; ^
 	OUT		UBRRH, R16									; ^
 
 	LDI		R16, 0x02									; Clear all Error Flags + Enable DoubleMode
@@ -157,7 +157,7 @@ ENABLE_MOTOR:
 
 	RJMP	MAIN										; Return
 
-	
+
 ; ________________________________________________________________________________________________
 ; >> SPEED VALUES TABLE:
 
