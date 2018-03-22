@@ -25,6 +25,17 @@
 	.DEF	TXREG		= R21
 	.DEF	MTSPD		= R22
 
+
+	; !!! Missing division by 2^14 for Accelerometer correction factor.
+
+	; !!! SKAL LOADE DATA IND R17 f.eks ind i R1...
+	.EQU	MPU6050_ACCEL_XOUT_H = 0x3B					; RegHAccXOUT
+	.EQU	MPU6050_ACCEL_XOUT_L = 0x3C					; RegLAccXOUT
+	.EQU	MPU6050_ACCEL_YOUT_H = 0x3D					; RegHAccYOUT
+	.EQU	MPU6050_ACCEL_YOUT_L = 0x3E					; RegLAccYOUT
+	.EQU	MPU6050_ACCEL_ZOUT_H = 0x3F					; RegHAccZOUT
+	.EQU	MPU6050_ACCEL_ZOUT_L = 0x40					; RegLAccZOUT
+
 ; ________________________________________________________________________________________________
 ; >> INITIALIZATION:
 
@@ -55,8 +66,8 @@ INIT:
 
 	; I2C Config
 
-	; ////
-	; ////
+	CALL	I2C_INIT									; Initialize I2C (TWI) module
+	CALL	I2C_SETUP									; Setup SLEEPMODEDEACT, GYROMODE, ACCMODE
 
 	; Init Port D
 
@@ -82,7 +93,7 @@ INIT:
 ; >> MAIN PROGRAM:
 
 MAIN:
-
+	
 	RCALL	SERIAL_READ									; Begin reading
 
 	CPI		RXREG, 0x00									; Enable motor if RXREG != 0
@@ -90,7 +101,26 @@ MAIN:
 
 	;RCALL	SERIAL_WRITE
 
+
+	; Start using I2C
+
+	; !!! Not sure if code is correct, some error loops are present.
+
+KEEP_ON_LOOPING:
+	CALL	I2C_RECORD_ACC_REGISTER						; Read data from Accelerometer register
+
+	CALL	I2C_START									; TRANSMIT START CONDITION
+	LDI		R27, 0b11010000								;
+	CALL	I2C_WRITE									; WRITE R27 TO I2C BUS
+	LDI		R27, 0B11110000								; DATA TO BE TRANSMITTED
+	CALL	I2C_WRITE									;
+	CALL	I2C_STOP									;
+
+HERE:
+	RJMP	HERE										; ???
+
 	RJMP	MAIN
+
 
 PARSE_TELEGRAM:
 
@@ -138,7 +168,7 @@ ENABLE_MOTOR_MAX:
 
 ENABLE_MOTOR:
 	LDI		R16, 0x6A									; Initialize Waveform Generator (Timer2) (0110_1010)
-	OUT		TCCR2, r16									; ^
+	OUT		TCCR2, R16									; ^
 
 	; !!! Would be good with some error catching of RXREG
 
@@ -160,6 +190,69 @@ ENABLE_MOTOR:
 	/* !!! Needs agreement on which registers to use as temporary registers and whether
 	       transmission registers are required. */
 
+I2C_SETUP:
+	CALL	I2C_START									;
+	LDI		R27, 0b11010000 							; WRITE TO ADRESSS ->  0b11010000
+	CALL	I2C_WRITE									;
+	LDI		R27, 0x6B									; ACCESSING REGISTER 6B, som er POWERMANAGEMENT.
+	CALL	I2C_WRITE									;
+	LDI		R27, 0x00000000 							; WRITE 0 INTO THE REGISTER, det er default, timer må ikke være tændt.
+	CALL	I2C_WRITE									;
+	CALL	I2C_STOP									;
+
+	CALL	I2C_START									;
+	LDI		R27, 0b11010000 							; WRITE TO ADRESSS ->  0b11010000
+	CALL	I2C_WRITE									;
+	LDI		R27, 0x1B									; ACCESSING REGISTER 6B, GYRO CONFIG
+	CALL	I2C_WRITE									;
+	LDI		R27, 0x00000000 							; WRITE 0 INTO THE REGISTER, det er default, timer må ikke være tændt.
+	CALL	I2C_WRITE									;
+	CALL	I2C_STOP									;
+
+	CALL	I2C_START									;
+	LDI		R27, 0b11010000								; WRITE TO ADRESSS ->  0b11010000
+	CALL	I2C_WRITE									;
+	LDI		R27, 0x1C									; ACCESSING REGISTER 6B, ACC CONFIG<
+	CALL	I2C_WRITE									;
+	LDI		R27, 0x00000000								; WRITE 0 INTO THE REGISTER, det er default, timer må ikke være tændt.
+	CALL	I2C_WRITE									;
+	CALL	I2C_STOP									;
+
+	RET													; Return
+
+I2C_RECORD_ACC_REGISTER:
+	CALL	I2C_START									;
+	LDI		R27, 0b11010000								; WRITE TO ADRESSS ->  0b11010000
+	CALL	I2C_WRITE									;
+	LDI		R27, MPU6050_ACCEL_XOUT_H					; ACCESSING REGISTER 6B, ACC CONFIG<
+	CALL	I2C_WRITE									;
+	CALL	I2C_READ									;
+	CALL	I2C_STOP									;
+
+	CALL	I2C_START									;
+	LDI		R27, 0b11010000								; WRITE TO ADRESSS ->  0b11010000
+	CALL	I2C_WRITE									;
+	LDI		R27, MPU6050_ACCEL_XOUT_L					; ACCESSING REGISTER 6B, ACC CONFIG<
+	CALL	I2C_WRITE									;	
+	CALL	I2C_READ									;
+	CALL	I2C_STOP	
+
+	RET													; Return
+
+
+I2C_INIT:
+	LDI		R21, 0										; Set prescaler bits to 0
+	OUT		TWSR, R21									; ^
+
+	LDI		R21, 0b00011000								; Set clock frequency (16 MHZ XTAL) to 0b00011000 (100kHZ)
+	OUT		TWBR, R21									; ^
+
+	LDI		R21, (1<<TWEN)								; Enable TWI module
+	OUT		TWCR, R21									; ^
+	
+	RET													; Return
+
+
 I2C_START:
 	LDI		R21, (1<<TWINT)|(1<<TWSTA)|(1<<TWEN)		; Transmit I2C start condition to TWCR
 	OUT		TWCR, R21									; ^
@@ -168,6 +261,13 @@ I2C_START_WAIT:
 	IN		R21, TWCR									; Read TWCR (control register) bit
 	SBRS	R21, TWINT									; Loop until TWINT is set
 	RJMP	I2C_START_WAIT								; ^
+
+	RET													; Return
+
+
+I2C_STOP:
+	LDI		R21, (1<<TWINT)|(1<<TWSTO)|(1<<TWEN)		; Transmit I2C stop condition to TWCR
+	OUT		TWCR, R21									; ^
 
 	RET													; Return
 
@@ -196,15 +296,6 @@ I2C_WRITE_WAIT:
 	IN		R21, TWCR									; Read TWCR (control register) bit
 	SBRS	R21, TWINT									; Loop until TWINT is set
 	RJMP	I2C_WRITE_WAIT								; ^
-
-	; !!! SOMETHING MISSING?!
-
-	RET													; Return
-
-
-I2C_STOP:
-	LDI		R21, (1<<TWINT)|(1<<TWSTO)|(1<<TWEN)		; Transmit I2C stop condition to TWCR
-	OUT		TWCR, R21									; ^
 
 	RET													; Return
 
