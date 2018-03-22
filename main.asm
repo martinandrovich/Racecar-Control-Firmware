@@ -7,23 +7,25 @@
 ; Author : Martin Androvich & Daniel Tofte Schøn
 ;
 
-; ________________________________________________
+; ________________________________________________________________________________________________
 ; >> RESET VECTOR:
 
 .ORG	0x00
 	RJMP	INIT
 
-; ________________________________________________
+; ________________________________________________________________________________________________
 ; >> DEFINITIONS
 
 .ORG	0x60
-	.EQU	BAUDRATE = 0xCF					; Baudrate settings for BAUDRATE of 9600
+	.EQU	BAUDRATE	= 0xCF							; Baudrate settings for BAUDRATE of 9600
 
-	.DEF	RXREG = R20
-	.DEF	TXREG = R21
-	.DEF	MTSPD = R22
+	.DEF	TEMPREG1	= R16
+	.DEF	TEMPREG2	= R17
+	.DEF	RXREG		= R20
+	.DEF	TXREG		= R21
+	.DEF	MTSPD		= R22
 
-; ________________________________________________
+; ________________________________________________________________________________________________
 ; >> INITIALIZATION:
 
 INIT:
@@ -37,49 +39,54 @@ INIT:
 
 	; USART Config
 
-	LDI		R16, BAUDRATE					; Set Transmission Rate
-	OUT		UBRRL, R16						; ^
-	LDI		R16, 0x00						; ^
-	OUT		UBRRH, R16						; ^
+	LDI		R16, BAUDRATE								; Set Transmission Rate
+	OUT		UBRRL, R16									; ^
+	LDI		R16, 0x00									; ^
+	OUT		UBRRH, R16									; ^
 
-	LDI		R16, 0x02						; Clear all Error Flags + Enable DoubleMode
-	OUT		UCSRA, R16						; ^
+	LDI		R16, 0x02									; Clear all Error Flags + Enable DoubleMode
+	OUT		UCSRA, R16									; ^
 
-	LDI		R16, (1<<RXEN) | (1<<TXEN)		; Enable Transmission & Reception
-	OUT		UCSRB, R16						; ^
+	LDI		R16, (1<<RXEN) | (1<<TXEN)					; Enable Transmission & Reception
+	OUT		UCSRB, R16									; ^
 
-	LDI		R16, (1<<URSEL) | (3<<UCSZ0)	; Set Frame Format (8, N, 1)
-	OUT		UCSRC, R16						; ^
+	LDI		R16, (1<<URSEL) | (3<<UCSZ0)				; Set Frame Format (8, N, 1)
+	OUT		UCSRC, R16									; ^
+
+	; I2C Config
+
+	; ////
+	; ////
 
 	; Init Port D
 
-	LDI		R16, 0xFF						; Set PORTD as Output
-	SBI		DDRD, PD7						; ^
+	LDI		R16, 0xFF									; Set PORTD as Output
+	SBI		DDRD, PD7									; ^
 
-	LDI		RXREG, 0x00						; Reset Reception Register
-	LDI		TXREG, 0x00						; Reset Transmission Register
+	LDI		RXREG, 0x00									; Reset Reception Register
+	LDI		TXREG, 0x00									; Reset Transmission Register
 
 	; Waveform Generator (Timer2)
 
-	LDI		R16, 0x00						; Reset Timer2
-	OUT		OCR2, R16						; ^
+	LDI		R16, 0x00									; Reset Timer2
+	OUT		OCR2, R16									; ^
 
 	; !!! Works, but needs further analysis.
 
-	LDI		R16, 0x6A						; Initialize Timer2 with 0110_1010
-	OUT		TCCR2, R16						; ^
+	LDI		R16, 0x6A									; Initialize Timer2 with 0110_1010
+	OUT		TCCR2, R16									; ^
 
-	RJMP	MAIN							; Goto MAIN
+	RJMP	MAIN										; Goto MAIN
 
-; ________________________________________________
+; ________________________________________________________________________________________________
 ; >> MAIN PROGRAM:
 
 MAIN:
 
-	RCALL	SERIAL_READ						; Begin reading
+	RCALL	SERIAL_READ									; Begin reading
 
-	CPI		RXREG, 0x00						; Enable motor if RXREG != 0
-	BRNE	ENABLE_MOTOR					; ^
+	CPI		RXREG, 0x00									; Enable motor if RXREG != 0
+	BRNE	ENABLE_MOTOR								; ^
 
 	;RCALL	SERIAL_WRITE
 
@@ -87,73 +94,122 @@ MAIN:
 
 PARSE_TELEGRAM:
 
-	CPI		RXREG, 0x00						; Enable motor if RXREG != 0
-	BRNE	ENABLE_MOTOR					; ^
+	CPI		RXREG, 0x00									; Enable motor if RXREG != 0
+	BRNE	ENABLE_MOTOR								; ^
 
-	RET										; Return
+	RET													; Return
 
 PARSE_TELEGRAM_TYPE:
-	NOP										; No code yet
-	RET										; Return
+	NOP													; No code yet
+	RET													; Return
 
 PARSE_TELEGRAM_COMMAND:
-	NOP										; No code yet
-	RET										; Return
+	NOP													; No code yet
+	RET													; Return
 
 PARSE_TELEGRAM_DATA:
-	NOP										; No code yet
-	RET										; Return
+	NOP													; No code yet
+	RET													; Return
 
 
 SERIAL_READ:
-	SBIS	UCSRA, RXC						; Wait for Recieve (RXC) flag
-	RJMP	SERIAL_READ						; ^
+	SBIS	UCSRA, RXC									; Wait for Recieve (RXC) flag
+	RJMP	SERIAL_READ									; ^
 
-	IN		RXREG, UDR						; Load data from serial to register
+	IN		RXREG, UDR									; Load data from serial to register
 
-	RET										; Return
+	RET													; Return
 
 
 SERIAL_WRITE:
-	SBIS	UCSRA, UDRE						; Wait for Empty Transmit Buffer (UDRE) flag
-	RJMP	SERIAL_WRITE					; ^
+	SBIS	UCSRA, UDRE									; Wait for Empty Transmit Buffer (UDRE) flag
+	RJMP	SERIAL_WRITE								; ^
 
 	LDI		R16, 0x35
-	OUT		UDR, R16						; Load data from register to serial
+	OUT		UDR, R16									; Load data from register to serial
 
-	RET										; Return
+	RET													; Return
 
 
 ENABLE_MOTOR_MAX:
-	SBI 	PORTD, PD7						; Enable BIT on PIN7 of PORTD
-	RJMP	MAIN							; Return
+	SBI 	PORTD, PD7									; Enable BIT on PIN7 of PORTD
+	RJMP	MAIN										; Return
 
 
 ENABLE_MOTOR:
-	LDI		R16, 0x6A						; Initialize Waveform Generator (Timer2) (0110_1010)
-	OUT		TCCR2, r16						; ^
+	LDI		R16, 0x6A									; Initialize Waveform Generator (Timer2) (0110_1010)
+	OUT		TCCR2, r16									; ^
 
 	; !!! Would be good with some error catching of RXREG
 
-	LDI		ZH, HIGH(DUTY_CYCLES*2)			; Initialize Address Pointer
-	LDI 	ZL, LOW(DUTY_CYCLES*2)			; ^
+	LDI		ZH, HIGH(DUTY_CYCLES*2)						; Initialize Address Pointer
+	LDI 	ZL, LOW(DUTY_CYCLES*2)						; ^
 
-	ADD		ZL, RXREG						; Set pointer to RXREG value
-	LPM		MTSPD, Z						; Load the matching duty cycle
+	ADD		ZL, RXREG									; Set pointer to RXREG value
+	LPM		MTSPD, Z									; Load the matching duty cycle
 
-	OUT		OCR2, MTSPD						; Set Duty Cycle (0-255)
+	OUT		OCR2, MTSPD									; Set Duty Cycle (0-255)
 
-	RJMP	MAIN							; Return
+	RJMP	MAIN										; Return
 
 
 
-; ________________________________________________
+; ________________________________________________________________________________________________
 ; >> I2C MODULE:
 
+	/* !!! Needs agreement on which registers to use as temporary registers and whether
+	       transmission registers are required. */
+
+I2C_START:
+	LDI		R21, (1<<TWINT)|(1<<TWSTA)|(1<<TWEN)		; Transmit I2C start condition to TWCR
+	OUT		TWCR, R21									; ^
+
+I2C_START_WAIT:
+	IN		R21, TWCR									; Read TWCR (control register) bit
+	SBRS	R21, TWINT									; Loop until TWINT is set
+	RJMP	I2C_START_WAIT								; ^
+
+	RET													; Return
 
 
+I2C_READ:
+	LDI		R21, (1<<TWINT)|(1<<TWEN)
+	OUT		TWCR, R21
 
-; ________________________________________________
+I2C_READ_WAIT:
+	IN		R21, TWCR									; Read TWCR (control register) bit
+	SBRS	R21, TWINT									; Loop until TWINT is set
+	RJMP	I2C_READ_WAIT								; ^
+
+	IN		R27, TWDR									; Read recieved data into register
+
+	RET													; Return
+
+
+I2C_WRITE:
+	OUT		TWDR, R27									; Load the byte to write into TWDR
+
+	LDI		R21, (1<<TWINT)|(1<<TWEN)					; Configure TWCR to send TWDR
+	OUT		TWCR, R21									; ^
+
+I2C_WRITE_WAIT:
+	IN		R21, TWCR									; Read TWCR (control register) bit
+	SBRS	R21, TWINT									; Loop until TWINT is set
+	RJMP	I2C_WRITE_WAIT								; ^
+
+	; !!! SOMETHING MISSING?!
+
+	RET													; Return
+
+
+I2C_STOP:
+	LDI		R21, (1<<TWINT)|(1<<TWSTO)|(1<<TWEN)		; Transmit I2C stop condition to TWCR
+	OUT		TWCR, R21									; ^
+
+	RET													; Return
+
+
+; ________________________________________________________________________________________________
 ; >> SPEED VALUES TABLE:
 
 	; !!! Should be moved to EEPROM
