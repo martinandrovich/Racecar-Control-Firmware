@@ -87,6 +87,32 @@ MAIN:
 
 	RJMP	MAIN
 
+
+; ________________________________________________________________________________________________
+; >> SERIAL COMMUNICATION MODULE:
+
+SERIAL_READ:
+	SBIS	UCSRA, RXC									; Wait for Recieve (RXC) flag
+	RJMP	SERIAL_READ									; ^
+
+	IN		RXREG, UDR									; Load data from serial to register
+
+	RET													; Return
+
+
+SERIAL_WRITE:
+	SBIS	UCSRA, UDRE									; Wait for Empty Transmit Buffer (UDRE) flag
+	RJMP	SERIAL_WRITE								; ^
+
+	LDI		R16, 0x35
+	OUT		UDR, R16									; Load data from register to serial
+
+	RET													; Return
+
+
+; ________________________________________________________________________________________________
+; >> COMMUNICATION PROTOCOL MODULE:
+
 PARSE_TELEGRAM:
 
 	CPI		RXREG, 0x00									; Enable motor if RXREG != 0
@@ -107,24 +133,8 @@ PARSE_TELEGRAM_DATA:
 	RET													; Return
 
 
-SERIAL_READ:
-	SBIS	UCSRA, RXC									; Wait for Recieve (RXC) flag
-	RJMP	SERIAL_READ									; ^
-
-	IN		RXREG, UDR									; Load data from serial to register
-
-	RET													; Return
-
-
-SERIAL_WRITE:
-	SBIS	UCSRA, UDRE									; Wait for Empty Transmit Buffer (UDRE) flag
-	RJMP	SERIAL_WRITE								; ^
-
-	LDI		R16, 0x35
-	OUT		UDR, R16									; Load data from register to serial
-
-	RET													; Return
-
+; ________________________________________________________________________________________________
+; >> MOTOR CONTROL MODULE:
 
 ENABLE_MOTOR_MAX:
 	SBI 	PORTD, PD7									; Enable BIT on PIN7 of PORTD
@@ -147,9 +157,8 @@ ENABLE_MOTOR:
 
 	RJMP	MAIN										; Return
 
-
-
-; ________________________________________________
+	
+; ________________________________________________________________________________________________
 ; >> SPEED VALUES TABLE:
 
 	; !!! Should be moved to EEPROM

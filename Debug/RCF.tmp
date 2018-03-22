@@ -22,16 +22,16 @@
   <FILE>RCF.lss</FILE>
  </OUTPUT_FILES>
  <LABELS>
-  <INIT><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm</FILE><LINE>29</LINE></INIT>
-  <MAIN><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm</FILE><LINE>77</LINE></MAIN>
-  <SERIAL_READ><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm</FILE><LINE>108</LINE></SERIAL_READ>
-  <ENABLE_MOTOR><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm</FILE><LINE>132</LINE></ENABLE_MOTOR>
-  <PARSE_TELEGRAM><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm</FILE><LINE>88</LINE></PARSE_TELEGRAM>
-  <PARSE_TELEGRAM_TYPE><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm</FILE><LINE>95</LINE></PARSE_TELEGRAM_TYPE>
-  <PARSE_TELEGRAM_COMMAND><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm</FILE><LINE>99</LINE></PARSE_TELEGRAM_COMMAND>
-  <PARSE_TELEGRAM_DATA><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm</FILE><LINE>103</LINE></PARSE_TELEGRAM_DATA>
-  <SERIAL_WRITE><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm</FILE><LINE>117</LINE></SERIAL_WRITE>
-  <ENABLE_MOTOR_MAX><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm</FILE><LINE>127</LINE></ENABLE_MOTOR_MAX>
-  <DUTY_CYCLES><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm</FILE><LINE>154</LINE></DUTY_CYCLES>
+  <INIT><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm</FILE><LINE>31</LINE></INIT>
+  <MAIN><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm</FILE><LINE>79</LINE></MAIN>
+  <SERIAL_READ><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm</FILE><LINE>94</LINE></SERIAL_READ>
+  <ENABLE_MOTOR><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm</FILE><LINE>144</LINE></ENABLE_MOTOR>
+  <SERIAL_WRITE><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm</FILE><LINE>103</LINE></SERIAL_WRITE>
+  <PARSE_TELEGRAM><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm</FILE><LINE>116</LINE></PARSE_TELEGRAM>
+  <PARSE_TELEGRAM_TYPE><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm</FILE><LINE>123</LINE></PARSE_TELEGRAM_TYPE>
+  <PARSE_TELEGRAM_COMMAND><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm</FILE><LINE>127</LINE></PARSE_TELEGRAM_COMMAND>
+  <PARSE_TELEGRAM_DATA><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm</FILE><LINE>131</LINE></PARSE_TELEGRAM_DATA>
+  <ENABLE_MOTOR_MAX><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm</FILE><LINE>139</LINE></ENABLE_MOTOR_MAX>
+  <DUTY_CYCLES><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm</FILE><LINE>166</LINE></DUTY_CYCLES>
  </LABELS>
 </ASSEMBLER_INFO>
