@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.7  C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm Thu Mar 22 03:12:24 2018
+AVRASM ver. 2.2.7  C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm Sat Mar 24 12:56:52 2018
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.150\avrasm\inc\m32def.inc'
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.150\avrasm\inc\m32def.inc'
@@ -825,7 +825,7 @@ AVRASM ver. 2.2.7  C:\Users\Martin Androvich\Desktop\Personal Files\Education\Ro
                                  ; RCF.asm
                                  ;
                                  ; Created: 08-03-2018 21:13:20
-                                 ; Author : Martin Androvich & Daniel Tofte Schøn
+                                 ; Author : Martin Androvich & Daniel Tofte Schï¿½n
                                  ;
                                  
                                  ; ________________________________________________________________________________________________
@@ -840,16 +840,24 @@ AVRASM ver. 2.2.7  C:\Users\Martin Androvich\Desktop\Personal Files\Education\Ro
                                  .ORG	0x60
                                  	.EQU	BAUDRATE	= 0xCF							; Baudrate settings for BAUDRATE of 9600
                                  
-                                 	.DEF	TEMPREG1	= R16
-                                 	.DEF	TEMPREG2	= R17
-                                 	.DEF	RXREG		= R20
-                                 	.DEF	TXREG		= R21
-                                 	.DEF	MTSPD		= R22
+                                 	.EQU	BOOL1		= 0x01							; Boolean #1
+                                 	.EQU	BOOL2		= 0x02							; Boolean #1
+                                 	.EQU	BOOL3		= 0x04							; Boolean #1
+                                 
+                                 	.DEF	TEMP1		= R16							; Temporary Register #1
+                                 	.DEF	TEMP2		= R17							; Temporary Register #2
+                                 	.DEF	BOOLS		= R18							; Variable Booleans Register
+                                 
+                                 	.DEF	RXREG		= R20							; USART Reception Register
+                                 	.DEF	TXREG		= R21							; USART Transmission Register
+                                 	.DEF	MTSPD		= R22							; Motor speed (duty cycle)
                                  
                                  ; ________________________________________________________________________________________________
                                  ; >> INITIALIZATION:
                                  
                                  INIT:
+                                 
+                                 	; !!! Need to use the allocated temporary register instead of direct registers.
                                  
                                  	; Stack Pointer
                                  
@@ -874,59 +882,59 @@ AVRASM ver. 2.2.7  C:\Users\Martin Androvich\Desktop\Personal Files\Education\Ro
 00006c e806                      	LDI		R16, (1<<URSEL) | (3<<UCSZ0)				; Set Frame Format (8, N, 1)
 00006d bd00                      	OUT		UCSRC, R16									; ^
                                  
-                                 	; Init Port D
+00006e e040                      	LDI		RXREG, 0x00									; Reset Reception Register
+00006f e050                      	LDI		TXREG, 0x00									; Reset Transmission Register
                                  
-00006e ef0f                      	LDI		R16, 0xFF									; Set PORTD as Output
-00006f 9a8f                      	SBI		DDRD, PD7									; ^
-                                 
-000070 e040                      	LDI		RXREG, 0x00									; Reset Reception Register
-000071 e050                      	LDI		TXREG, 0x00									; Reset Transmission Register
+                                 	; Port D
+                                 	
+000070 9a8f                      	SBI		DDRD, PD7									; Set PIN7 on PORTD as Output
                                  
                                  	; Waveform Generator (Timer2)
                                  
-000072 e000                      	LDI		R16, 0x00									; Reset Timer2
-000073 bd03                      	OUT		OCR2, R16									; ^
+000071 e000                      	LDI		R16, 0x00									; Reset Timer2
+000072 bd03                      	OUT		OCR2, R16									; ^
                                  
                                  	; !!! Works, but needs further analysis.
                                  
-000074 e60a                      	LDI		R16, 0x6A									; Initialize Timer2 with 0110_1010
-000075 bd05                      	OUT		TCCR2, R16									; ^
+000073 e60a                      	LDI		R16, 0x6A									; Initialize Timer2 with 0110_1010
+000074 bd05                      	OUT		TCCR2, R16									; ^
                                  
-000076 c000                      	RJMP	MAIN										; Goto MAIN
+000075 c000                      	RJMP	MAIN										; Goto MAIN
                                  
                                  ; ________________________________________________________________________________________________
                                  ; >> MAIN PROGRAM:
                                  
                                  MAIN:
                                  
-000077 d003                      	RCALL	SERIAL_READ									; Begin reading
+                                 	;RCALL	SERIAL_READ									; Begin reading
                                  
-000078 3040                      	CPI		RXREG, 0x00									; Enable motor if RXREG != 0
-000079 f4a9                      	BRNE	ENABLE_MOTOR								; ^
+000076 3040                      	CPI		RXREG, 0x00									; Enable motor if RXREG != 0
+000077 f4b9                      	BRNE	ENABLE_MOTOR								; ^
                                  
-                                 	;RCALL	SERIAL_WRITE
+000078 d005                      	RCALL	SERIAL_WRITE
                                  
-00007a cffc                      	RJMP	MAIN
+000079 cffc                      	RJMP	MAIN
                                  
                                  
                                  ; ________________________________________________________________________________________________
                                  ; >> SERIAL COMMUNICATION MODULE:
                                  
                                  SERIAL_READ:
-00007b 9b5f                      	SBIS	UCSRA, RXC									; Wait for Recieve (RXC) flag
-00007c cffe                      	RJMP	SERIAL_READ									; ^
+00007a 9b5f                      	SBIS	UCSRA, RXC									; Wait for Recieve (RXC) flag
+00007b cffe                      	RJMP	SERIAL_READ									; ^
                                  
-00007d b14c                      	IN		RXREG, UDR									; Load data from serial to register
+00007c b14c                      	IN		RXREG, UDR									; Load data from serial to register
                                  
-00007e 9508                      	RET													; Return
+00007d 9508                      	RET													; Return
                                  
                                  
                                  SERIAL_WRITE:
-00007f 9b5d                      	SBIS	UCSRA, UDRE									; Wait for Empty Transmit Buffer (UDRE) flag
-000080 cffe                      	RJMP	SERIAL_WRITE								; ^
+00007e 9b5d                      	SBIS	UCSRA, UDRE									; Wait for Empty Transmit Buffer (UDRE) flag
+00007f cffe                      	RJMP	SERIAL_WRITE								; ^
                                  
-000081 e305                      	LDI		R16, 0x35
-000082 b90c                      	OUT		UDR, R16									; Load data from register to serial
+000080 e355                      	LDI		TXREG, 0x35									; Load 0x35 into transmission register
+000081 0000                      	NOP
+000082 b95c                      	OUT		UDR, TXREG									; Load transmission data from register to serial
                                  
 000083 9508                      	RET													; Return
                                  
@@ -959,7 +967,7 @@ AVRASM ver. 2.2.7  C:\Users\Martin Androvich\Desktop\Personal Files\Education\Ro
                                  
                                  ENABLE_MOTOR_MAX:
 00008d 9a97                      	SBI 	PORTD, PD7									; Enable BIT on PIN7 of PORTD
-00008e cfe8                      	RJMP	MAIN										; Return
+00008e cfe7                      	RJMP	MAIN										; Return
                                  
                                  
                                  ENABLE_MOTOR:
@@ -976,9 +984,9 @@ AVRASM ver. 2.2.7  C:\Users\Martin Androvich\Desktop\Personal Files\Education\Ro
                                  
 000095 bd63                      	OUT		OCR2, MTSPD									; Set Duty Cycle (0-255)
                                  
-000096 cfe0                      	RJMP	MAIN										; Return
+000096 cfdf                      	RJMP	MAIN										; Return
                                  
-                                 	
+                                 
                                  ; ________________________________________________________________________________________________
                                  ; >> SPEED VALUES TABLE:
                                  
@@ -1055,8 +1063,8 @@ counted separately from r26..r31 here.
 "ATmega32" register use summary:
 x  :   0 y  :   0 z  :   1 r0 :   0 r1 :   0 r2 :   0 r3 :   0 r4 :   0 
 r5 :   0 r6 :   0 r7 :   0 r8 :   0 r9 :   0 r10:   0 r11:   0 r12:   0 
-r13:   0 r14:   0 r15:   0 r16:  23 r17:   0 r18:   0 r19:   0 r20:   5 
-r21:   1 r22:   2 r23:   0 r24:   0 r25:   0 r26:   0 r27:   0 r28:   0 
+r13:   0 r14:   0 r15:   0 r16:  20 r17:   0 r18:   0 r19:   0 r20:   5 
+r21:   3 r22:   2 r23:   0 r24:   0 r25:   0 r26:   0 r27:   0 r28:   0 
 r29:   0 r30:   2 r31:   1 
 Registers used: 7 out of 35 (20.0%)
 
@@ -1071,9 +1079,9 @@ clc   :   0 clh   :   0 cli   :   0 cln   :   0 clr   :   0 cls   :   0
 clt   :   0 clv   :   0 clz   :   0 com   :   0 cp    :   0 cpc   :   0 
 cpi   :   2 cpse  :   0 dec   :   0 eor   :   0 fmul  :   0 fmuls :   0 
 fmulsu:   0 icall :   0 ijmp  :   0 in    :   1 inc   :   0 jmp   :   0 
-ld    :   0 ldd   :   0 ldi   :  16 lds   :   0 lpm   :   2 lsl   :   0 
+ld    :   0 ldd   :   0 ldi   :  15 lds   :   0 lpm   :   2 lsl   :   0 
 lsr   :   0 mov   :   0 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
-neg   :   0 nop   :   3 or    :   0 ori   :   0 out   :  12 pop   :   0 
+neg   :   0 nop   :   4 or    :   0 ori   :   0 out   :  12 pop   :   0 
 push  :   0 rcall :   1 ret   :   6 reti  :   0 rjmp  :   7 rol   :   0 
 ror   :   0 sbc   :   0 sbci  :   0 sbi   :   2 sbic  :   0 sbis  :   2 
 sbiw  :   0 sbr   :   0 sbrc  :   0 sbrs  :   0 sec   :   0 seh   :   0 

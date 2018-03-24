@@ -19,16 +19,24 @@
 .ORG	0x60
 	.EQU	BAUDRATE	= 0xCF							; Baudrate settings for BAUDRATE of 9600
 
-	.DEF	TEMPREG1	= R16
-	.DEF	TEMPREG2	= R17
-	.DEF	RXREG		= R20
-	.DEF	TXREG		= R21
-	.DEF	MTSPD		= R22
+	.EQU	BOOL1		= 0x01							; Boolean #1
+	.EQU	BOOL2		= 0x02							; Boolean #1
+	.EQU	BOOL3		= 0x04							; Boolean #1
+
+	.DEF	TEMP1		= R16							; Temporary Register #1
+	.DEF	TEMP2		= R17							; Temporary Register #2
+	.DEF	BOOLS		= R18							; Variable Booleans Register
+
+	.DEF	RXREG		= R20							; USART Reception Register
+	.DEF	TXREG		= R21							; USART Transmission Register
+	.DEF	MTSPD		= R22							; Motor speed (duty cycle)
 
 ; ________________________________________________________________________________________________
 ; >> INITIALIZATION:
 
 INIT:
+
+	; !!! Need to use the allocated temporary register instead of direct registers.
 
 	; Stack Pointer
 
@@ -41,7 +49,7 @@ INIT:
 
 	LDI		R16, BAUDRATE								; Set Transmission Rate
 	OUT		UBRRL, R16									; ^
-	LDI		R16, 0x00										; ^
+	LDI		R16, 0x00									; ^
 	OUT		UBRRH, R16									; ^
 
 	LDI		R16, 0x02									; Clear all Error Flags + Enable DoubleMode
@@ -53,13 +61,12 @@ INIT:
 	LDI		R16, (1<<URSEL) | (3<<UCSZ0)				; Set Frame Format (8, N, 1)
 	OUT		UCSRC, R16									; ^
 
-	; Init Port D
-
-	LDI		R16, 0xFF									; Set PORTD as Output
-	SBI		DDRD, PD7									; ^
-
 	LDI		RXREG, 0x00									; Reset Reception Register
 	LDI		TXREG, 0x00									; Reset Transmission Register
+
+	; Port D
+	
+	SBI		DDRD, PD7									; Set PIN7 on PORTD as Output
 
 	; Waveform Generator (Timer2)
 
@@ -78,12 +85,12 @@ INIT:
 
 MAIN:
 
-	RCALL	SERIAL_READ									; Begin reading
+	;RCALL	SERIAL_READ									; Begin reading
 
 	CPI		RXREG, 0x00									; Enable motor if RXREG != 0
 	BRNE	ENABLE_MOTOR								; ^
 
-	;RCALL	SERIAL_WRITE
+	RCALL	SERIAL_WRITE
 
 	RJMP	MAIN
 
@@ -104,8 +111,9 @@ SERIAL_WRITE:
 	SBIS	UCSRA, UDRE									; Wait for Empty Transmit Buffer (UDRE) flag
 	RJMP	SERIAL_WRITE								; ^
 
-	LDI		R16, 0x35
-	OUT		UDR, R16									; Load data from register to serial
+	LDI		TXREG, 0x35									; Load 0x35 into transmission register
+	NOP
+	OUT		UDR, TXREG									; Load transmission data from register to serial
 
 	RET													; Return
 
