@@ -13,14 +13,8 @@
 .ORG	0x00
 	RJMP	INIT
 
-.ORG 	0x02				;INT0 - PD2
-RJMP	TACHO_ISR
-
-.ORG	0x04				;INT1 - PD3
-RJMP	TURN_ISR
-
-.ORG	0x06				;INT2 - PB2
-RJMP	GOALDETECT_ISR
+.ORG 	0x02				; INT0 Interrupt (PD2)
+	JMP		INT0_ISR
 
 ; ________________________________________________________________________________________________
 ; >> DEFINITIONS
@@ -74,25 +68,20 @@ INIT:
 	LDI		RXREG, 0x00									; Reset Reception Register
 	LDI		TXREG, 0x00									; Reset Transmission Register
 
-	; Port D
+	; Port setup
 
 	SBI		DDRD, PD7									; Set PIN7 on PORTD as Output
+	SBI		PORTD, PD2									; Set PIN2 on PORTD as Pullup Input
 
 	; Interrupt setup
 
-	LDI		R16, (1<<ISC01) | (1<<ISC00)				; INT0 = rising edge triggered (Tachometer)
+	LDI		R16, (1<<ISC01) | (1<<ISC00)				; Set INT0 to rising edge
 	OUT		MCUCR, R16									; ^
 
-	LDI 	R16, (0<<ISC11) | (1<<ISC10)				; INT1 = logical shift triggered (Turnometer)
-	OUT 	MCUCR, R16									; ^
-
-	LDI 	R16, (1<<ISC2)								; INT2 = rising edge triggered (Goaldetection)
-	OUT 	MCUCSR, R16									; ^
-
-	LDI 	R16, (1<<INT0) | (1<<INT1) | (1<<INT2)		; Enables external interrupts
+	LDI 	R16, (1<<INT0)								; Enable external interrupts
 	OUT 	GICR, R16									; ^
 
-	SEI
+	SEI													; Set global interrupt flag
 
 	; Waveform Generator (Timer2)
 
@@ -116,22 +105,20 @@ MAIN:
 	CPI		RXREG, 0x00									; Enable motor if RXREG != 0
 	BRNE	ENABLE_MOTOR								; ^
 
-	RCALL	SERIAL_WRITE
-
-	RJMP	MAIN
+	RJMP	MAIN										; Loop forever
 
 
 ; ________________________________________________________________________________________________
 ; >> INTERRUPTS:
 
-	;SUBROUTINES
-TACHO_ISR:
+INT0_ISR:
+	LDI		TXREG, 0x35									; Load 0x35 into transmission register
+	RCALL	SERIAL_WRITE
 
-	INC
 	RETI
 
 
-TURN_ISR:
+/*TURN_ISR:
 
 	CALL	 SERIAL_WRITE
 
@@ -140,9 +127,10 @@ TURN_ISR:
 
 GOALDETECT_ISR:
 
-	CALL SERIAL_WRITE
+	LDI		TXREG, 0x35									; Load 0x35 into transmission register
+	RCALL	SERIAL_WRITE								; Write
 
-	RETI
+	RETI*/
 
 
 
@@ -162,8 +150,6 @@ SERIAL_WRITE:
 	SBIS	UCSRA, UDRE									; Wait for Empty Transmit Buffer (UDRE) flag
 	RJMP	SERIAL_WRITE								; ^
 
-	LDI		TXREG, 0x35									; Load 0x35 into transmission register
-	NOP
 	OUT		UDR, TXREG									; Load transmission data from register to serial
 
 	RET													; Return
