@@ -68,6 +68,10 @@ INIT:
 	
 	SBI		DDRD, PD7									; Set PIN7 on PORTD as Output
 
+	; Interrupts
+
+	//
+
 	; Waveform Generator (Timer2)
 
 	LDI		R16, 0x00									; Reset Timer2
@@ -93,6 +97,12 @@ MAIN:
 	RCALL	SERIAL_WRITE
 
 	RJMP	MAIN
+
+	
+; ________________________________________________________________________________________________
+; >> INTERRUPTS:
+
+	; !!! Code here.
 
 
 ; ________________________________________________________________________________________________
