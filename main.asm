@@ -13,6 +13,15 @@
 .ORG	0x00
 	RJMP	INIT
 
+.ORG 	0x02				;INT0 - PD2
+RJMP	TACHO_ISR
+
+.ORG	0x04				;INT1 - PD3
+RJMP	TURN_ISR
+
+.ORG	0x06				;INT2 - PB2
+RJMP	GOALDETECT_ISR
+
 ; ________________________________________________________________________________________________
 ; >> DEFINITIONS
 
@@ -30,6 +39,7 @@
 	.DEF	RXREG		= R20							; USART Reception Register
 	.DEF	TXREG		= R21							; USART Transmission Register
 	.DEF	MTSPD		= R22							; Motor speed (duty cycle)
+	.DEF	MTCNT		= R23							; Motor rotation counter
 
 ; ________________________________________________________________________________________________
 ; >> INITIALIZATION:
@@ -65,12 +75,24 @@ INIT:
 	LDI		TXREG, 0x00									; Reset Transmission Register
 
 	; Port D
-	
+
 	SBI		DDRD, PD7									; Set PIN7 on PORTD as Output
 
-	; Interrupts
+	; Interrupt setup
 
-	//
+	LDI		R16, (1<<ISC01) | (1<<ISC00)				; INT0 = rising edge triggered (Tachometer)
+	OUT		MCUCR, R16									; ^
+
+	LDI 	R16, (0<<ISC11) | (1<<ISC10)				; INT1 = logical shift triggered (Turnometer)
+	OUT 	MCUCR, R16									; ^
+
+	LDI 	R16, (1<<ISC2)								; INT2 = rising edge triggered (Goaldetection)
+	OUT 	MCUCSR, R16									; ^
+
+	LDI 	R16, (1<<INT0) | (1<<INT1) | (1<<INT2)		; Enables external interrupts
+	OUT 	GICR, R16									; ^
+
+	SEI
 
 	; Waveform Generator (Timer2)
 
@@ -98,11 +120,30 @@ MAIN:
 
 	RJMP	MAIN
 
-	
+
 ; ________________________________________________________________________________________________
 ; >> INTERRUPTS:
 
-	; !!! Code here.
+	;SUBROUTINES
+TACHO_ISR:
+
+	INC
+	RETI
+
+
+TURN_ISR:
+
+	CALL	 SERIAL_WRITE
+
+	RETI
+
+
+GOALDETECT_ISR:
+
+	CALL SERIAL_WRITE
+
+	RETI
+
 
 
 ; ________________________________________________________________________________________________
