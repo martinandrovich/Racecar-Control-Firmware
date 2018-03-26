@@ -100,7 +100,7 @@ INIT:
 
 MAIN:
 
-	;RCALL	SERIAL_READ									; Begin reading
+	RCALL	SERIAL_READ									; Begin reading
 
 	CPI		RXREG, 0x00									; Enable motor if RXREG != 0
 	BRNE	ENABLE_MOTOR								; ^
@@ -113,9 +113,9 @@ MAIN:
 
 INT0_ISR:
 	LDI		TXREG, 0x35									; Load 0x35 into transmission register
-	RCALL	SERIAL_WRITE
+	RCALL	SERIAL_WRITE								; Write to USART
 
-	RETI
+	RETI												; Return
 
 
 /*TURN_ISR:
