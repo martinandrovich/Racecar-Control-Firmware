@@ -19,7 +19,6 @@
 ; ________________________________________________________________________________________________
 ; >> DEFINITIONS
 
-.ORG	0x60
 	.EQU	BAUDRATE	= 0xCF							; Baudrate settings for BAUDRATE of 9600
 
 	.EQU	BOOL1		= 0x01							; Boolean #1
@@ -38,6 +37,7 @@
 ; ________________________________________________________________________________________________
 ; >> INITIALIZATION:
 
+.ORG	0x28
 INIT:
 
 	; Stack Pointer
@@ -49,7 +49,7 @@ INIT:
 
 	; USART Config
 
-	LDI		TEMP1, BAUDRATE								; Set Transmission Rate
+	LDI		TEMP1, 0xCF									; Set Transmission Rate
 	OUT		UBRRL, TEMP1								; ^
 	LDI		TEMP1, 0x00									; ^
 	OUT		UBRRH, TEMP1								; ^
