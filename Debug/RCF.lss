@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.7  C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm Sun Mar 25 21:18:14 2018
+AVRASM ver. 2.2.7  C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm Tue Mar 27 13:44:40 2018
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.150\avrasm\inc\m32def.inc'
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.150\avrasm\inc\m32def.inc'
@@ -829,13 +829,13 @@ AVRASM ver. 2.2.7  C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm Sun
                                  ;
                                  
                                  ; ________________________________________________________________________________________________
-                                 ; >> RESET VECTOR:
+                                 ; >> VECTORS:
                                  
-                                 .ORG	0x00
-000000 c05f                      	RJMP	INIT
+                                 .ORG	0x00											; Reset Vector
+000000 c05f                      	RJMP	INIT										; ^
                                  
-                                 .ORG 	0x02				; INT0 Interrupt (PD2)
-000002 940c 0080                 	JMP		INT0_ISR
+                                 .ORG 	0x02											; INT0 Interrupt (PD2) Vector
+000002 940c 0080                 	JMP		INT0_ISR									; ^
                                  
                                  ; ________________________________________________________________________________________________
                                  ; >> DEFINITIONS
@@ -861,30 +861,28 @@ AVRASM ver. 2.2.7  C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm Sun
                                  
                                  INIT:
                                  
-                                 	; !!! Need to use the allocated temporary register instead of direct registers.
-                                 
                                  	; Stack Pointer
                                  
-000060 e008                      	LDI 	R16, HIGH(RAMEND)
-000061 bf0e                      	OUT 	SPH, R16
-000062 e50f                      	LDI 	R16, LOW(RAMEND)
-000063 bf0d                      	OUT 	SPL, R16
+000060 e008                      	LDI 	TEMP1, HIGH(RAMEND)
+000061 bf0e                      	OUT 	SPH, TEMP1
+000062 e50f                      	LDI 	TEMP1, LOW(RAMEND)
+000063 bf0d                      	OUT 	SPL, TEMP1
                                  
                                  	; USART Config
                                  
-000064 ec0f                      	LDI		R16, BAUDRATE								; Set Transmission Rate
-000065 b909                      	OUT		UBRRL, R16									; ^
-000066 e000                      	LDI		R16, 0x00									; ^
-000067 bd00                      	OUT		UBRRH, R16									; ^
+000064 ec0f                      	LDI		TEMP1, BAUDRATE								; Set Transmission Rate
+000065 b909                      	OUT		UBRRL, TEMP1								; ^
+000066 e000                      	LDI		TEMP1, 0x00									; ^
+000067 bd00                      	OUT		UBRRH, TEMP1								; ^
                                  
-000068 e002                      	LDI		R16, 0x02									; Clear all Error Flags + Enable DoubleMode
-000069 b90b                      	OUT		UCSRA, R16									; ^
+000068 e002                      	LDI		TEMP1, 0x02									; Clear all Error Flags + Enable DoubleMode
+000069 b90b                      	OUT		UCSRA, TEMP1								; ^
                                  
-00006a e108                      	LDI		R16, (1<<RXEN) | (1<<TXEN)					; Enable Transmission & Reception
-00006b b90a                      	OUT		UCSRB, R16									; ^
+00006a e108                      	LDI		TEMP1, (1<<RXEN) | (1<<TXEN)				; Enable Transmission & Reception
+00006b b90a                      	OUT		UCSRB, TEMP1								; ^
                                  
-00006c e806                      	LDI		R16, (1<<URSEL) | (3<<UCSZ0)				; Set Frame Format (8, N, 1)
-00006d bd00                      	OUT		UCSRC, R16									; ^
+00006c e806                      	LDI		TEMP1, (1<<URSEL) | (3<<UCSZ0)				; Set Frame Format (8, N, 1)
+00006d bd00                      	OUT		UCSRC, TEMP1								; ^
                                  
 00006e e040                      	LDI		RXREG, 0x00									; Reset Reception Register
 00006f e050                      	LDI		TXREG, 0x00									; Reset Transmission Register
@@ -896,23 +894,23 @@ AVRASM ver. 2.2.7  C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm Sun
                                  
                                  	; Interrupt setup
                                  
-000072 e003                      	LDI		R16, (1<<ISC01) | (1<<ISC00)				; Set INT0 to rising edge
-000073 bf05                      	OUT		MCUCR, R16									; ^
+000072 e003                      	LDI		TEMP1, (1<<ISC01) | (1<<ISC00)				; Set INT0 to rising edge
+000073 bf05                      	OUT		MCUCR, TEMP1								; ^
                                  
-000074 e400                      	LDI 	R16, (1<<INT0)								; Enable external interrupts
-000075 bf0b                      	OUT 	GICR, R16									; ^
+000074 e400                      	LDI 	TEMP1, (1<<INT0)							; Enable external interrupts
+000075 bf0b                      	OUT 	GICR, TEMP1									; ^
                                  
 000076 9478                      	SEI													; Set global interrupt flag
                                  
                                  	; Waveform Generator (Timer2)
                                  
-000077 e000                      	LDI		R16, 0x00									; Reset Timer2
-000078 bd03                      	OUT		OCR2, R16									; ^
+000077 e000                      	LDI		TEMP1, 0x00									; Reset Timer2
+000078 bd03                      	OUT		OCR2, TEMP1									; ^
                                  
                                  	; !!! Works, but needs further analysis.
                                  
-000079 e60a                      	LDI		R16, 0x6A									; Initialize Timer2 with 0110_1010
-00007a bd05                      	OUT		TCCR2, R16									; ^
+000079 e60a                      	LDI		TEMP1, 0x6A									; Initialize Timer2 with 0110_1010
+00007a bd05                      	OUT		TCCR2, TEMP1								; ^
                                  
 00007b c000                      	RJMP	MAIN										; Goto MAIN
                                  
@@ -934,9 +932,9 @@ AVRASM ver. 2.2.7  C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm Sun
                                  
                                  INT0_ISR:
 000080 e355                      	LDI		TXREG, 0x35									; Load 0x35 into transmission register
-000081 d005                      	RCALL	SERIAL_WRITE
+000081 d005                      	RCALL	SERIAL_WRITE								; Write to USART
                                  
-000082 9518                      	RETI
+000082 9518                      	RETI												; Return
                                  
                                  
                                  /*TURN_ISR:
@@ -1008,8 +1006,8 @@ AVRASM ver. 2.2.7  C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm Sun
                                  
                                  
                                  ENABLE_MOTOR:
-000096 e60a                      	LDI		R16, 0x6A									; Initialize Waveform Generator (Timer2) (0110_1010)
-000097 bd05                      	OUT		TCCR2, R16									; ^
+000096 e60a                      	LDI		TEMP1, 0x6A									; Initialize Waveform Generator (Timer2) (0110_1010)
+000097 bd05                      	OUT		TCCR2, TEMP1								; ^
                                  
                                  	; !!! Would be good with some error catching of RXREG
                                  

@@ -8,13 +8,13 @@
 ;
 
 ; ________________________________________________________________________________________________
-; >> RESET VECTOR:
+; >> VECTORS:
 
-.ORG	0x00
-	RJMP	INIT
+.ORG	0x00											; Reset Vector
+	RJMP	INIT										; ^
 
-.ORG 	0x02				; INT0 Interrupt (PD2)
-	JMP		INT0_ISR
+.ORG 	0x02											; INT0 Interrupt (PD2) Vector
+	JMP		INT0_ISR									; ^
 
 ; ________________________________________________________________________________________________
 ; >> DEFINITIONS
@@ -40,30 +40,28 @@
 
 INIT:
 
-	; !!! Need to use the allocated temporary register instead of direct registers.
-
 	; Stack Pointer
 
-	LDI 	R16, HIGH(RAMEND)
-	OUT 	SPH, R16
-	LDI 	R16, LOW(RAMEND)
-	OUT 	SPL, R16
+	LDI 	TEMP1, HIGH(RAMEND)
+	OUT 	SPH, TEMP1
+	LDI 	TEMP1, LOW(RAMEND)
+	OUT 	SPL, TEMP1
 
 	; USART Config
 
-	LDI		R16, BAUDRATE								; Set Transmission Rate
-	OUT		UBRRL, R16									; ^
-	LDI		R16, 0x00									; ^
-	OUT		UBRRH, R16									; ^
+	LDI		TEMP1, BAUDRATE								; Set Transmission Rate
+	OUT		UBRRL, TEMP1								; ^
+	LDI		TEMP1, 0x00									; ^
+	OUT		UBRRH, TEMP1								; ^
 
-	LDI		R16, 0x02									; Clear all Error Flags + Enable DoubleMode
-	OUT		UCSRA, R16									; ^
+	LDI		TEMP1, 0x02									; Clear all Error Flags + Enable DoubleMode
+	OUT		UCSRA, TEMP1								; ^
 
-	LDI		R16, (1<<RXEN) | (1<<TXEN)					; Enable Transmission & Reception
-	OUT		UCSRB, R16									; ^
+	LDI		TEMP1, (1<<RXEN) | (1<<TXEN)				; Enable Transmission & Reception
+	OUT		UCSRB, TEMP1								; ^
 
-	LDI		R16, (1<<URSEL) | (3<<UCSZ0)				; Set Frame Format (8, N, 1)
-	OUT		UCSRC, R16									; ^
+	LDI		TEMP1, (1<<URSEL) | (3<<UCSZ0)				; Set Frame Format (8, N, 1)
+	OUT		UCSRC, TEMP1								; ^
 
 	LDI		RXREG, 0x00									; Reset Reception Register
 	LDI		TXREG, 0x00									; Reset Transmission Register
@@ -75,23 +73,23 @@ INIT:
 
 	; Interrupt setup
 
-	LDI		R16, (1<<ISC01) | (1<<ISC00)				; Set INT0 to rising edge
-	OUT		MCUCR, R16									; ^
+	LDI		TEMP1, (1<<ISC01) | (1<<ISC00)				; Set INT0 to rising edge
+	OUT		MCUCR, TEMP1								; ^
 
-	LDI 	R16, (1<<INT0)								; Enable external interrupts
-	OUT 	GICR, R16									; ^
+	LDI 	TEMP1, (1<<INT0)							; Enable external interrupts
+	OUT 	GICR, TEMP1									; ^
 
 	SEI													; Set global interrupt flag
 
 	; Waveform Generator (Timer2)
 
-	LDI		R16, 0x00									; Reset Timer2
-	OUT		OCR2, R16									; ^
+	LDI		TEMP1, 0x00									; Reset Timer2
+	OUT		OCR2, TEMP1									; ^
 
 	; !!! Works, but needs further analysis.
 
-	LDI		R16, 0x6A									; Initialize Timer2 with 0110_1010
-	OUT		TCCR2, R16									; ^
+	LDI		TEMP1, 0x6A									; Initialize Timer2 with 0110_1010
+	OUT		TCCR2, TEMP1								; ^
 
 	RJMP	MAIN										; Goto MAIN
 
@@ -187,8 +185,8 @@ ENABLE_MOTOR_MAX:
 
 
 ENABLE_MOTOR:
-	LDI		R16, 0x6A									; Initialize Waveform Generator (Timer2) (0110_1010)
-	OUT		TCCR2, R16									; ^
+	LDI		TEMP1, 0x6A									; Initialize Waveform Generator (Timer2) (0110_1010)
+	OUT		TCCR2, TEMP1								; ^
 
 	; !!! Would be good with some error catching of RXREG
 
