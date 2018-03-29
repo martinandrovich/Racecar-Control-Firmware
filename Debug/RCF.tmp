@@ -33,6 +33,7 @@
   <PARSE_TELEGRAM_COMMAND><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>170</LINE></PARSE_TELEGRAM_COMMAND>
   <PARSE_TELEGRAM_DATA><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>174</LINE></PARSE_TELEGRAM_DATA>
   <ENABLE_MOTOR_MAX><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>182</LINE></ENABLE_MOTOR_MAX>
-  <DUTY_CYCLES><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>209</LINE></DUTY_CYCLES>
+  <DUTY_CYCLES><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>213</LINE></DUTY_CYCLES>
+  <TABLE_1><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>204</LINE></TABLE_1>
  </LABELS>
 </ASSEMBLER_INFO>

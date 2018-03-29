@@ -201,6 +201,10 @@ ENABLE_MOTOR:
 	RJMP	MAIN										; Return
 
 
+TABLE_1:
+	.DW		0, ENABLE_MOTOR
+	.DW		1, PARSE_TELEGRAM
+
 ; ________________________________________________________________________________________________
 ; >> SPEED VALUES TABLE:
 
