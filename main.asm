@@ -163,7 +163,14 @@ PARSE_TELEGRAM:
 
 	RET													; Return
 
+
+PARSE_POINTER:
+
 PARSE_TELEGRAM_TYPE:
+	
+	CPI		RXREG, 0xAA
+
+	
 	NOP													; No code yet
 	RET													; Return
 
@@ -202,8 +209,11 @@ ENABLE_MOTOR:
 
 
 TABLE_1:
-	.DW		0, ENABLE_MOTOR
-	.DW		1, PARSE_TELEGRAM
+	.DW		0xAA, 0										; >> GET Branch 
+	  .DW	0x10, ENABLE_MOTOR							; Set velocity of vehicle.
+	  .DW	0x11, ENABLE_MOTOR							; Stop the vehicle.
+	  .DW	0x12, ENABLE_MOTOR							; Set VAR1.	
+	.DW		0xBB, 0										; >> SET Branch
 
 ; ________________________________________________________________________________________________
 ; >> SPEED VALUES TABLE:
