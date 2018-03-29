@@ -164,8 +164,6 @@ PARSE_TELEGRAM:
 	RET													; Return
 
 
-PARSE_POINTER:
-
 PARSE_TELEGRAM_TYPE:
 	
 	CPI		RXREG, 0xAA
@@ -200,7 +198,10 @@ ENABLE_MOTOR:
 	LDI		ZH, HIGH(DUTY_CYCLES*2)						; Initialize Address Pointer
 	LDI 	ZL, LOW(DUTY_CYCLES*2)						; ^
 
-	ADD		ZL, RXREG									; Set pointer to RXREG value
+	ADD		ZL, RXREG									; Set pointer to RXREG value (with carry)
+	CLR		TEMP1										; ^
+	ADC		ZH, TEMP1									; ^
+
 	LPM		MTSPD, Z									; Load the matching duty cycle
 
 	OUT		OCR2, MTSPD									; Set Duty Cycle (0-255)

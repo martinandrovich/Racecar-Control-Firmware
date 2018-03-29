@@ -26,15 +26,14 @@
   <INT0_ISR><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>112</LINE></INT0_ISR>
   <MAIN><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>99</LINE></MAIN>
   <SERIAL_READ><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>138</LINE></SERIAL_READ>
-  <ENABLE_MOTOR><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>194</LINE></ENABLE_MOTOR>
+  <ENABLE_MOTOR><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>192</LINE></ENABLE_MOTOR>
   <SERIAL_WRITE><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>147</LINE></SERIAL_WRITE>
   <PARSE_TELEGRAM><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>159</LINE></PARSE_TELEGRAM>
-  <PARSE_POINTER><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>167</LINE></PARSE_POINTER>
-  <PARSE_TELEGRAM_TYPE><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>169</LINE></PARSE_TELEGRAM_TYPE>
-  <PARSE_TELEGRAM_COMMAND><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>177</LINE></PARSE_TELEGRAM_COMMAND>
-  <PARSE_TELEGRAM_DATA><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>181</LINE></PARSE_TELEGRAM_DATA>
-  <ENABLE_MOTOR_MAX><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>189</LINE></ENABLE_MOTOR_MAX>
-  <DUTY_CYCLES><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>223</LINE></DUTY_CYCLES>
-  <TABLE_1><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>211</LINE></TABLE_1>
+  <PARSE_TELEGRAM_TYPE><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>167</LINE></PARSE_TELEGRAM_TYPE>
+  <PARSE_TELEGRAM_COMMAND><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>175</LINE></PARSE_TELEGRAM_COMMAND>
+  <PARSE_TELEGRAM_DATA><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>179</LINE></PARSE_TELEGRAM_DATA>
+  <ENABLE_MOTOR_MAX><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>187</LINE></ENABLE_MOTOR_MAX>
+  <DUTY_CYCLES><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>229</LINE></DUTY_CYCLES>
+  <TABLE_1><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>217</LINE></TABLE_1>
  </LABELS>
 </ASSEMBLER_INFO>
