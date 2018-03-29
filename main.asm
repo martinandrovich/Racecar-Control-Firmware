@@ -1,10 +1,10 @@
 ; Racecar Control Firmware
-; Version 1.0.1
+; Version 1.0.2
 ;
 ; RCF.asm
 ;
 ; Created: 08-03-2018 21:13:20
-; Author : Martin Androvich & Daniel Tofte Sch�n
+; Author : Martin Androvich, Daniel Tofte & Sina P. Soltani
 ;
 
 ; ________________________________________________________________________________________________

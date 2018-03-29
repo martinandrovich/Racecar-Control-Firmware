@@ -3,7 +3,10 @@
 - Added:	UART Communication (Read & Write)
 - Added:	Simple Motor Control w/ Value-table
 
-# 1.0.1 <<
+# 1.0.1
 - Added:	GIT integration
 - Added:	Placeholder for Telegram parser
 - Added:	Module management
+
+# 1.0.2 <<
+- Added:	Sensor Interrupts
