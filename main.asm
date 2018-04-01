@@ -27,12 +27,15 @@
 
 	.DEF	TEMP1		= R16							; Temporary Register #1
 	.DEF	TEMP2		= R17							; Temporary Register #2
-	.DEF	BOOLS		= R18							; Variable Booleans Register
+
+	.DEF	FLAGS		= R18							; Variable Flags Register [COMMAND RECIEVED | Boolean 6 | ... | Boolean 0]
+
+	.DEF	TELSC		= R19							; Telegram Parser Step Counter
 
 	.DEF	RXREG		= R20							; USART Reception Register
 	.DEF	TXREG		= R21							; USART Transmission Register
-	.DEF	MTSPD		= R22							; Motor speed (duty cycle)
-	.DEF	MTCNT		= R23							; Motor rotation counter
+
+	.DEF	MTSPD		= R23							; Motor speed (duty cycle)
 
 ; ________________________________________________________________________________________________
 ; >> INITIALIZATION:
@@ -98,10 +101,14 @@ INIT:
 
 MAIN:
 
+	; !!! Maybe include authentication for security measures?
+
 	RCALL	SERIAL_READ									; Begin reading
 
-	CPI		RXREG, 0x00									; Enable motor if RXREG != 0
-	BRNE	ENABLE_MOTOR								; ^
+	CPI		RXREG, 0x00									; Set motor if RXREG != 0
+	BRNE	SET_MOTOR									; ^
+
+	; !!! Maybe reset telegram step counter + clear buffer after a short delay ?
 
 	RJMP	MAIN										; Loop forever
 
@@ -154,42 +161,20 @@ SERIAL_WRITE:
 
 
 ; ________________________________________________________________________________________________
-; >> COMMUNICATION PROTOCOL MODULE:
+; >> COMMUNICATION PROTOCOL MODULE (INTERRUPT VERSION):
 
-PARSE_TELEGRAM:
-
-	CPI		RXREG, 0x00									; Enable motor if RXREG != 0
-	BRNE	ENABLE_MOTOR								; ^
-
-	RET													; Return
-
-
-PARSE_TELEGRAM_TYPE:
-	
-	CPI		RXREG, 0xAA
-
-	
-	NOP													; No code yet
-	RET													; Return
-
-PARSE_TELEGRAM_COMMAND:
-	NOP													; No code yet
-	RET													; Return
-
-PARSE_TELEGRAM_DATA:
-	NOP													; No code yet
-	RET													; Return
-
+	// Placeholder
+	// ...
 
 ; ________________________________________________________________________________________________
-; >> MOTOR CONTROL MODULE:
+; >> CONTROL MODULE:
 
-ENABLE_MOTOR_MAX:
+SET_MOTOR_MAX:
 	SBI 	PORTD, PD7									; Enable BIT on PIN7 of PORTD
 	RJMP	MAIN										; Return
 
 
-ENABLE_MOTOR:
+SET_MOTOR:
 	LDI		TEMP1, 0x6A									; Initialize Waveform Generator (Timer2) (0110_1010)
 	OUT		TCCR2, TEMP1								; ^
 
@@ -207,14 +192,6 @@ ENABLE_MOTOR:
 	OUT		OCR2, MTSPD									; Set Duty Cycle (0-255)
 
 	RJMP	MAIN										; Return
-
-
-TABLE_1:
-	.DW		0xAA, 0										; >> GET Branch 
-	  .DW	0x10, ENABLE_MOTOR							; Set velocity of vehicle.
-	  .DW	0x11, ENABLE_MOTOR							; Stop the vehicle.
-	  .DW	0x12, ENABLE_MOTOR							; Set VAR1.	
-	.DW		0xBB, 0										; >> SET Branch
 
 ; ________________________________________________________________________________________________
 ; >> SPEED VALUES TABLE:

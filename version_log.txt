@@ -10,3 +10,4 @@
 
 # 1.0.2 <<
 - Added:	Sensor Interrupts
+- Added:	Telegram Parser (beta)
