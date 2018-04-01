@@ -4,7 +4,7 @@
 ; RCF.asm
 ;
 ; Created: 08-03-2018 21:13:20
-; Author : Martin Androvich, Daniel Tofte & Sina P. Soltani
+; Authors : Martin Androvich, Daniel Tofte & Sina P. Soltani
 ;
 
 ; ________________________________________________________________________________________________
