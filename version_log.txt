@@ -9,5 +9,5 @@
 - Added:	Module management
 
 # 1.0.2 <<
-- Added:	Sensor Interrupts
-- Added:	Telegram Parser (beta)
+- Added:	Sensor Interrupts [todo]
+- Added:	Telegram Parser (alpha) [todo]
