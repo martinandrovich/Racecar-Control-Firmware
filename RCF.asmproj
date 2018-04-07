@@ -15,7 +15,7 @@
     <Name>RCF</Name>
     <RootNamespace>RCF</RootNamespace>
     <ToolchainFlavour>Native</ToolchainFlavour>
-    <EntryFile>$(MSBuildProjectDirectory)\main.asm</EntryFile>
+    <EntryFile>$(MSBuildProjectDirectory)\adc_test.asm</EntryFile>
     <KeepTimersRunning>true</KeepTimersRunning>
     <OverrideVtor>false</OverrideVtor>
     <CacheFlash>true</CacheFlash>
@@ -80,6 +80,9 @@
     </ToolchainSettings>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="adc_test.asm">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="main.asm">
       <SubType>Code</SubType>
     </Compile>

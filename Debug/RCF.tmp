@@ -1,18 +1,18 @@
 <ASSEMBLER_INFO>
  <VERSION>2.2.7</VERSION>
  <DEVICE>"ATmega32"</DEVICE>
- <WORKING_DIR>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\Debug</WORKING_DIR>
+ <WORKING_DIR>C:\Users\Martin\Desktop\Racecar-Control-Firmware\Debug</WORKING_DIR>
  <INCLUDE_PATH>
   <DIR>C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.150\avrasm\inc</DIR>
   <DIR>C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avrassembler\Include</DIR>
   <DIR></DIR>
  </INCLUDE_PATH>
- <SOURCE_FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm</SOURCE_FILE>
+ <SOURCE_FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\bt_test.asm</SOURCE_FILE>
  <INCLUDED_FILES>
   <FILE>C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.150\avrasm\inc\m32def.inc</FILE>
  </INCLUDED_FILES>
  <OBJECT_FILES>
-  <FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\Debug\RCF.obj</FILE>
+  <FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\Debug\RCF.obj</FILE>
  </OBJECT_FILES>
  <HEX_FILES>
   <FILE>RCF.hex</FILE>
@@ -22,13 +22,17 @@
   <FILE>RCF.lss</FILE>
  </OUTPUT_FILES>
  <LABELS>
-  <INIT><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm</FILE><LINE>44</LINE></INIT>
-  <INT0_ISR><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm</FILE><LINE>119</LINE></INT0_ISR>
-  <MAIN><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm</FILE><LINE>102</LINE></MAIN>
-  <SERIAL_READ><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm</FILE><LINE>145</LINE></SERIAL_READ>
-  <SET_MOTOR><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm</FILE><LINE>177</LINE></SET_MOTOR>
-  <SERIAL_WRITE><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm</FILE><LINE>154</LINE></SERIAL_WRITE>
-  <SET_MOTOR_MAX><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm</FILE><LINE>172</LINE></SET_MOTOR_MAX>
-  <DUTY_CYCLES><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm</FILE><LINE>201</LINE></DUTY_CYCLES>
+  <INIT><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\bt_test.asm</FILE><LINE>54</LINE></INIT>
+  <INT0_ISR><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\bt_test.asm</FILE><LINE>158</LINE></INT0_ISR>
+  <INT1_COMPARE_MATCH><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\bt_test.asm</FILE><LINE>203</LINE></INT1_COMPARE_MATCH>
+  <ADC_ISR><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\bt_test.asm</FILE><LINE>214</LINE></ADC_ISR>
+  <MAIN><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\bt_test.asm</FILE><LINE>143</LINE></MAIN>
+  <SERIAL_READ><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\bt_test.asm</FILE><LINE>184</LINE></SERIAL_READ>
+  <SET_MOTOR><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\bt_test.asm</FILE><LINE>253</LINE></SET_MOTOR>
+  <SERIAL_WRITE><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\bt_test.asm</FILE><LINE>193</LINE></SERIAL_WRITE>
+  <WAIT_UNTIL_ACTUAL><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\bt_test.asm</FILE><LINE>242</LINE></WAIT_UNTIL_ACTUAL>
+  <REPEAT_ROTATE><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\bt_test.asm</FILE><LINE>227</LINE></REPEAT_ROTATE>
+  <SEND256RESO><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\bt_test.asm</FILE><LINE>234</LINE></SEND256RESO>
+  <DUTY_CYCLES><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\bt_test.asm</FILE><LINE>277</LINE></DUTY_CYCLES>
  </LABELS>
 </ASSEMBLER_INFO>
