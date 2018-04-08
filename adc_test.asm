@@ -20,12 +20,19 @@
 	RJMP	INT1_COMPARE_MATCH							; ^
 
 .ORG 0x020
-	RJMP	ADC_ISR										;ADC Conv Complete Handler
+	RJMP	ADC_ISR										; ADC Conv Complete Handler
 
 ; ________________________________________________________________________________________________
 ; >> DEFINITIONS
 
-	.EQU	HERTZTIMER1	= 62500-1						; Settings for Timer
+	.EQU	HERTZTIMER1	= 15625 - 1						; Settings for Timer
+														; 62500 - 1 = 4Hz
+														; 31250 - 1 = 8Hz
+														; 15625 - 1 = 16Hz
+														; 7812 - 1	= 32Hz
+
+
+
 	.EQU	BAUDRATE	= 0xCF							; Baudrate settings for BAUDRATE of 9600
 
 	.EQU	BOOL1		= 0x01							; Boolean #1
@@ -103,23 +110,23 @@ INIT:
 
 	; TIFR REGISTER
 
-	LDI		TEMP1, (1<<OCIE1A)							;Enable Timer1 Compare Match INterrupt
-	OUT		TIMSK, TEMP1								;
+	LDI		TEMP1, (1<<OCIE1A)							; Enable Timer1 Compare Match INterrupt
+	OUT		TIMSK, TEMP1								; ^
 
-	LDI		TEMP1,	00									;Set Default
-	OUT		TCCR1A, TEMP1								;
+	LDI		TEMP1,	00									; Set Default
+	OUT		TCCR1A, TEMP1								; ^
 
-	LDI		TEMP1, (1<<CS11)|(1<<CS10)|(1<<WGM12)		;Set 64 Prescalar, CTC-MODE, 62.500 TIMER, since it is very close
-	OUT		TCCR1B, TEMP1								;
+	LDI		TEMP1, (1<<CS11)|(1<<CS10)|(1<<WGM12)		; Set 64 Prescalar, CTC-MODE, 62.500 TIMER, since it is very close
+	OUT		TCCR1B, TEMP1								; ^
 
-	LDI		TEMP1, HIGH(HERTZTIMER1)					;Set this to 62500-1, since 16.000.000 / ( 4 * 64) 4 Hertz
-	OUT		OCR1AH, TEMP2								;
+	LDI		TEMP1, HIGH(HERTZTIMER1)					; Set this to 62500-1, since 16.000.000 / ( 4 * 64) 4 Hertz
+	OUT		OCR1AH, TEMP1								; ^
 
-	LDI		TEMP1, LOW(HERTZTIMER1)						;Set this to 62500-1, since 16.000.000 / ( 4 * 64) 4 Hertz
-	OUT		OCR1AL, TEMP2								;
+	LDI		TEMP1, LOW(HERTZTIMER1)						; Set this to 62500-1, since 16.000.000 / ( 4 * 64) 4 Hertz
+	OUT		OCR1AL, TEMP1								; ^
 
 	LDI		TEMP1, (1<<TOV1)							; Enable Timer1
-	OUT		TIFR, TEMP1									;^
+	OUT		TIFR, TEMP1									; ^
 
 	; Waveform Generator (Timer2)
 
@@ -202,10 +209,10 @@ SERIAL_WRITE:
 ; >> TIMER1 (INTERRUPT VERSION):
 INT1_COMPARE_MATCH:
 
-	;LDI TXREG, 'Y'										;If you want to make sure it works!
+	;LDI TXREG, 'Y'										; If you want to make sure it works!
 	;CALL SERIAL_WRITE
 
-	SBI ADCSRA, ADSC									;turn on ADC
+	SBI ADCSRA, ADSC									; Turn on ADC
 
 	RETI
 
@@ -213,12 +220,9 @@ INT1_COMPARE_MATCH:
 ; >> ADC (INTERRUPT VERSION):
 ADC_ISR:
 
-	SBIS	PINA, PA1										;This is the digital value of PINA1
-	RJMP	WAIT_UNTIL_ACTUAL								;REPEATUNTILSET
-
-	IN		ADC_L, ADCL										;when ADCL is read, the ADC Data Register is not updated until ADCH is read.
-	NOP;
-	IN		ADC_H, ADCH										;get the last ADC result, low byte first
+	IN		ADC_L, ADCL										; When ADCL is read, the ADC Data Register is not updated until ADCH is read.
+	NOP														;
+	IN		ADC_H, ADCH										; get the last ADC result, low byte first
 
 	;while (ADCH != 0)
 
@@ -226,7 +230,7 @@ ADC_ISR:
 
 REPEAT_ROTATE:
 
-	ROR		ADC_H											;ror takes care of the carry
+	ROR		ADC_H											; ror takes care of the carry
 	ROR		ADC_L
 	DEC		TEMP1
 	BRNE	REPEAT_ROTATE
@@ -237,10 +241,6 @@ SEND256RESO:
 	RJMP	SEND256RESO
 	OUT		UDR, ADC_L
 
-	RETI
-
-WAIT_UNTIL_ACTUAL:
-	SBI		ADCSRA, ADSC
 	RETI
 ; ________________________________________________________________________________________________
 ; >> COMMUNICATION PROTOCOL MODULE (INTERRUPT VERSION):

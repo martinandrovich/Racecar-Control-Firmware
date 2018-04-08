@@ -11,21 +11,23 @@ clf;
 plotTitle       = 'ADC plot';
 xLabel          = 'Elapsed Time (s)';
 yLabel          = 'g [m/s^2]';
-legend1         = 'Accelerometer Value'; % 
+legend1         = 'Accelerometer Value (Raw)';
+legend2         = 'Filter: Moving Average';
+legend3         = 'Filter: Moving Mean';
 yMax            = 2.5;
 yMin            = -2.5;
 plotGrid        = 'on';
 
 refreshDelay    = 0.0001;
-speedValue      = 30;
+speedValue      = 40;
 
 %Define function values
-time        = 0;
-data        = 0;
-count       = 0;
+time            = 0;
+data            = 0;
+count           = 0;
 
 % Draw the plot
-plotGraph = plot(time, data, '-r');
+plotGraph = plot(time, data, '-r', time, data, '-', time, data, '-g');
 hold on;
 title(plotTitle, 'FontSize', 15);
 xlabel(xLabel, 'FontSize', 15);
@@ -33,9 +35,13 @@ ylabel(yLabel, 'FontSize', 15);
 ax = gca;
 ax.XAxisLocation = 'origin';
 ax.YAxisLocation = 'origin';
-legend(legend1);
+legend(legend1, legend2, legend3);
 axis([yMin yMax yMin yMax]);
 grid(plotGrid);
+
+% Setup filters
+movingavgsize = 16;
+avgsize = 1/movingavgsize * ones(1,movingavgsize);
 
 % Maximize figure window
 drawnow;
@@ -62,20 +68,20 @@ while ishandle(plotGraph) %Loop when Plot is Active will run until plot is close
     time(count) = toc;
     data(count) = b(1) / 256 * 5 - 2.5;
     
-    %This is the magic code 
-    %Using plot will slow down the sampling time.. At times to over 20
-    %seconds per sample!
+    dataMean = movmean(data, movingavgsize);
+    dataAvg = filter(avgsize, 1, data);
     
-    set(plotGraph, 'XData', time, 'YData', data);
-    axis([toc-2 time(count) yMin yMax]);
+    set(plotGraph,{'xdata'},{time;time;time},{'ydata'},{data;dataAvg;dataMean});
+    axis([toc-4 time(count) yMin yMax]);
 
     % Update the graph
     drawnow;
-    pause(refreshDelay);
+    %pause(refreshDelay);
     
     % Flush the buffer
-    
     %flushinput(bmodule);
+    
+    disp(bmodule.BytesAvailable);
     
     if bmodule.BytesAvailable >= 512
         disp("Buffer overflow.");
