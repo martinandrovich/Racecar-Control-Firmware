@@ -41,7 +41,6 @@ axis([yMin yMax yMin yMax]);
 grid(plotGrid);
 
 % Setup filters
-
 movingAvg = (1/movingAvgSize) * ones(1, movingAvgSize);
 
 % Maximize figure window

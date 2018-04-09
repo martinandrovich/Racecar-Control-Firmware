@@ -33,7 +33,7 @@ count           = 0;
 bmodule = Bluetooth('RNBT-E2A9', 1);
 fopen(bmodule);
 
-% Start vehicle
+% Enable Motor
 fwrite(bmodule, uint8(speedValue));
 
 disp('Connection established; starting data logging.');
@@ -47,15 +47,15 @@ while count < 7
 
 end
 
+% Calculate spent time
+timeWaited = toc;
+time_actual = timeWaited/length(data);
+timeElapsed = 0 + time_actual : time_actual : timeWaited;
+
 % Calculate data & filters
 data = (data / 256) * 5 - 2.5;
 dataAvg = filter(movingAvg, 1, data);
 dataMean = movmean(data, movingAvgSize);
-
-% Calculate spent time
-timeWaited = toc;
-timeActual = timeWaited/length(data);
-timeElapsed = 0 + timeActual : timeActual : timeWaited;
 
 % Plot data
 clf;
@@ -75,6 +75,6 @@ grid(plotGrid);
 drawnow;
 set(get(handle(gcf), 'JavaFrame'), 'Maximized', 1);
 
-% Stop vehicle & disconnect
 fwrite(bmodule, uint8(1));
+
 fclose(bmodule);
