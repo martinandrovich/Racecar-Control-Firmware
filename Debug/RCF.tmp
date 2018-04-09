@@ -22,16 +22,16 @@
   <FILE>RCF.lss</FILE>
  </OUTPUT_FILES>
  <LABELS>
-  <INIT><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\adc_test.asm</FILE><LINE>61</LINE></INIT>
-  <INT0_ISR><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\adc_test.asm</FILE><LINE>165</LINE></INT0_ISR>
-  <INT1_COMPARE_MATCH><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\adc_test.asm</FILE><LINE>210</LINE></INT1_COMPARE_MATCH>
-  <ADC_ISR><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\adc_test.asm</FILE><LINE>221</LINE></ADC_ISR>
-  <MAIN><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\adc_test.asm</FILE><LINE>150</LINE></MAIN>
-  <SERIAL_READ><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\adc_test.asm</FILE><LINE>191</LINE></SERIAL_READ>
-  <SET_MOTOR><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\adc_test.asm</FILE><LINE>253</LINE></SET_MOTOR>
-  <SERIAL_WRITE><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\adc_test.asm</FILE><LINE>200</LINE></SERIAL_WRITE>
-  <REPEAT_ROTATE><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\adc_test.asm</FILE><LINE>231</LINE></REPEAT_ROTATE>
-  <SEND256RESO><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\adc_test.asm</FILE><LINE>238</LINE></SEND256RESO>
-  <DUTY_CYCLES><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\adc_test.asm</FILE><LINE>277</LINE></DUTY_CYCLES>
+  <INIT><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\adc_test.asm</FILE><LINE>63</LINE></INIT>
+  <INT0_ISR><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\adc_test.asm</FILE><LINE>167</LINE></INT0_ISR>
+  <INT1_COMPARE_MATCH><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\adc_test.asm</FILE><LINE>212</LINE></INT1_COMPARE_MATCH>
+  <ADC_ISR><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\adc_test.asm</FILE><LINE>223</LINE></ADC_ISR>
+  <MAIN><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\adc_test.asm</FILE><LINE>152</LINE></MAIN>
+  <SERIAL_READ><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\adc_test.asm</FILE><LINE>193</LINE></SERIAL_READ>
+  <SET_MOTOR><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\adc_test.asm</FILE><LINE>255</LINE></SET_MOTOR>
+  <SERIAL_WRITE><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\adc_test.asm</FILE><LINE>202</LINE></SERIAL_WRITE>
+  <REPEAT_ROTATE><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\adc_test.asm</FILE><LINE>233</LINE></REPEAT_ROTATE>
+  <SEND256RESO><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\adc_test.asm</FILE><LINE>240</LINE></SEND256RESO>
+  <DUTY_CYCLES><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\adc_test.asm</FILE><LINE>279</LINE></DUTY_CYCLES>
  </LABELS>
 </ASSEMBLER_INFO>

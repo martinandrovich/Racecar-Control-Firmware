@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.7  C:\Users\Martin\Desktop\Racecar-Control-Firmware\adc_test.asm Sun Apr 08 21:47:44 2018
+AVRASM ver. 2.2.7  C:\Users\Martin\Desktop\Racecar-Control-Firmware\adc_test.asm Mon Apr 09 14:44:34 2018
 
 
 EQU  SIGNATURE_000 0000001e
@@ -572,7 +572,7 @@ CSEG INIT         00000028
 CSEG INT0_ISR     0000005b
 CSEG INT1_COMPARE_MATCH 00000066
 CSEG ADC_ISR      00000068
-EQU  HERTZTIMER1  00003d08
+EQU  HERTZTIMER1  000003cf
 EQU  BAUDRATE     000000cf
 EQU  BOOL1        00000001
 EQU  BOOL2        00000002

@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.7  C:\Users\Martin\Desktop\Racecar-Control-Firmware\adc_test.asm Sun Apr 08 21:47:44 2018
+AVRASM ver. 2.2.7  C:\Users\Martin\Desktop\Racecar-Control-Firmware\adc_test.asm Mon Apr 09 14:44:34 2018
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.150\avrasm\inc\m32def.inc'
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.150\avrasm\inc\m32def.inc'
@@ -846,11 +846,13 @@ AVRASM ver. 2.2.7  C:\Users\Martin\Desktop\Racecar-Control-Firmware\adc_test.asm
                                  ; ________________________________________________________________________________________________
                                  ; >> DEFINITIONS
                                  
-                                 	.EQU	HERTZTIMER1	= 15625 - 1						; Settings for Timer
+                                 	.EQU	HERTZTIMER1	= 976 - 1						; Settings for Timer
                                  														; 62500 - 1 = 4Hz
                                  														; 31250 - 1 = 8Hz
                                  														; 15625 - 1 = 16Hz
                                  														; 7812 - 1	= 32Hz
+                                 														; 1953 - 1  = 128Hz
+                                 														; 976 - 1   = 256Hz
                                  
                                  
                                  
@@ -940,10 +942,10 @@ AVRASM ver. 2.2.7  C:\Users\Martin\Desktop\Racecar-Control-Firmware\adc_test.asm
 000048 e00b                      	LDI		TEMP1, (1<<CS11)|(1<<CS10)|(1<<WGM12)		; Set 64 Prescalar, CTC-MODE, 62.500 TIMER, since it is very close
 000049 bd0e                      	OUT		TCCR1B, TEMP1								; ^
                                  
-00004a e30d                      	LDI		TEMP1, HIGH(HERTZTIMER1)					; Set this to 62500-1, since 16.000.000 / ( 4 * 64) 4 Hertz
+00004a e003                      	LDI		TEMP1, HIGH(HERTZTIMER1)					; Set this to 62500-1, since 16.000.000 / ( 4 * 64) 4 Hertz
 00004b bd0b                      	OUT		OCR1AH, TEMP1								; ^
                                  
-00004c e008                      	LDI		TEMP1, LOW(HERTZTIMER1)						; Set this to 62500-1, since 16.000.000 / ( 4 * 64) 4 Hertz
+00004c ec0f                      	LDI		TEMP1, LOW(HERTZTIMER1)						; Set this to 62500-1, since 16.000.000 / ( 4 * 64) 4 Hertz
 00004d bd0a                      	OUT		OCR1AL, TEMP1								; ^
                                  
 00004e e004                      	LDI		TEMP1, (1<<TOV1)							; Enable Timer1
