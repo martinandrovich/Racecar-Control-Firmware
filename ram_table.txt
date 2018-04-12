@@ -9,8 +9,10 @@ RAM TABLE:
 	> 0x0000	| ADC_H
 	> 0x0000	| ADC_L
 
+	> 0x0000	| RECENT_CMD
 	> 0x0000	| DATA_H
 	> 0x0000	| DATA_L
+
 
 	> 0x0000	| DUTYCYCLE // MTSPD
 
