@@ -26,7 +26,7 @@
 ; ________________________________________________________________________________________________
 ; >> DEFINITIONS
 
-	.EQU	BAUDRATE	= 0xCF							; Baudrate settings for BAUDRATE of 9600
+	.EQU	BAUDRATE	= 0x00CF						; Baudrate settings for BAUDRATE of 9600
 
 	.EQU	TMR1FREQ	= 15625 - 1						; Settings for Timer1
 
@@ -83,10 +83,10 @@ INIT:
 
 	; USART Config
 
-	LDI		TEMP1, 0xCF									; Set Transmission Rate
-	OUT		UBRRL, TEMP1								; ^
-	LDI		TEMP1, 0x00									; ^
+	LDI		TEMP1, HIGH(BAUDRATE)						; Set Transmission Rate
 	OUT		UBRRH, TEMP1								; ^
+	LDI		TEMP1, LOW(BAUDRATE)						; ^
+	OUT		UBRRL, TEMP1								; ^
 
 	LDI		TEMP1, 0x02									; Clear all Error Flags + Enable DoubleMode
 	OUT		UCSRA, TEMP1								; ^
@@ -97,8 +97,8 @@ INIT:
 	LDI		TEMP1, (1<<URSEL)|(3<<UCSZ0)				; Set Frame Format (8, N, 1)
 	OUT		UCSRC, TEMP1								; ^
 
-	LDI		RXREG, 0x00									; Reset Reception Register
-	LDI		TXREG, 0x00									; Reset Transmission Register
+	CLR		RXREG										; Reset Reception Register
+	CLR		TXREG										; Reset Transmission Register
 
 	; ADC Config	
 
@@ -117,16 +117,6 @@ INIT:
 
 	LDI		TEMP1, 0x00									; Set Port A as Input (is this needed?)
 	OUT		DDRA, TEMP1									; ^
-
-	; Interrupt Setup
-
-	LDI		TEMP1, (1<<ISC01)|(1<<ISC00)				; Set INT0 to rising edge
-	OUT		MCUCR, TEMP1								; ^
-
-	LDI 	TEMP1, (1<<INT0)							; Enable external interrupts
-	OUT 	GICR, TEMP1									; ^
-
-	SEI													; Set global interrupt flag
 
 	; Timer1 Setup
 
@@ -157,6 +147,16 @@ INIT:
 	LDI		TEMP1, 0x6A									; Initialize Timer2 with 0110_1010
 	OUT		TCCR2, TEMP1								; ^
 
+	; Interrupt Setup
+
+	LDI		TEMP1, (1<<ISC01)|(1<<ISC00)				; Set INT0 to rising edge
+	OUT		MCUCR, TEMP1								; ^
+
+	LDI 	TEMP1, (1<<INT0)							; Enable external interrupts
+	OUT 	GICR, TEMP1									; ^
+
+	SEI													; Set global interrupt flag
+
 	RJMP	MAIN										; Goto MAIN
 
 
@@ -182,6 +182,9 @@ MAIN:
 
 INT0_ISR:												; INT0 Interrupt Handler
 
+	; !!! CONFLICTS WITH ADC DATA
+	; !!! X POINTER & "LD" SHOULD BE USED INSTEAD
+
 	LDS		R25, TCLKH									; Load previous values from RAM
 	LDS		R24, TCLKL									; ^
 
@@ -193,7 +196,7 @@ INT0_ISR:												; INT0 Interrupt Handler
 	CPI		R24, 100
 	BRNE	INT0_ISR_ESC
 
-	LDI		TXREG, 0x35									; Load 0x35 into transmission register
+	LDI		TXREG, 0x30									; Load 0x30 into transmission register
 	RCALL	SERIAL_WRITE								; Write to USART
 
 INT0_ISR_ESC:
@@ -204,7 +207,7 @@ INT0_ISR_ESC:
 
 INT1_ISR:
 
-	LDI		TXREG, 0x35									; Load 0x35 into transmission register
+	LDI		TXREG, 0x31									; Load 0x31 into transmission register
 	RCALL	SERIAL_WRITE								; Write to USART
 
 	RETI												; Return
@@ -213,7 +216,7 @@ INT1_ISR:
 
 INT2_ISR:
 
-	LDI		TXREG, 0x35									; Load 0x35 into transmission register
+	LDI		TXREG, 0x32									; Load 0x32 into transmission register
 	RCALL	SERIAL_WRITE								; Write to USART
 
 	RETI												; Return
@@ -238,18 +241,15 @@ ADC_ISR:												; ADC Interrupt Handler
 
 	LDI		TEMP1, 2
 
-REPEAT_ROTATE:
+ADC_ISR_ROR:
 
 	ROR		ADC_H										; ROR takes care of the carry
 	ROR		ADC_L										; ^
 	DEC		TEMP1										; ^
-	BRNE	REPEAT_ROTATE								; ^
+	BRNE	ADC_ISR_ROR									; ^
 
-SEND256RESO:
-
-	SBIS	UCSRA, UDRE									; Send data via UART
-	RJMP	SEND256RESO									; ^
-	OUT		UDR, ADC_L									; ^
+	MOV		TXREG, ADC_L								; Transmit ADC data
+	RCALL	SERIAL_WRITE								; ^
 
 	RETI												; Return
 
@@ -300,6 +300,8 @@ SET_MOTOR:
 	; i.e. if >100, then abort
 
 	; !!! Maybe disable interrupts while doing this?
+
+	; !!! Disable if 0.
 
 	LDI		ZH, HIGH(DUTY_CYCLES*2)						; Initialize Address Pointer
 	LDI 	ZL, LOW(DUTY_CYCLES*2)						; ^
