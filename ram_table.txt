@@ -1,11 +1,21 @@
 RAM TABLE:
 
-? ?
+? = Section
+? = Entry
 
  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
  
- ? 0x0000	| RAM_0
- ? 0x0001	| RAM_1
- ? 0x0002	| RAM_2
+ ? TEMPORARY DATA
+
+	? 0x0000	| TACHOMETER_H
+	? 0x0000	| TACHOMETER_L
+
+	? 0x0000	| ADC_H
+	? 0x0000	| ADC_L
+
+	? 0x0000	| DATA_H
+	? 0x0000	| DATA_L
+
+	? 0xXXXX	| etc...
  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 

@@ -15,7 +15,8 @@
 
 # 1.0.3 <<
 - Added:	Variable Flags
-- Added:	Communicationn Protocol [todo]
+- Added:	RAM Table
 - Added:	Sensor Interrupts [todo]
-- Added:	ADC for Accelerometer [todo]
+- Added:	Communicationn Protocol [todo]
+- Added:	ADC for Accelerometer
 - Added:	Moving Average Filter [todo]
