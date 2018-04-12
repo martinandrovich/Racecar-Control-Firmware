@@ -86,6 +86,9 @@
     <Compile Include="main.asm">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="main_old.asm">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="telegram_parser.asm">
       <SubType>Code</SubType>
     </Compile>

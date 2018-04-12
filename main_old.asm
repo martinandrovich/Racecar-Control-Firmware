@@ -1,5 +1,11 @@
 ; Racecar Control Firmware
 ; Version 1.0.2
+;
+; RCF.asm
+;
+; Created: 08-03-2018 21:13:20
+; Authors : Martin Androvich, Daniel Tofte & Sina P. Soltani
+;
 
 ; ________________________________________________________________________________________________
 ; >> VECTORS:
@@ -15,17 +21,15 @@
 
 	.EQU	BAUDRATE	= 0xCF							; Baudrate settings for BAUDRATE of 9600
 
+	.EQU	BOOL1		= 0x01							; Boolean #1
+	.EQU	BOOL2		= 0x02							; Boolean #1
+	.EQU	BOOL3		= 0x04							; Boolean #1
+
 	.DEF	TEMP1		= R16							; Temporary Register #1
 	.DEF	TEMP2		= R17							; Temporary Register #2
 
-	.DEF	FLAGS		= R18							; Variable Flags Register
-														; [CMDPD = 7] | [AUTMD = 6] | [DATLG = 5] | X (4) | X (3) | X (2) | X (1) | X (0)]
-	
-	.EQU	DATLG		= 5								; Datalogging Mode
-	.EQU	AUTMD		= 6								; Autonomous Mode
-	.EQU	CMDPD		= 7								; Command Pending Flag
-	
-	
+	.DEF	FLAGS		= R18							; Variable Flags Register [COMMAND RECIEVED | Boolean 6 | ... | Boolean 0]
+
 	.DEF	TELSC		= R19							; Telegram Parser Step Counter
 
 	.DEF	RXREG		= R20							; USART Reception Register
@@ -191,6 +195,8 @@ SET_MOTOR:
 
 ; ________________________________________________________________________________________________
 ; >> SPEED VALUES TABLE:
+
+	; !!! Should be moved to EEPROM
 
 DUTY_CYCLES:
 	.DB		0, 1    	; 0% and 1%

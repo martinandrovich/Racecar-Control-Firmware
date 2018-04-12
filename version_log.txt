@@ -8,6 +8,13 @@
 - Added:	Placeholder for Telegram parser
 - Added:	Module management
 
-# 1.0.2 <<
+# 1.0.2
+- Added:	Interrupts Tests
+- Fixed:	Motor Control	
+
+# 1.0.3 <<
+- Added:	Variable Flags
+- Added:	Communicationn Protocol [todo]
 - Added:	Sensor Interrupts [todo]
-- Added:	Telegram Parser (alpha) [todo]
+- Added:	ADC for Accelerometer [todo]
+- Added:	Moving Average Filter [todo]
