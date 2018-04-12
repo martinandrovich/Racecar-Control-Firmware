@@ -15,7 +15,7 @@
     <Name>RCF</Name>
     <RootNamespace>RCF</RootNamespace>
     <ToolchainFlavour>Native</ToolchainFlavour>
-    <EntryFile>$(MSBuildProjectDirectory)\adc_test.asm</EntryFile>
+    <EntryFile>$(MSBuildProjectDirectory)\main.asm</EntryFile>
     <KeepTimersRunning>true</KeepTimersRunning>
     <OverrideVtor>false</OverrideVtor>
     <CacheFlash>true</CacheFlash>
@@ -86,7 +86,7 @@
     <Compile Include="main.asm">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="main_old.asm">
+    <Compile Include="main_1_0_2.asm">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="telegram_parser.asm">

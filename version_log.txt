@@ -10,7 +10,8 @@
 
 # 1.0.2
 - Added:	Interrupts Tests
-- Fixed:	Motor Control	
+- Fixed:	Motor Control
+- Fixed:	Code Layout	
 
 # 1.0.3 <<
 - Added:	Variable Flags

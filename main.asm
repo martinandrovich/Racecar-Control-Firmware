@@ -5,15 +5,31 @@
 ; >> VECTORS:
 
 .ORG	0x00											; Reset Vector
-	RJMP	INIT										; ^
+	JMP		INIT										; ^
 
-.ORG 	0x02											; INT0 Interrupt (PD2) Vector
+.ORG 	0x02											; INT0 Interrupt (PD2)
 	JMP		INT0_ISR									; ^
+
+.ORG	0x14											; TIMER1 Compare Match Interrupt
+	JMP		TMR1_ISR									; ^
+
+.ORG	0x20											; ADC Conversion Complete Interrupt
+	JMP		ADC_ISR										; ^
+
 
 ; ________________________________________________________________________________________________
 ; >> DEFINITIONS
 
 	.EQU	BAUDRATE	= 0xCF							; Baudrate settings for BAUDRATE of 9600
+
+	.EQU	TMR1FREQ	= 15625 - 1						; Settings for Timer1
+
+														; 62500 - 1 = 4Hz
+														; 31250 - 1 = 8Hz
+														; 15625 - 1 = 16Hz
+														; 7812 - 1	= 32Hz
+														; 1953 - 1  = 128Hz
+														; 976 - 1   = 256Hz
 
 	.DEF	TEMP1		= R16							; Temporary Register #1
 	.DEF	TEMP2		= R17							; Temporary Register #2
@@ -31,7 +47,9 @@
 	.DEF	RXREG		= R20							; USART Reception Register
 	.DEF	TXREG		= R21							; USART Transmission Register
 
-	.DEF	MTSPD		= R23							; Motor speed (duty cycle)
+	.DEF	ADC_L		= R24							; ADC Registers
+	.DEF	ADC_H		= R25							; ^
+
 
 ; ________________________________________________________________________________________________
 ; >> INITIALIZATION:
@@ -56,23 +74,36 @@ INIT:
 	LDI		TEMP1, 0x02									; Clear all Error Flags + Enable DoubleMode
 	OUT		UCSRA, TEMP1								; ^
 
-	LDI		TEMP1, (1<<RXEN) | (1<<TXEN)				; Enable Transmission & Reception
+	LDI		TEMP1, (1<<RXEN)|(1<<TXEN)					; Enable Transmission & Reception
 	OUT		UCSRB, TEMP1								; ^
 
-	LDI		TEMP1, (1<<URSEL) | (3<<UCSZ0)				; Set Frame Format (8, N, 1)
+	LDI		TEMP1, (1<<URSEL)|(3<<UCSZ0)				; Set Frame Format (8, N, 1)
 	OUT		UCSRC, TEMP1								; ^
 
 	LDI		RXREG, 0x00									; Reset Reception Register
 	LDI		TXREG, 0x00									; Reset Transmission Register
 
-	; Port setup
+	; ADC Config	
+
+	; ? Needs revision.
+
+	LDI		TEMP1, 0x00									; Choose -> ADC0 and AVCC. Vcc = 5V
+	OUT		ADMUX, TEMP1								; AUTOTRIGGER ENABLED (ADATE) otherwise it doesnt work?
+
+	LDI		TEMP1, (1<<ADEN)|(1<<ADIE)|(1<<ADPS1)|(1<<ADPS0)|(1<<ADPS2)		; ADEN: ENABLE ADC, ADSC: START CONVERSATION ; (1<<ADPS2)
+	OUT		ADCSRA, TEMP1								; ADFR: Activate Free Running Select, Prescalar: 128 // 125kHz ADC clock 
+
+	; Port Setup
 
 	SBI		DDRD, PD7									; Set PIN7 on PORTD as Output
 	SBI		PORTD, PD2									; Set PIN2 on PORTD as Pullup Input
 
-	; Interrupt setup
+	LDI		TEMP1, 0x00									; Set Port A as Input (is this needed?)
+	OUT		DDRA, TEMP1									; ^
 
-	LDI		TEMP1, (1<<ISC01) | (1<<ISC00)				; Set INT0 to rising edge
+	; Interrupt Setup
+
+	LDI		TEMP1, (1<<ISC01)|(1<<ISC00)				; Set INT0 to rising edge
 	OUT		MCUCR, TEMP1								; ^
 
 	LDI 	TEMP1, (1<<INT0)							; Enable external interrupts
@@ -80,31 +111,51 @@ INIT:
 
 	SEI													; Set global interrupt flag
 
+	; Timer1 Setup
+
+	LDI		TEMP1, (1<<OCIE1A)							; Enable Timer1 Compare Match INterrupt
+	OUT		TIMSK, TEMP1								; ^
+
+	LDI		TEMP1, 0x00									; Set Default
+	OUT		TCCR1A, TEMP1								; ^
+
+	LDI		TEMP1, (1<<CS11)|(1<<CS10)|(1<<WGM12)		; Set 64 Prescelar, CTC-MODE
+	OUT		TCCR1B, TEMP1								; ^
+
+	LDI		TEMP1, HIGH(TMR1FREQ)						; Set timer offset
+	OUT		OCR1AH, TEMP1								; ^
+	LDI		TEMP1, LOW(TMR1FREQ)						; ^
+	OUT		OCR1AL, TEMP1								; ^
+
+	LDI		TEMP1, (1<<TOV1)							; Enable Timer1
+	OUT		TIFR, TEMP1									; ^
+	
 	; Waveform Generator (Timer2)
 
 	LDI		TEMP1, 0x00									; Reset Timer2
 	OUT		OCR2, TEMP1									; ^
 
-	; !!! Works, but needs further analysis.
+	; ? Works, but needs further analysis & revision.
 
 	LDI		TEMP1, 0x6A									; Initialize Timer2 with 0110_1010
 	OUT		TCCR2, TEMP1								; ^
 
 	RJMP	MAIN										; Goto MAIN
 
+
 ; ________________________________________________________________________________________________
 ; >> MAIN PROGRAM:
 
 MAIN:
 
-	; !!! Maybe include authentication for security measures?
+	; ? Maybe include authentication for security measures?
 
 	RCALL	SERIAL_READ									; Begin reading
 
 	CPI		RXREG, 0x00									; Set motor if RXREG != 0
 	BRNE	SET_MOTOR									; ^
 
-	; !!! Maybe reset telegram step counter + clear buffer after a short delay ?
+	; ? Maybe reset telegram step counter + clear buffer after a short delay ?
 
 	RJMP	MAIN										; Loop forever
 
@@ -112,27 +163,49 @@ MAIN:
 ; ________________________________________________________________________________________________
 ; >> INTERRUPTS:
 
-INT0_ISR:
+INT0_ISR:												; INT0 Interrupt Handler
+
 	LDI		TXREG, 0x35									; Load 0x35 into transmission register
 	RCALL	SERIAL_WRITE								; Write to USART
 
 	RETI												; Return
 
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-/*TURN_ISR:
+TMR1_ISR:												; TIMER1 Interrupt Handler
 
-	CALL	 SERIAL_WRITE
+	SBI		ADCSRA, ADSC								; Turn on ADC
 
-	RETI
+	RETI												; Return
 
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-GOALDETECT_ISR:
+ADC_ISR:												; ADC Interrupt Handler
 
-	LDI		TXREG, 0x35									; Load 0x35 into transmission register
-	RCALL	SERIAL_WRITE								; Write
+	; ? Better to load into RAM.
 
-	RETI*/
+	IN		ADC_L, ADCL									; Load ADC data into designated  registers
+	NOP													; ^
+	IN		ADC_H, ADCH									; ^
 
+	LDI		TEMP1, 2
+
+REPEAT_ROTATE:
+
+	ROR		ADC_H										; ROR takes care of the carry
+	ROR		ADC_L										; ^
+	DEC		TEMP1										; ^
+	BRNE	REPEAT_ROTATE								; ^
+
+SEND256RESO:
+
+	SBIS	UCSRA, UDRE									; Send data via UART
+	RJMP	SEND256RESO									; ^
+	OUT		UDR, ADC_L									; ^
+
+	RETI												; Return
+
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 
 ; ________________________________________________________________________________________________
@@ -169,12 +242,16 @@ SET_MOTOR_MAX:
 	SBI 	PORTD, PD7									; Enable BIT on PIN7 of PORTD
 	RJMP	MAIN										; Return
 
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 SET_MOTOR:
 	LDI		TEMP1, 0x6A									; Initialize Waveform Generator (Timer2) (0110_1010)
 	OUT		TCCR2, TEMP1								; ^
 
-	; !!! Would be good with some error catching of RXREG
+	; ? Would be good with some error catching of RXREG (Bounds Checking)
+	; i.e. if >100, then abort
+
+	; ? Maybe disable interrupts while doing this?
 
 	LDI		ZH, HIGH(DUTY_CYCLES*2)						; Initialize Address Pointer
 	LDI 	ZL, LOW(DUTY_CYCLES*2)						; ^
@@ -183,9 +260,9 @@ SET_MOTOR:
 	CLR		TEMP1										; ^
 	ADC		ZH, TEMP1									; ^
 
-	LPM		MTSPD, Z									; Load the matching duty cycle
+	LPM		TEMP1, Z									; Load the matching duty cycle
 
-	OUT		OCR2, MTSPD									; Set Duty Cycle (0-255)
+	OUT		OCR2, TEMP1									; Set Duty Cycle (0-255)
 
 	RJMP	MAIN										; Return
 
