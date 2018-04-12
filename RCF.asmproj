@@ -94,6 +94,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="ram_table.txt">
+      <SubType>Code</SubType>
+    </None>
     <None Include="version_log.txt">
       <SubType>Code</SubType>
     </None>
