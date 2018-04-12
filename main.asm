@@ -59,8 +59,8 @@
 ; ________________________________________________________________________________________________
 ; >> RAM ALLOCATION
 
-	.EQU	TCLKH		= 0x0300							; Data memory location for Tachometer Clicks
-	.EQU	TCLKL		= 0x0301							; ^
+	.EQU	TCLKH		= 0x0300						; Data memory location for Tachometer Clicks
+	.EQU	TCLKL		= 0x0301						; ^
 
 ; ________________________________________________________________________________________________
 ; >> INITIALIZATION:
