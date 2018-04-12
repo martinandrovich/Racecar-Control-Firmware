@@ -16,6 +16,8 @@ RAM TABLE:
 	? 0x0000	| DATA_H
 	? 0x0000	| DATA_L
 
+	? 0x0000	| DUTYCYCLE // MTSPD
+
 	? 0xXXXX	| etc...
  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
