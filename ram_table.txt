@@ -1,23 +1,19 @@
 RAM TABLE:
-
-? = Section
-? = Entry
-
  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
  
- ? TEMPORARY DATA
+ >> TEMPORARY DATA
 
-	? 0x0000	| TACHOMETER_H
-	? 0x0000	| TACHOMETER_L
+	> 0x0000	| TACHOMETER_H
+	> 0x0000	| TACHOMETER_L
 
-	? 0x0000	| ADC_H
-	? 0x0000	| ADC_L
+	> 0x0000	| ADC_H
+	> 0x0000	| ADC_L
 
-	? 0x0000	| DATA_H
-	? 0x0000	| DATA_L
+	> 0x0000	| DATA_H
+	> 0x0000	| DATA_L
 
-	? 0x0000	| DUTYCYCLE // MTSPD
+	> 0x0000	| DUTYCYCLE // MTSPD
 
-	? 0xXXXX	| etc...
+	> 0xXXXX	| etc...
  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 

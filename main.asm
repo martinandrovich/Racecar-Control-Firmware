@@ -10,6 +10,12 @@
 .ORG 	0x02											; INT0 Interrupt (PD2)
 	JMP		INT0_ISR									; ^
 
+.ORG	0x04											; INT1 Interrupt (PD3)
+	JMP 	INT1_ISR									; ^
+
+.ORG	0x06											; INT2 Interrupt (PB2)
+	JMP		INT2_ISR									; ^
+
 .ORG	0x14											; TIMER1 Compare Match Interrupt
 	JMP		TMR1_ISR									; ^
 
@@ -50,6 +56,11 @@
 	.DEF	ADC_L		= R24							; ADC Registers
 	.DEF	ADC_H		= R25							; ^
 
+; ________________________________________________________________________________________________
+; >> RAM ALLOCATION
+
+	.EQU	TCLKH		= 0x0300							; Data memory location for Tachometer Clicks
+	.EQU	TCLKL		= 0x0301							; ^
 
 ; ________________________________________________________________________________________________
 ; >> INITIALIZATION:
@@ -63,6 +74,12 @@ INIT:
 	OUT 	SPH, TEMP1
 	LDI 	TEMP1, LOW(RAMEND)
 	OUT 	SPL, TEMP1
+
+	; RAM Initialization
+
+	CLR		TEMP1										; Clear Tachometer Data
+	STS		TCLKH, TEMP1								; ^
+	STS		TCLKL, TEMP1								; ^
 
 	; USART Config
 
@@ -85,7 +102,7 @@ INIT:
 
 	; ADC Config	
 
-	; ? Needs revision.
+	; !!! Needs revision.
 
 	LDI		TEMP1, 0x00									; Choose -> ADC0 and AVCC. Vcc = 5V
 	OUT		ADMUX, TEMP1								; AUTOTRIGGER ENABLED (ADATE) otherwise it doesnt work?
@@ -135,7 +152,7 @@ INIT:
 	LDI		TEMP1, 0x00									; Reset Timer2
 	OUT		OCR2, TEMP1									; ^
 
-	; ? Works, but needs further analysis & revision.
+	; !!! Works, but needs further analysis & revision.
 
 	LDI		TEMP1, 0x6A									; Initialize Timer2 with 0110_1010
 	OUT		TCCR2, TEMP1								; ^
@@ -148,14 +165,14 @@ INIT:
 
 MAIN:
 
-	; ? Maybe include authentication for security measures?
+	; !!! Maybe include authentication for security measures?
 
 	RCALL	SERIAL_READ									; Begin reading
 
 	CPI		RXREG, 0x00									; Set motor if RXREG != 0
 	BRNE	SET_MOTOR									; ^
 
-	; ? Maybe reset telegram step counter + clear buffer after a short delay ?
+	; !!! Maybe reset telegram step counter + clear buffer after a short delay ?
 
 	RJMP	MAIN										; Loop forever
 
@@ -164,6 +181,37 @@ MAIN:
 ; >> INTERRUPTS:
 
 INT0_ISR:												; INT0 Interrupt Handler
+
+	LDS		R25, TCLKH									; Load previous values from RAM
+	LDS		R24, TCLKL									; ^
+
+	ADIW	R25:R24, 1									; Increment data
+
+	STS		TCLKH, R25									; Store values into RAM
+	STS		TCLKL, R24									; ^
+
+	CPI		R24, 100
+	BRNE	INT0_ISR_ESC
+
+	LDI		TXREG, 0x35									; Load 0x35 into transmission register
+	RCALL	SERIAL_WRITE								; Write to USART
+
+INT0_ISR_ESC:
+
+	RETI												; Return
+
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+INT1_ISR:
+
+	LDI		TXREG, 0x35									; Load 0x35 into transmission register
+	RCALL	SERIAL_WRITE								; Write to USART
+
+	RETI												; Return
+
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+INT2_ISR:
 
 	LDI		TXREG, 0x35									; Load 0x35 into transmission register
 	RCALL	SERIAL_WRITE								; Write to USART
@@ -182,7 +230,7 @@ TMR1_ISR:												; TIMER1 Interrupt Handler
 
 ADC_ISR:												; ADC Interrupt Handler
 
-	; ? Better to load into RAM.
+	; !!! Better to load into RAM.
 
 	IN		ADC_L, ADCL									; Load ADC data into designated  registers
 	NOP													; ^
@@ -248,10 +296,10 @@ SET_MOTOR:
 	LDI		TEMP1, 0x6A									; Initialize Waveform Generator (Timer2) (0110_1010)
 	OUT		TCCR2, TEMP1								; ^
 
-	; ? Would be good with some error catching of RXREG (Bounds Checking)
+	; !!! Would be good with some error catching of RXREG (Bounds Checking)
 	; i.e. if >100, then abort
 
-	; ? Maybe disable interrupts while doing this?
+	; !!! Maybe disable interrupts while doing this?
 
 	LDI		ZH, HIGH(DUTY_CYCLES*2)						; Initialize Address Pointer
 	LDI 	ZL, LOW(DUTY_CYCLES*2)						; ^
