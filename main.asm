@@ -28,7 +28,7 @@
 
 	.EQU	BAUDRATE	= 0x00CF						; Baudrate settings for BAUDRATE of 9600
 
-	.EQU	TMR1FREQ	= 15625 - 1						; Settings for Timer1
+	.EQU	TMR1FREQ	= 1953 - 1						; Settings for Timer1
 
 														; 62500 - 1 = 4Hz
 														; 31250 - 1 = 8Hz
