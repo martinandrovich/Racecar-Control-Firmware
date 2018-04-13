@@ -86,7 +86,10 @@
     <Compile Include="main.asm">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="main_1_0_2.asm">
+    <Compile Include="main_old.asm">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ram_table.inc">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="telegram_parser.asm">
