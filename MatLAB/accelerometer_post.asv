@@ -21,7 +21,8 @@ plotGrid        = 'on';
 
 % Definitions
 movingAvgSize   = 32;
-timerFreq       = 128;
+%timerFreq       = 16;
+%readSize        = 128;
 movingAvg       = (1/movingAvgSize) * ones(1, movingAvgSize);
 
 refreshDelay    = 0.0001;
@@ -45,27 +46,12 @@ disp('Connection established; starting data logging.');
 
 while count < 7
     
-   dataBytes = fread(bmodule, timerFreq);   
-   data(1+count*timerFreq:timerFreq*(count+1)) = dataBytes(1:timerFreq);
+   dataBytes = fread(bmodule, readSize);   
+   data(1+count*readSize:readSize*(count+1)) = dataBytes(1:readSize);
    
    count = count + 1;
 
 end
-
-% Stop vehicle & disconnect
-fwrite(bmodule, uint8(1));
-
-while bmodule.BytesAvailable
-   
-   dataBytes = fread(bmodule, 1);   
-   data(1+count*1:1*(count+1)) = dataBytes(1:1);
-   
-   count = count + 1;
-   
-end
-
-fclose(bmodule);
-disp('Bluetooth module closed.');
 
 % Calculate data & filters
 data = (data / 256) * 4 - 2;
@@ -93,3 +79,7 @@ grid(plotGrid);
 % Maximize figure window
 drawnow;
 set(get(handle(gcf), 'JavaFrame'), 'Maximized', 1);
+
+% Stop vehicle & disconnect
+fwrite(bmodule, uint8(1));
+fclose(bmodule);

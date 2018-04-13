@@ -120,7 +120,7 @@ INIT:
 
 	; Timer1 Setup
 
-	LDI		TEMP1, (1<<OCIE1A)							; Enable Timer1 Compare Match INterrupt
+	LDI		TEMP1, (1<<OCIE1A)							; Enable Timer1 Compare Match Interrupt
 	OUT		TIMSK, TEMP1								; ^
 
 	LDI		TEMP1, 0x00									; Set Default

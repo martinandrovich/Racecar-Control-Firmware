@@ -25,7 +25,7 @@
 ; ________________________________________________________________________________________________
 ; >> DEFINITIONS
 
-	.EQU	HERTZTIMER1	= 976 - 1						; Settings for Timer
+	.EQU	HERTZTIMER1	= 1953 - 1						; Settings for Timer
 														; 62500 - 1 = 4Hz
 														; 31250 - 1 = 8Hz
 														; 15625 - 1 = 16Hz

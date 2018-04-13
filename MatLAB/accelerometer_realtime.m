@@ -6,6 +6,7 @@ disp("Version 1.0.3");
 clear;
 clc;
 clf;
+close(gcf);
 
 % Definitions
 refreshDelay    = 0.0001;
@@ -67,7 +68,7 @@ while ishandle(plotGraph)
     count = count + 1;
 
     time(count) = toc;
-    data(count) = (dataBytes(1) / 256) * 5 - 2.5;
+    data(count) = (dataBytes(1) / 256) * 4 - 2;
     
     dataMean = movmean(data, movingAvgSize);
     dataAvg = filter(movingAvg, 1, data);
