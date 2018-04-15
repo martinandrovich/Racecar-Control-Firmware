@@ -55,6 +55,9 @@
 	.DEF	TEMP2		= R17													; Temporary Register #2
 	.DEF	TEMPI		= R18													; Temporary Interrupts Register
 
+	.DEF	RXREG		= R20													; USART Reception Register
+	.DEF	TXREG		= R21													; USART Transmission Register
+
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > FLAGS
 
@@ -280,15 +283,26 @@ LOG_ACCELEROMETER:
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > USART
 
+	// 
+	// Use SRAM or designated registers?
+	//
+
 SERIAL_READ:
 	
-	NOP																			; Do Someting
+	SBIS	UCSRA, RXC															; Wait for Recieve (RXC) Flag
+	RJMP	SERIAL_READ															; ^
+
+	IN		RXREG, UDR															; Read data into Reception Register
+	STS		SERIAL_RX, RXREG													; Store data in SRAM
 
 	RET																			; Return
 
 SERIAL_WRITE:
 	
-	NOP																			; Do Someting
+	SBIS	UCSRA, UDRE															; Wait for Empty Transmit Buffer (UDRE) Flag
+	RJMP	SERIAL_WRITE														; ^
+
+	OUT		UDR, TXREG															; Write data from Transmission Register
 
 	RET																			; Return
 
@@ -301,15 +315,39 @@ SERIAL_WRITE:
 ; ____________________________________________________________________________________________________________________________________________________
 ; >> DEVICE CONTROL
 
-	// PLACEHOLDER
-	// ...
+SET_MOTOR_PWM:
+
+	LDI		TEMP1, 0x6A															; Initialize Waveform Generator (Timer2) (0110_1010)
+	OUT		TCCR2, TEMP1														; ^
+
+	LDS		TEMP1, RECENT_DAT													; Load recent recieved telegram data from SRAM
+	STS		DUTYCYCLE, TEMP1													; Store loaded Duty Cycle in SRAM
+
+	TST		TEMP1																; Check if PWM is Zero
+	BREQ	SET_MOTOR_MIN														; Stop vehicle if true (or BRAKE)
+
+	OUT		OCR2, TEMP1															; Set Duty Cycle (0-255) on Timer2
+
+SET_MOTOR_PWM_ESC:
+
+	RET																			; Return
+
+SET_MOTOR_MIN:
+
+	CBI 	PORTD, PD7															; Clear BIT on PIN7 of PORTD
+	RJMP	SET_MOTOR_PWM_ESC													; Return
+
+SET_MOTOR_MAX:
+
+	SBI 	PORTD, PD7															; Set BIT on PIN7 of PORTD
+	RJMP	SET_MOTOR_PWM_ESC													; Return
 
 ; ____________________________________________________________________________________________________________________________________________________
 ; >> FLAG MANAGEMENT
 
 LOAD_FLAGS:
 	
-	CLI
+	CLI																			; Disable Interrupts
 	
 	LDS		TEMPI, MODE_FLG														; Load Mode Flags from SRAM into Register
 	MOV		MDFLG, TEMPI														; ^
@@ -321,7 +359,7 @@ LOAD_FLAGS:
 	STS		MODE_FLG, TEMPI														; ^
 	STS		FUNC_FLG, TEMPI														; ^
 
-	SEI
+	SEI																			; Enable Interrupts
 
 	RET																			; Return
 

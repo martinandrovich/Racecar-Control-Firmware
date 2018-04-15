@@ -13,14 +13,17 @@ RAM TABLE TEST:
 	> 0x0000	| ADC_L
 
 	> 0x0000	| TEL_STEP
-	> 0x0000	| RECENT_CMD
+
+	> 0x0000	| RECENT_CMD // RECENT_VAR
+	> 0x0000	| RECENT_DAT
+
 	> 0x0000	| DATA_H
 	> 0x0000	| DATA_L
 
 	> 0x0000	| SERIAL_RX
 	> 0x0000	| SERIAL_TX
 
-	> 0x0000	| DUTYCYCLE // MTSPD
+	> 0x0000	| DUTY_CYCLE
 
 	> 0xXXXX	| etc...
  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
