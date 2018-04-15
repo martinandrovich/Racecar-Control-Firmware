@@ -16,7 +16,10 @@
 # 1.0.3 <<
 - Added:	Variable Flags
 - Added:	RAM Table
-- Added:	Sensor Interrupts [todo]
-- Added:	Communicationn Protocol [todo]
+- Added:	Sensor Interrupts
+- Added:	Communicationn Protocol
 - Added:	ADC for Accelerometer
-- Added:	Moving Average Filter [todo]
+- Added:	Moving Average Filter
+
+# 1.1.0 <<
+- Changed:	Refactored Architecture (Sequential Flag Architecture)

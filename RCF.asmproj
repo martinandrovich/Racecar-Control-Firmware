@@ -80,19 +80,22 @@
     </ToolchainSettings>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="adc_test.asm">
+    <Compile Include="files\adc_test.asm">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="files\main_old.asm">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="files\telegram_parser.asm">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="main.asm">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="main_old.asm">
+    <Compile Include="main_new.asm">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="ram_table.inc">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="telegram_parser.asm">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
@@ -103,6 +106,9 @@
     <None Include="version_log.txt">
       <SubType>Code</SubType>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="files" />
   </ItemGroup>
   <Import Project="$(AVRSTUDIO_EXE_PATH)\\Vs\\Assembler.targets" />
 </Project>
