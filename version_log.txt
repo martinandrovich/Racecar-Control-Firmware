@@ -13,7 +13,7 @@
 - Fixed:	Motor Control
 - Fixed:	Code Layout	
 
-# 1.0.3 <<
+# 1.0.3
 - Added:	Variable Flags
 - Added:	RAM Table
 - Added:	Sensor Interrupts
