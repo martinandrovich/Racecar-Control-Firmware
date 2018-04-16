@@ -165,11 +165,6 @@ INIT:
 	LDI		TEMP1, 0x00															; Reset Timer2
 	OUT		OCR2, TEMP1															; ^
 
-	; !!! Works, but needs further analysis & revision.
-
-	;LDI		TEMP1, 0x6A															; Initialize Timer2 with 0110_1010
-	;OUT		TCCR2, TEMP1														; ^
-
 	; External Interrupt Setup
 
 	LDI		TEMP1, (1<<ISC01)|(1<<ISC00)										; Set INT0 to rising edge
@@ -222,7 +217,7 @@ MAIN:
 	CALL	EXECUTE_COMMAND														; ^
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-;  > END OF LOOP
+;  > REPEAT LOOP
 	
 	CLR		MDFLG																; Clear Flags
 	CLR		FNFLG																; ^
@@ -313,16 +308,17 @@ SERIAL_WRITE:
 
 TELEGRAM_CHECK:
 
-	SBIS	UCSRA, RXC
-	RET
+	SBIS	UCSRA, RXC															; Return if no data in USART reception buffer
+	RET																			; ^
 
-	IN		RXREG, UDR
+	IN		RXREG, UDR															; Read data into Reception Register
+	STS		SERIAL_RX, RXREG													; Store data in SRAM
 
 TELEGRAM_PARSER:
 	
-	LDS		TEMP1, TEL_STEP
-	INC		TEMP1																; Increment Telegram Step Counter
-	STS		TEL_STEP, TEMP1
+	LDS		TEMP1, TEL_STEP														; Load, increment & store Telegram Step Counter
+	INC		TEMP1																; ^
+	STS		TEL_STEP, TEMP1														; ^
 
 	CPI		TEMP1, 1															; Setup Telegram Parser if Step = 1
 	BREQ	TELEGRAM_PARSE_SETUP												; ^
@@ -345,7 +341,7 @@ TELEGRAM_PARSER_ESC:
 TELEGRAM_PARSE_SETUP:
 
 	LDI		ZH, HIGH(COMMANDS*2)												; Reset Z Pointer to COMMANDS jump table
-	LDI 	ZL,  LOW(COMMANDS*2)													; ^
+	LDI 	ZL,  LOW(COMMANDS*2)												; ^
 
 	INC		ZL																	; Offset Z pointer (+1) to parse COMMAND (0xXX_00)
 
