@@ -1,4 +1,11 @@
-.MACRO SUBI16 ; Start macro definition 
-subi @1,low(@0) ; Subtract low byte 
-sbci @2,high(@0) ; Subtract high byte 
-.ENDMACRO ; End macro definition
+.MACRO	SWRITE	
+	
+	LDS		TXREG, @0															;
+	STS		SERIAL_TX, TXREG													;
+	SBIS	UCSRA, UDRE															; Wait for Empty Transmit Buffer (UDRE) Flag
+	RJMP	SERIAL_WRITE														; ^
+
+	OUT	UDR, TXREG																; Write data from Transmission Register
+	
+	RET	
+.ENDMACRO	
