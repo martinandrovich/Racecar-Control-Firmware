@@ -26,7 +26,7 @@
 .EQU	FUNC_FLG						= 0x006E
 .EQU	MODE_FLG						= 0x006F
 
-.EQU	FINISHLINE						= 0x007
+.EQU	FINISHLINE						= 0x0070
 
 ; ___________________________________________________________________________________________________________________________________________________
 ; >> MOVING_AVG		:					; 32 values in the moving avg filter
