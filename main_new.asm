@@ -406,6 +406,7 @@ TELEGRAM_ERROR:
 
 EXECUTE_COMMAND:
 
+	
 	CBR		FLAGS, (1<<CMDPD)							; CLEAR command execution flag
 	ICALL												; CALL function of Z-pointer
 
