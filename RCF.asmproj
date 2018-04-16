@@ -80,6 +80,9 @@
     </ToolchainSettings>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="command_table.inc">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="files\adc_test.asm">
       <SubType>Code</SubType>
     </Compile>
@@ -100,6 +103,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="macros.inc">
+      <SubType>Code</SubType>
+    </None>
     <None Include="ram_table.txt">
       <SubType>Code</SubType>
     </None>

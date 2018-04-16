@@ -1,9 +1,0 @@
-
-AVRASM ver. 2.2.7  C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm Mon Apr 16 13:00:57 2018
-
-[builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.150\avrasm\inc\m32def.inc'
-C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm(84): Including file 'C:\Users\Martin\Desktop\Racecar-Control-Firmware\ram_table.inc'
-C:\Users\Martin\Desktop\Racecar-Control-Firmware\ram_table.inc(30): error: Use of undefined or forward referenced symbol 'NAVN' in .org
-C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm(84): 'C:\Users\Martin\Desktop\Racecar-Control-Firmware\ram_table.inc' included form here
-C:\Users\Martin\Desktop\Racecar-Control-Firmware\ram_table.inc(30): error: syntax error, unexpected ','
-C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm(84): 'C:\Users\Martin\Desktop\Racecar-Control-Firmware\ram_table.inc' included form here
