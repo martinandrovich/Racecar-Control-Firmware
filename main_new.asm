@@ -138,6 +138,8 @@ INIT:
 	LDI		TEMP1, 0x00															; Set Port A as Input (is this needed?)
 	OUT		DDRA, TEMP1															; ^
 
+	NOP
+
 	; Timer1 Setup
 
 	LDI		TEMP1, (1<<OCIE1A)													; Enable Timer1 Compare Match Interrupt
