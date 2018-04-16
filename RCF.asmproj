@@ -15,7 +15,7 @@
     <Name>RCF</Name>
     <RootNamespace>RCF</RootNamespace>
     <ToolchainFlavour>Native</ToolchainFlavour>
-    <EntryFile>$(MSBuildProjectDirectory)\main_new.asm</EntryFile>
+    <EntryFile>$(MSBuildProjectDirectory)\main.asm</EntryFile>
     <KeepTimersRunning>true</KeepTimersRunning>
     <OverrideVtor>false</OverrideVtor>
     <CacheFlash>true</CacheFlash>
@@ -86,7 +86,16 @@
     <Compile Include="files\adc_test.asm">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="files\main_old.asm">
+    <Compile Include="files\broadcast.asm">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="files\main_1_0_3.asm">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="files\main_1_0_2.asm">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="files\mov_avg.asm">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="files\telegram_parser.asm">
@@ -95,7 +104,7 @@
     <Compile Include="main.asm">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="main_new.asm">
+    <Compile Include="main_new2.asm">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="ram_table.inc">
@@ -104,9 +113,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="macros.inc">
-      <SubType>Code</SubType>
-    </None>
-    <None Include="ram_table.txt">
       <SubType>Code</SubType>
     </None>
     <None Include="version_log.txt">

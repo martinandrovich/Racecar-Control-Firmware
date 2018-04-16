@@ -1,71 +1,90 @@
+; ###################################################################################################################################################
 ; Racecar Control Firmware
-; Version 1.0.2
+; Version 1.1.0
+; 
+; Sequential Flag Architecture
 
-; ________________________________________________________________________________________________
+; ___________________________________________________________________________________________________________________________________________________
 ; >> VECTORS:
 
-.ORG	0x00											; Reset Vector
-	JMP		INIT										; ^
+.ORG	0x00																	; Reset Vector
+	JMP		INIT																; ^
 
-.ORG 	0x02											; INT0 Interrupt (PD2)
-	JMP		INT0_ISR									; ^
+.ORG 	0x02																	; INT0 Interrupt (PD2)
+	JMP		INT0_ISR															; ^
 
-.ORG	0x04											; INT1 Interrupt (PD3)
-	JMP 	INT1_ISR									; ^
+.ORG	0x04																	; INT1 Interrupt (PD3)
+	JMP 	INT1_ISR															; ^
 
-.ORG	0x06											; INT2 Interrupt (PB2)
-	JMP		INT2_ISR									; ^
+.ORG	0x06																	; INT2 Interrupt (PB2)
+	JMP		INT2_ISR															; ^
 
-.ORG	0x14											; TIMER1 Compare Match Interrupt
-	JMP		TMR1_ISR									; ^
+.ORG	0x14																	; TIMER1 Compare Match Interrupt
+	JMP		TMR1_ISR															; ^
 
-.ORG	0x20											; ADC Conversion Complete Interrupt
-	JMP		ADC_ISR										; ^
+.ORG	0x20																	; ADC Conversion Complete Interrupt
+	JMP		ADC_ISR																; ^
 
-
-; ________________________________________________________________________________________________
+; ____________________________________________________________________________________________________________________________________________________
 ; >> DEFINITIONS
 
-	.EQU	BAUDRATE	= 0x00CF						; Baudrate settings for BAUDRATE of 9600
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+;  > CONSTANTS
 
-	.EQU	TMR1FREQ	= 1953 - 1						; Settings for Timer1
+	.EQU	BAUDRATE	= 0x00CF												; Baudrate settings
 
-														; 62500 - 1 = 4Hz
-														; 31250 - 1 = 8Hz
-														; 15625 - 1 = 16Hz
-														; 7812 - 1	= 32Hz
-														; 1953 - 1  = 128Hz
-														; 976 - 1   = 256Hz
+	.EQU	TMR1FREQ	= 1953 - 1												; Settings for Timer1
 
-	.DEF	TEMP1		= R16							; Temporary Register #1
-	.DEF	TEMP2		= R17							; Temporary Register #2
+																				; 62500 - 1		= 4Hz
+																				; 31250 - 1		= 8Hz
+																				; 15625 - 1		= 16Hz
+																				;  7812 - 1		= 32Hz
+																				;  1953 - 1		= 128Hz
+																				;   976 - 1		= 256Hz
 
-	.DEF	FLAGS		= R18							; Variable Flags Register
-														; [CMDPD = 7] | [AUTMD = 6] | [DATLG = 5] | X (4) | X (3) | X (2) | X (1) | X (0)]
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+;  > REGISTERS
+
+	.DEF	MDFLG		= R0													; Mode Flags for Interrupts
+	.DEF	FNFLG		= R1													; Function Flags for Interrupts
 	
-	.EQU	DATLG		= 5								; Datalogging Mode
-	.EQU	AUTMD		= 6								; Autonomous Mode
-	.EQU	CMDPD		= 7								; Command Pending Flag
-	
-	
-	.DEF	TELSC		= R19							; Telegram Parser Step Counter
+	.DEF	TEMP1		= R16													; Temporary Register #1
+	.DEF	TEMP2		= R17													; Temporary Register #2
+	.DEF	TEMPI		= R18													; Temporary Interrupts Register
 
-	.DEF	RXREG		= R20							; USART Reception Register
-	.DEF	TXREG		= R21							; USART Transmission Register
+	.DEF	RXREG		= R20													; USART Reception Register
+	.DEF	TXREG		= R21													; USART Transmission Register
 
-	.DEF	ADC_L		= R24							; ADC Registers
-	.DEF	ADC_H		= R25							; ^
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+;  > FLAGS
 
-; ________________________________________________________________________________________________
-; >> RAM ALLOCATION
+	; Mode Flags
 
-	.EQU	TCLKH		= 0x0300						; Data memory location for Tachometer Clicks
-	.EQU	TCLKL		= 0x0301						; ^
+	.EQU	AUTO		= 7														; Autonomous Mode
+	.EQU	MAP			= 6														; Mapping Mode
+	.EQU	BROD2		= 5														; Broadcast Mode
+	.EQU	BROD1		= 4														; ^
+	.EQU	BROD0		= 3														; ^
 
-; ________________________________________________________________________________________________
-; >> INITIALIZATION:
+	; Function Flags
+
+	.EQU	TACHO		= 7														; Tachometer Ready
+	.EQU	FNLNE		= 6														; Finishline Ready
+	.EQU	ACCLR		= 5														; Accelerometer Ready
+	.EQU	TMR1		= 4														; Timer1 Ready
+	.EQU	CMDPD		= 3														; Command Pending
+
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+;  > INCLUDES
 
 .ORG	0x28
+
+	.INCLUDE	"ram_table.inc"
+	.INCLUDE	"command_table.inc"
+
+; ____________________________________________________________________________________________________________________________________________________
+; >> INITIALIZATION
+
 INIT:
 
 	; Stack Pointer
@@ -75,299 +94,470 @@ INIT:
 	LDI 	TEMP1, LOW(RAMEND)
 	OUT 	SPL, TEMP1
 
-	; RAM Initialization
+	; SRAM Initialization
 
-	CLR		TEMP1										; Clear Tachometer Data
-	STS		TCLKH, TEMP1								; ^
-	STS		TCLKL, TEMP1								; ^
+	CLR		TEMP1
+	STS		RECENT_DAT, TEMP1
+	STS		MODE_FLG, TEMP1
+	STS		FUNC_FLG, TEMP1
+	STS		TEL_STEP, TEMP1
 
 	; USART Config
 
-	LDI		TEMP1, HIGH(BAUDRATE)						; Set Transmission Rate
-	OUT		UBRRH, TEMP1								; ^
-	LDI		TEMP1, LOW(BAUDRATE)						; ^
-	OUT		UBRRL, TEMP1								; ^
+	LDI		TEMP1, HIGH(BAUDRATE)												; Set Transmission Rate
+	OUT		UBRRH, TEMP1														; ^
+	LDI		TEMP1, LOW(BAUDRATE)												; ^
+	OUT		UBRRL, TEMP1														; ^
 
-	LDI		TEMP1, 0x02									; Clear all Error Flags + Enable DoubleMode
-	OUT		UCSRA, TEMP1								; ^
+	LDI		TEMP1, 0x02															; Clear all Error Flags + Enable DoubleMode
+	OUT		UCSRA, TEMP1														; ^
 
-	LDI		TEMP1, (1<<RXEN)|(1<<TXEN)					; Enable Transmission & Reception
-	OUT		UCSRB, TEMP1								; ^
+	LDI		TEMP1, (1<<RXEN)|(1<<TXEN)											; Enable Transmission & Reception
+	OUT		UCSRB, TEMP1														; ^
 
-	LDI		TEMP1, (1<<URSEL)|(3<<UCSZ0)				; Set Frame Format (8, N, 1)
-	OUT		UCSRC, TEMP1								; ^
+	LDI		TEMP1, (1<<URSEL)|(3<<UCSZ0)										; Set Frame Format (8, N, 1)
+	OUT		UCSRC, TEMP1														; ^
 
-	CLR		RXREG										; Reset Reception Register
-	CLR		TXREG										; Reset Transmission Register
+	CLR		RXREG																; Reset Reception Register
+	CLR		TXREG																; Reset Transmission Register
 
 	; ADC Config	
 
 	; !!! Needs revision.
 
-	LDI		TEMP1, 0x00									; Choose -> ADC0 and AVCC. Vcc = 5V
-	OUT		ADMUX, TEMP1								; AUTOTRIGGER ENABLED (ADATE) otherwise it doesnt work?
+	LDI		TEMP1, (1<<ADLAR)													; Choose -> ADC0 and AVCC. Vcc = 5V
+	OUT		ADMUX, TEMP1														; AUTOTRIGGER ENABLED (ADATE) otherwise it doesnt work?
 
-	LDI		TEMP1, (1<<ADEN)|(1<<ADIE)|(1<<ADPS1)|(1<<ADPS0)|(1<<ADPS2)		; ADEN: ENABLE ADC, ADSC: START CONVERSATION ; (1<<ADPS2)
-	OUT		ADCSRA, TEMP1								; ADFR: Activate Free Running Select, Prescalar: 128 // 125kHz ADC clock 
+	LDI		TEMP1, (1<<ADEN)|(1<<ADIE)|(1<<ADPS1)|(1<<ADPS0)|(1<<ADPS2)			; ADEN: ENABLE ADC, ADSC: START CONVERSATION ; (1<<ADPS2)
+	OUT		ADCSRA, TEMP1														; ADFR: Activate Free Running Select, Prescaler: 128 // 125kHz ADC clock 
 
-	; Port Setup
+	; I/O (Port) Setup
 
-	SBI		DDRD, PD7									; Set PIN7 on PORTD as Output
-	SBI		PORTD, PD2									; Set PIN2 on PORTD as Pullup Input
+	SBI		DDRD, PD7															; Set PD7 on PORTD as Output
+	SBI		PORTD, PD2															; Set PD2 on PORTD as Pullup Input
 
-	LDI		TEMP1, 0x00									; Set Port A as Input (is this needed?)
-	OUT		DDRA, TEMP1									; ^
+	LDI		TEMP1, 0x00															; Set Port A as Input (is this needed?)
+	OUT		DDRA, TEMP1															; ^
+
+	NOP
 
 	; Timer1 Setup
 
-	LDI		TEMP1, (1<<OCIE1A)							; Enable Timer1 Compare Match Interrupt
-	OUT		TIMSK, TEMP1								; ^
+	LDI		TEMP1, (1<<OCIE1A)													; Enable Timer1 Compare Match Interrupt
+	OUT		TIMSK, TEMP1														; ^
 
-	LDI		TEMP1, 0x00									; Set Default
-	OUT		TCCR1A, TEMP1								; ^
+	LDI		TEMP1, 0x00															; Set Default
+	OUT		TCCR1A, TEMP1														; ^
 
-	LDI		TEMP1, (1<<CS11)|(1<<CS10)|(1<<WGM12)		; Set 64 Prescelar, CTC-MODE
-	OUT		TCCR1B, TEMP1								; ^
+	LDI		TEMP1, (1<<CS11)|(1<<CS10)|(1<<WGM12)								; Set 64 Prescelar, CTC-MODE
+	OUT		TCCR1B, TEMP1														; ^
 
-	LDI		TEMP1, HIGH(TMR1FREQ)						; Set timer offset
-	OUT		OCR1AH, TEMP1								; ^
-	LDI		TEMP1, LOW(TMR1FREQ)						; ^
-	OUT		OCR1AL, TEMP1								; ^
+	LDI		TEMP1, HIGH(TMR1FREQ)												; Set timer offset
+	OUT		OCR1AH, TEMP1														; ^
+	LDI		TEMP1,  LOW(TMR1FREQ)												; ^
+	OUT		OCR1AL, TEMP1														; ^
 
-	LDI		TEMP1, (1<<TOV1)							; Enable Timer1
-	OUT		TIFR, TEMP1									; ^
+	LDI		TEMP1, (1<<TOV1)													; Enable Timer1
+	OUT		TIFR, TEMP1															; ^
 	
 	; Waveform Generator (Timer2)
 
-	LDI		TEMP1, 0x00									; Reset Timer2
-	OUT		OCR2, TEMP1									; ^
+	LDI		TEMP1, 0x00															; Reset Timer2
+	OUT		OCR2, TEMP1															; ^
 
 	; !!! Works, but needs further analysis & revision.
 
-	LDI		TEMP1, 0x6A									; Initialize Timer2 with 0110_1010
-	OUT		TCCR2, TEMP1								; ^
+	;LDI		TEMP1, 0x6A															; Initialize Timer2 with 0110_1010
+	;OUT		TCCR2, TEMP1														; ^
 
-	; Interrupt Setup
+	; External Interrupt Setup
 
-	LDI		TEMP1, (1<<ISC01)|(1<<ISC00)				; Set INT0 to rising edge
-	OUT		MCUCR, TEMP1								; ^
+	LDI		TEMP1, (1<<ISC01)|(1<<ISC00)										; Set INT0 to rising edge
+	OUT		MCUCR, TEMP1														; ^
 
-	LDI 	TEMP1, (1<<INT0)							; Enable external interrupts
-	OUT 	GICR, TEMP1									; ^
+	LDI 	TEMP1, (1<<INT0)													; Enable external interrupts
+	OUT 	GICR, TEMP1															; ^
 
-	SEI													; Set global interrupt flag
+	SEI																			; Set global interrupt flag
 
-	RJMP	MAIN										; Goto MAIN
+	RJMP	MAIN																; Start MAIN Program
 
-
-; ________________________________________________________________________________________________
-; >> MAIN PROGRAM:
+; ____________________________________________________________________________________________________________________________________________________
+; >> MAIN PROGRAM
 
 MAIN:
+	
+	CALL	LOAD_FLAGS															; Load Flags
+	
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+;  > MODES:
 
-	; !!! Maybe include authentication for security measures?
+	SBRC	MDFLG, AUTO															; Autonomous Mode
+	NOP																			; ^
 
-	RCALL	SERIAL_READ									; Begin reading
+	SBRC	MDFLG, MAP															; Mapping Mode
+	NOP																			; ^
 
-	CPI		RXREG, 0x00									; Set motor if RXREG != 0
-	BRNE	SET_MOTOR									; ^
+	SBRC	MDFLG, BROD0														; Broadcast Mode
+	NOP																			; ^
 
-	; !!! Maybe reset telegram step counter + clear buffer after a short delay ?
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+;  > FUNCTIONS
 
-	RJMP	MAIN										; Loop forever
+	SBRC	FNFLG, TACHO														; Tachometer Ready
+	NOP																			; ^
 
+	SBRC	FNFLG, FNLNE														; Finishline Ready
+	NOP																			; ^
 
-; ________________________________________________________________________________________________
-; >> INTERRUPTS:
+	SBRC	FNFLG, ACCLR														; Accelerometer Ready
+	NOP																			; ^
+	
+	SBRC	FNFLG, TMR1															; Timer1 Ready
+	NOP																			; ^
 
-INT0_ISR:												; INT0 Interrupt Handler
+	CALL	TELEGRAM_CHECK														; Check for Telegrams
 
-	; !!! CONFLICTS WITH ADC DATA
-	; !!! X POINTER & "LD" SHOULD BE USED INSTEAD
+	SBRC	FNFLG, CMDPD														; Command Pending
+	CALL	EXECUTE_COMMAND														; ^
 
-	LDS		R25, TCLKH									; Load previous values from RAM
-	LDS		R24, TCLKL									; ^
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+;  > END OF LOOP
+	
+	CLR		MDFLG																; Clear Flags
+	CLR		FNFLG																; ^
 
-	ADIW	R25:R24, 1									; Increment data
+	RJMP	MAIN																; Loop forever
 
-	STS		TCLKH, R25									; Store values into RAM
-	STS		TCLKL, R24									; ^
+; ____________________________________________________________________________________________________________________________________________________
+; >> SENSOR PROCESSING & LOGGING
 
-	CPI		R24, 100
-	BRNE	INT0_ISR_ESC
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+;  > GENERAL (ALL)
 
-	LDI		TXREG, 0x30									; Load 0x30 into transmission register
-	RCALL	SERIAL_WRITE								; Write to USART
+LOG:
 
-INT0_ISR_ESC:
+	NOP																			; Do Someting
 
-	RETI												; Return
+	RET																			; Return
 
-;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+;  > TACHOMETER
 
-INT1_ISR:
+LOG_TACHOMETER:
 
-	LDI		TXREG, 0x31									; Load 0x31 into transmission register
-	RCALL	SERIAL_WRITE								; Write to USART
+	NOP																			; Do Someting
 
-	RETI												; Return
+	RET																			; Return
 
-;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+;  > FINISH LINE
 
-INT2_ISR:
+LOG_FINISHLINE:
 
-	LDI		TXREG, 0x32									; Load 0x32 into transmission register
-	RCALL	SERIAL_WRITE								; Write to USART
+	NOP																			; Do Someting
 
-	RETI												; Return
+	RET																			; Return
 
-;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+;  > ACCELEROMETER
 
-TMR1_ISR:												; TIMER1 Interrupt Handler
+LOG_ACCELEROMETER:
 
-	SBI		ADCSRA, ADSC								; Turn on ADC
+	NOP																			; Do Someting
 
-	RETI												; Return
+	RET																			; Return
 
-;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+; ____________________________________________________________________________________________________________________________________________________
+; >> MAPPING
 
-ADC_ISR:												; ADC Interrupt Handler
-
-	; !!! Better to load into RAM.
-
-	IN		ADC_L, ADCL									; Load ADC data into designated  registers
-	NOP													; ^
-	IN		ADC_H, ADCH									; ^
-
-	LDI		TEMP1, 2
-
-ADC_ISR_ROR:
-
-	ROR		ADC_H										; ROR takes care of the carry
-	ROR		ADC_L										; ^
-	DEC		TEMP1										; ^
-	BRNE	ADC_ISR_ROR									; ^
-
-	MOV		TXREG, ADC_L								; Transmit ADC data
-	RCALL	SERIAL_WRITE								; ^
-
-	RETI												; Return
-
-;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-
-; ________________________________________________________________________________________________
-; >> SERIAL COMMUNICATION MODULE:
-
-SERIAL_READ:
-	SBIS	UCSRA, RXC									; Wait for Recieve (RXC) flag
-	RJMP	SERIAL_READ									; ^
-
-	IN		RXREG, UDR									; Load data from serial to register
-
-	RET													; Return
-
-
-SERIAL_WRITE:
-	SBIS	UCSRA, UDRE									; Wait for Empty Transmit Buffer (UDRE) flag
-	RJMP	SERIAL_WRITE								; ^
-
-	OUT		UDR, TXREG									; Load transmission data from register to serial
-
-	RET													; Return
-
-
-; ________________________________________________________________________________________________
-; >> COMMUNICATION PROTOCOL MODULE (INTERRUPT VERSION):
-
-	// Placeholder
+	// PLACEHOLDER
 	// ...
 
-; ________________________________________________________________________________________________
-; >> CONTROL MODULE:
+; ____________________________________________________________________________________________________________________________________________________
+; >> BROADCAST
+
+	// PLACEHOLDER
+	// ...
+
+	// Check if Timer1 ready before broadcasting?
+
+; ____________________________________________________________________________________________________________________________________________________
+; >> COMMUNICATION PROTOCOL
+
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+;  > USART
+
+SERIAL_READ:
+	
+	SBIS	UCSRA, RXC															; Wait for Recieve (RXC) Flag
+	RJMP	SERIAL_READ															; ^
+
+	IN		RXREG, UDR															; Read data into Reception Register
+	STS		SERIAL_RX, RXREG													; Store data in SRAM
+
+	RET																			; Return
+
+SERIAL_WRITE:
+	
+	SBIS	UCSRA, UDRE															; Wait for Empty Transmit Buffer (UDRE) Flag
+	RJMP	SERIAL_WRITE														; ^
+
+	OUT		UDR, TXREG															; Write data from Transmission Register
+
+	RET																			; Return
+
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+;  > TELEGRAM PARSER
+
+
+TELEGRAM_CHECK:
+
+	SBIS	UCSRA, RXC
+	RET
+
+	IN		RXREG, UDR
+
+TELEGRAM_PARSER:
+	
+	LDS		TEMP1, TEL_STEP
+	INC		TEMP1																; Increment Telegram Step Counter
+	STS		TEL_STEP, TEMP1
+
+	CPI		TEMP1, 1															; Setup Telegram Parser if Step = 1
+	BREQ	TELEGRAM_PARSE_SETUP												; ^
+
+	CPI		TEMP1, 4															; Execute Telegram if Step = 4
+	BREQ	TELEGRAM_EXECUTE													; ^
+
+	CPI		TEMP1, 2															; Parse (TYPE) if Step = 2
+	BREQ	TELEGRAM_JUMP														; ^
+
+	DEC		ZL																	; Offset Z pointer (-1) to parse TYPE (0x00_XX)
+
+	CPI		TEMP1, 3															; Parse (COMMAND) if Step = 3
+	BREQ	TELEGRAM_JUMP														; ^
+
+TELEGRAM_PARSER_ESC:
+	
+	RET
+
+TELEGRAM_PARSE_SETUP:
+
+	LDI		ZH, HIGH(COMMANDS*2)												; Reset Z Pointer to COMMANDS jump table
+	LDI 	ZL,  LOW(COMMANDS*2)													; ^
+
+	INC		ZL																	; Offset Z pointer (+1) to parse COMMAND (0xXX_00)
+
+	RJMP	TELEGRAM_PARSER														; Return
+
+TELEGRAM_JUMP:
+
+	ADIW	ZH:ZL, 4															; Increment Z Pointer (by 4)
+
+	LPM		TEMP1, Z															; Load the matching duty cycle
+
+	CPI		TEMP1, 0xEE															; Reset everything if out of table bounds
+	BREQ	TELEGRAM_ERROR														; ^
+
+	CP		TEMP1, RXREG														; Find match in jump table
+	BREQ	TELEGRAM_PARSER_ESC													; ^
+
+	RJMP	TELEGRAM_JUMP														; Repeat
+
+TELEGRAM_EXECUTE:
+
+	ADIW	ZH:ZL, 2															; Point at & read LOW of Table address
+	LPM		TEMP1, Z															; ^
+
+	ADIW	ZH:ZL, 1															; Point at & read HIGH of Table address
+	LPM		TEMP2, Z															; ^
+
+	MOV		ZL, TEMP1															; Load Z Pointer
+	MOV		ZH, TEMP2															; ^
+
+	STS		RECENT_DAT, RXREG													; Store recieved data in SRAM
+
+	RCALL	SET_COMMAND															; Set command pending flag
+
+TELEGRAM_RESET:
+	
+	CLR		TEMP1																; Reset parse counter
+	STS		TEL_STEP, TEMP1
+
+	RET																			; Return
+
+TELEGRAM_CLRBUFFER:
+
+	IN		TEMP1, UDR															; Empty buffer
+	SBIC	UCSRA, RXC															; ^
+	RJMP	TELEGRAM_CLRBUFFER													; ^
+
+	RET																			; Return
+
+TELEGRAM_ERROR:
+
+	CLR		RXREG																; Clear reception register
+
+	RCALL	CLR_COMMAND															; Clear command pending flag
+	RCALL	TELEGRAM_RESET
+	RCALL	TELEGRAM_CLRBUFFER													; Clear reception buffer
+	
+	RET																			; Return
+
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+;  > COMMANDS
+
+SET_COMMAND:
+
+	MOV		TEMP1, FNFLG														; Load current Flags Register and set CMDPD bit
+	SBR		TEMP1, (1<<CMDPD)													; ^
+	MOV		FNFLG, TEMP1														; ^
+	
+	RET
+
+CLR_COMMAND:
+	
+	MOV		TEMP1, FNFLG														; Load current Flags Register and clear CMDPD bit
+	CBR		TEMP1, (1<<CMDPD)													; ^
+	MOV		FNFLG, TEMP1														; ^
+	
+	RET
+
+EXECUTE_COMMAND:
+	
+	RCALL	CLR_COMMAND															; Clear command pending flag
+
+	ICALL																		; Call function of Z-pointer
+
+	RET																			; Return
+
+; ____________________________________________________________________________________________________________________________________________________
+; >> DEVICE CONTROL
+
+EMPTY:
+	NOP
+	RET
+
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+;  > PURE TESTING
+
+TEST:
+
+	LDI		TEMP1, 60
+	STS		RECENT_DAT, TEMP1
+
+	CALL	SET_MOTOR_PWM
+	CALL	DELAY
+	CALL	SET_MOTOR_MIN
+	CALL	DELAY
+
+	RET
+
+DELAY:
+    LDI		R27, 100
+LOOP3:
+	LDI		R26, 100
+LOOP2:
+	LDI		R25, 100
+LOOP1:
+    DEC		R25
+    BRNE	LOOP1
+    DEC		R26
+    BRNE	LOOP2
+    DEC		R27
+    BRNE	LOOP3
+
+    RET
+
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+;  > MOTOR CONTROL
+
+SET_MOTOR_PWM:
+
+	LDI		TEMP1, 0x6A															; Initialize Waveform Generator (Timer2) (0110_1010)
+	OUT		TCCR2, TEMP1														; ^
+
+	LDS		TEMP1, RECENT_DAT													; Load recent recieved telegram data from SRAM
+	STS		DUTY_CYCLE, TEMP1													; Store loaded Duty Cycle in SRAM
+
+	TST		TEMP1																; Check if PWM is Zero
+	BREQ	SET_MOTOR_MIN														; Stop vehicle if true (or BRAKE)
+
+	OUT		OCR2, TEMP1															; Set Duty Cycle (0-255) on Timer2
+
+SET_MOTOR_PWM_ESC:
+
+	RET																			; Return
+
+SET_MOTOR_MIN:
+
+	LDI		TEMP1, 0x00															; Disable Timer2
+	OUT		TCCR2, TEMP1														; ^
+
+	CBI 	PORTD, PD7															; Clear BIT on PIN7 of PORTD
+	RJMP	SET_MOTOR_PWM_ESC													; Return
+
+	RJMP	SET_MOTOR_PWM_ESC													; Return
 
 SET_MOTOR_MAX:
-	SBI 	PORTD, PD7									; Enable BIT on PIN7 of PORTD
-	RJMP	MAIN										; Return
 
-;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+	SBI 	PORTD, PD7															; Set BIT on PIN7 of PORTD
+	RJMP	SET_MOTOR_PWM_ESC													; Return
 
-SET_MOTOR:
-	LDI		TEMP1, 0x6A									; Initialize Waveform Generator (Timer2) (0110_1010)
-	OUT		TCCR2, TEMP1								; ^
+; ____________________________________________________________________________________________________________________________________________________
+; >> FLAGS MANAGEMENT
 
-	; !!! Would be good with some error catching of RXREG (Bounds Checking)
-	; i.e. if >100, then abort
+LOAD_FLAGS:
+	
+	CLI																			; Disable Interrupts
+	
+	LDS		TEMPI, MODE_FLG														; Load Mode Flags from SRAM into Register
+	MOV		MDFLG, TEMPI														; ^
 
-	; !!! Maybe disable interrupts while doing this?
+	LDS		TEMPI, FUNC_FLG														; Load Function Flags from SRAM into Register
+	MOV		FNFLG, TEMPI														; ^
 
-	; !!! Disable if 0.
+	CLR		TEMPI																; Clear stored flags
+	STS		MODE_FLG, TEMPI														; ^
+	STS		FUNC_FLG, TEMPI														; ^
 
-	LDI		ZH, HIGH(DUTY_CYCLES*2)						; Initialize Address Pointer
-	LDI 	ZL, LOW(DUTY_CYCLES*2)						; ^
+	SEI																			; Enable Interrupts
 
-	ADD		ZL, RXREG									; Set pointer to RXREG value (with carry)
-	CLR		TEMP1										; ^
-	ADC		ZH, TEMP1									; ^
+	RET																			; Return
 
-	LPM		TEMP1, Z									; Load the matching duty cycle
+; ____________________________________________________________________________________________________________________________________________________
+; >> INTERRUPT SERVICE ROUTINES
 
-	OUT		OCR2, TEMP1									; Set Duty Cycle (0-255)
+INT0_ISR:
+	
+	LDS		TEMPI, FUNC_FLG														; Load Function Flags from SRAM into Temporary Interrupt Register
+	SET																			; Set T flag
+	BLD		TEMPI, TACHO														; Set BIT in Temporary Interrupt Register
+	STS		FUNC_FLG, TEMPI														; Store Function Flags to SRAM
 
-	RJMP	MAIN										; Return
+	RETI																		; Return
 
-; ________________________________________________________________________________________________
-; >> SPEED VALUES TABLE:
+INT1_ISR:
+	
+	NOP
 
-DUTY_CYCLES:
-	.DB		0, 1    	; 0% and 1%
-	.DB		4, 6    	; 2% and 3%
-	.DB		9, 11       ; 4% and 5%
-	.DB		14, 16      ; 6% and 7%
-	.DB		19, 22      ; 8% and 9%
-	.DB		24, 27      ; 10% and 11%
-	.DB		29, 32      ; 12% and 13%
-	.DB		34, 37      ; 14% and 15%
-	.DB		39, 42      ; 16% and 17%
-	.DB		45, 47      ; 18% and 19%
-	.DB		50, 52      ; 20% and 21%
-	.DB		55, 57      ; 22% and 23%
-	.DB		60, 63      ; 24% and 25%
-	.DB		65, 68      ; 26% and 27%
-	.DB		70, 73      ; 28% and 29%
-	.DB		75, 78      ; 30% and 31%
-	.DB		80, 83      ; 32% and 33%
-	.DB		86, 88      ; 34% and 35%
-	.DB		91, 93      ; 36% and 37%
-	.DB		96, 98    	; 38% and 39%
-	.DB		101, 103    ; 40% and 41%
-	.DB		106, 109    ; 42% and 43%
-	.DB		111, 114    ; 44% and 45%
-	.DB		116, 119    ; 46% and 47%
-	.DB		121, 124    ; 48% and 49%
-	.DB		127, 129    ; 50% and 51%
-	.DB		132, 134    ; 52% and 53%
-	.DB		137, 139    ; 54% and 55%
-	.DB		142, 144    ; 56% and 57%
-	.DB		147, 150    ; 58% and 59%
-	.DB		152, 155    ; 60% and 61%
-	.DB		157, 160    ; 62% and 63%
-	.DB		162, 165    ; 64% and 65%
-	.DB		167, 170    ; 66% and 67%
-	.DB		173, 175    ; 68% and 69%
-	.DB		178, 180    ; 70% and 71%
-	.DB		183, 185    ; 72% and 73%
-	.DB		188, 191    ; 74% and 75%
-	.DB		193, 196    ; 76% and 77%
-	.DB		198, 201    ; 78% and 79%
-	.DB		203, 206    ; 80% and 81%
-	.DB		208, 211    ; 82% and 83%
-	.DB		214, 216    ; 84% and 85%
-	.DB		219, 221    ; 86% and 87%
-	.DB		224, 226    ; 88% and 89%
-	.DB		229, 231    ; 90% and 91%
-	.DB		234, 237    ; 92% and 93%
-	.DB		239, 242    ; 94% and 95%
-	.DB		244, 247    ; 96% and 97%
-	.DB		249, 252    ; 98% and 99%
-	.DB		255, 0		; 100%
+	RETI																		; Return
+
+INT2_ISR:
+	
+	NOP
+
+	RETI																		; Return
+
+TMR1_ISR:
+	
+	NOP
+
+	RETI																		; Return
+
+ADC_ISR:
+	
+	NOP
+
+	RETI																		; Return

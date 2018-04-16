@@ -22,9 +22,6 @@
 .ORG	0x14																	; TIMER1 Compare Match Interrupt
 	JMP		TMR1_ISR															; ^
 
-.ORG	0x1A																	; USART Reception Interrupt
-	JMP		TELEGRAM_ISR														; ^
-
 .ORG	0x20																	; ADC Conversion Complete Interrupt
 	JMP		ADC_ISR																; ^
 
@@ -58,9 +55,6 @@
 	.DEF	RXREG		= R20													; USART Reception Register
 	.DEF	TXREG		= R21													; USART Transmission Register
 
-	.DEF	TELSC		= R19													; Telegram Parser Step Counter
-	.DEF	RECMD		= R24													; Telegam Recent COMMAND
-
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > FLAGS
 
@@ -78,8 +72,7 @@
 	.EQU	FNLNE		= 6														; Finishline Ready
 	.EQU	ACCLR		= 5														; Accelerometer Ready
 	.EQU	TMR1		= 4														; Timer1 Ready
-	.EQU	TELPD		= 3														; Telegram Pending
-	.EQU	CMDPD		= 2														; Command Pending
+	.EQU	CMDPD		= 3														; Command Pending
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > INCLUDES
@@ -119,7 +112,7 @@ INIT:
 	LDI		TEMP1, 0x02															; Clear all Error Flags + Enable DoubleMode
 	OUT		UCSRA, TEMP1														; ^
 
-	LDI		TEMP1, (1<<RXEN)|(1<<RXCIE)|(1<<TXEN)								; Enable Transmission & Reception + Interrupts
+	LDI		TEMP1, (1<<RXEN)|(1<<TXEN)											; Enable Transmission & Reception
 	OUT		UCSRB, TEMP1														; ^
 
 	LDI		TEMP1, (1<<URSEL)|(3<<UCSZ0)										; Set Frame Format (8, N, 1)
@@ -127,7 +120,6 @@ INIT:
 
 	CLR		RXREG																; Reset Reception Register
 	CLR		TXREG																; Reset Transmission Register
-	CLR		TELSC																; Reset Telegram Step Counter
 
 	; ADC Config	
 
@@ -224,8 +216,7 @@ MAIN:
 	SBRC	FNFLG, TMR1															; Timer1 Ready
 	NOP																			; ^
 
-	SBRC	FNFLG, TELPD														; Telegram Pending
-	CALL	TELEGRAM_PARSER														; ^
+	CALL	TELEGRAM_CHECK														; Check for Telegrams
 
 	SBRC	FNFLG, CMDPD														; Command Pending
 	CALL	EXECUTE_COMMAND														; ^
@@ -319,22 +310,32 @@ SERIAL_WRITE:
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > TELEGRAM PARSER
 
+
+TELEGRAM_CHECK:
+
+	SBIS	UCSRA, RXC
+	RET
+
+	IN		RXREG, UDR
+
 TELEGRAM_PARSER:
 	
-	INC		TELSC																; Increment Telegram Step Counter
+	LDS		TEMP1, TEL_STEP
+	INC		TEMP1																; Increment Telegram Step Counter
+	STS		TEL_STEP, TEMP1
 
-	CPI		TELSC, 1															; Setup Telegram Parser if Step = 1
+	CPI		TEMP1, 1															; Setup Telegram Parser if Step = 1
 	BREQ	TELEGRAM_PARSE_SETUP												; ^
 
-	CPI		TELSC, 4															; Execute Telegram if Step = 4
+	CPI		TEMP1, 4															; Execute Telegram if Step = 4
 	BREQ	TELEGRAM_EXECUTE													; ^
 
-	CPI		TELSC, 2															; Parse (TYPE) if Step = 2
+	CPI		TEMP1, 2															; Parse (TYPE) if Step = 2
 	BREQ	TELEGRAM_JUMP														; ^
 
 	DEC		ZL																	; Offset Z pointer (-1) to parse TYPE (0x00_XX)
 
-	CPI		TELSC, 3															; Parse (COMMAND) if Step = 3
+	CPI		TEMP1, 3															; Parse (COMMAND) if Step = 3
 	BREQ	TELEGRAM_JUMP														; ^
 
 TELEGRAM_PARSER_ESC:
@@ -381,7 +382,8 @@ TELEGRAM_EXECUTE:
 
 TELEGRAM_RESET:
 	
-	CLR		TELSC																; Reset parse counter
+	CLR		TEMP1																; Reset parse counter
+	STS		TEL_STEP, TEMP1
 
 	RET																			; Return
 
@@ -395,10 +397,10 @@ TELEGRAM_CLRBUFFER:
 
 TELEGRAM_ERROR:
 
-	CLR		TELSC																; Clear parse counter
 	CLR		RXREG																; Clear reception register
-	RCALL	CLR_COMMAND															; Clear command pending flag
 
+	RCALL	CLR_COMMAND															; Clear command pending flag
+	RCALL	TELEGRAM_RESET
 	RCALL	TELEGRAM_CLRBUFFER													; Clear reception buffer
 	
 	RET																			; Return
@@ -493,6 +495,9 @@ SET_MOTOR_MIN:
 	LDI		TEMP1, 0x00															; Disable Timer2
 	OUT		TCCR2, TEMP1														; ^
 
+	CBI 	PORTD, PD7															; Clear BIT on PIN7 of PORTD
+	RJMP	SET_MOTOR_PWM_ESC													; Return
+
 	RJMP	SET_MOTOR_PWM_ESC													; Return
 
 SET_MOTOR_MAX:
@@ -548,19 +553,6 @@ INT2_ISR:
 TMR1_ISR:
 	
 	NOP
-
-	RETI																		; Return
-
-TELEGRAM_ISR:
-	
-	; !!! Race Condition! Flag should be cleared instead.
-	
-	IN		RXREG, UDR															; Read UDR register
-	
-	LDS		TEMPI, FUNC_FLG														; Load Function Flags from SRAM into Temporary Interrupt Register
-	SET																			; Set T flag
-	BLD		TEMPI, TELPD														; Set BIT in Temporary Interrupt Register
-	STS		FUNC_FLG, TEMPI														; Store Function Flags to SRAM
 
 	RETI																		; Return
 
