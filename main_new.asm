@@ -103,7 +103,10 @@ INIT:
 
 	; SRAM Initialization
 
-	// Placeholder
+	CLR		TEMP1
+	STS		RECENT_DAT, TEMP1
+	STS		MODE_FLG, TEMP1
+	STS		FUNC_FLG, TEMP1
 
 	; USART Config
 
@@ -115,7 +118,7 @@ INIT:
 	LDI		TEMP1, 0x02															; Clear all Error Flags + Enable DoubleMode
 	OUT		UCSRA, TEMP1														; ^
 
-	LDI		TEMP1, (1<<RXEN)|(1<<TXEN)											; Enable Transmission & Reception
+	LDI		TEMP1, (1<<RXEN)|(1<<RXCIE)|(1<<TXEN)							; Enable Transmission & Reception + Interrupts
 	OUT		UCSRB, TEMP1														; ^
 
 	LDI		TEMP1, (1<<URSEL)|(3<<UCSZ0)										; Set Frame Format (8, N, 1)
@@ -123,6 +126,9 @@ INIT:
 
 	CLR		RXREG																; Reset Reception Register
 	CLR		TXREG																; Reset Transmission Register
+	CLR		TELSC
+
+	CALL	TELEGRAM_ERROR
 
 	; ADC Config	
 
@@ -189,7 +195,7 @@ INIT:
 ; >> MAIN PROGRAM
 
 MAIN:
-
+	
 	CALL	LOAD_FLAGS															; Load Flags
 	
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
@@ -220,14 +226,17 @@ MAIN:
 	NOP																			; ^
 
 	SBRC	FNFLG, TELPD														; Telegram Pending
-	NOP																			; ^
+	CALL	TELEGRAM_PARSER														; ^
 
 	SBRC	FNFLG, CMDPD														; Command Pending
-	NOP																			; ^
+	CALL	EXECUTE_COMMAND														; ^
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > END OF LOOP
 	
+	CLR		MDFLG
+	CLR		FNFLG
+
 	RJMP	MAIN																; Loop forever
 
 ; ____________________________________________________________________________________________________________________________________________________
@@ -312,32 +321,24 @@ SERIAL_WRITE:
 ;  > TELEGRAM PARSER
 
 TELEGRAM_PARSER:
+	
+	INC		TELSC																; Increment Telegram Step Counter
 
-	; !!! Maybe use PRCMD / TELCMD instead and not count steps but commands, so that 0 = setup, 1 = parse, 2 = read data, 3 = execute.
+	;CALL	STEP_TEST
 
-	; !!! Maybe check if a command is pending (flag) and execute that first?
+	CPI		TELSC, 1															; Setup Telegram Parser if Step = 1
+	BREQ	TELEGRAM_PARSE_SETUP												; ^
 
-	; !!! Maybe add small delay?
+	CPI		TELSC, 4															; Execute Telegram if Step = 4
+	BREQ	TELEGRAM_EXECUTE													; ^
 
-	; !!! Maybe some ERROR CHECKING using PARITY?
+	CPI		TELSC, 2															; Parse (TYPE) if Step = 2
+	BREQ	TELEGRAM_JUMP														; ^
 
-	INC		TELSC										; Increment Telegram Step Counter
+	DEC		ZL																	; Offset Z pointer (-1) to parse TYPE (0x00_XX)
 
-	CPI		TELSC, 1									; Setup Telegram Parser if Step = 1
-	BREQ	TELEGRAM_PARSE_SETUP						; ^
-
-	IN		RXREG, UDR									; Read UDR register
-
-	CPI		TELSC, 4									; Execute Telegram if Step = 4
-	BREQ	TELEGRAM_EXECUTE							; ^
-
-	CPI		TELSC, 2									; Parse (TYPE) if Step = 2
-	BREQ	TELEGRAM_JUMP								; ^
-
-	DEC		ZL											; Offset Z pointer (-1) to parse TYPE (0x00_XX)
-
-	CPI		TELSC, 3									; Parse (COMMAND) if Step = 3
-	BREQ	TELEGRAM_JUMP								; ^
+	CPI		TELSC, 3															; Parse (COMMAND) if Step = 3
+	BREQ	TELEGRAM_JUMP														; ^
 
 TELEGRAM_PARSER_ESC:
 	
@@ -345,74 +346,92 @@ TELEGRAM_PARSER_ESC:
 
 TELEGRAM_PARSE_SETUP:
 
-	LDI		ZH, HIGH(COMMANDS*2)						; Reset Z Pointer to COMMANDS jump table
-	LDI 	ZL,  LOW(COMMANDS*2)						; ^
+	LDI		ZH, HIGH(COMMANDS*2)												; Reset Z Pointer to COMMANDS jump table
+	LDI 	ZL,  LOW(COMMANDS*2)													; ^
 
-	INC		ZL											; Offset Z pointer (+1) to parse COMMAND (0xXX_00)
+	INC		ZL																	; Offset Z pointer (+1) to parse COMMAND (0xXX_00)
 
-	RJMP	TELEGRAM_PARSER								; Return
+	RJMP	TELEGRAM_PARSER														; Return
 
 TELEGRAM_JUMP:
 
-	ADIW	ZH:ZL, 4									; Increment Z Pointer (by 4)
+	ADIW	ZH:ZL, 4															; Increment Z Pointer (by 4)
 
-	LPM		R16, Z										; Load the matching duty cycle
+	LPM		R16, Z																; Load the matching duty cycle
 
-	CPI		R16, 0xEE									; Reset everything if out of table bounds
-	BREQ	TELEGRAM_ERROR								; ^
+	CPI		R16, 0xEE															; Reset everything if out of table bounds
+	BREQ	TELEGRAM_ERROR														; ^
 
-	CP		R16, RXREG									; Find match in jump table
-	BREQ	TELEGRAM_PARSER_ESC							; ^
+	CP		R16, RXREG															; Find match in jump table
+	BREQ	TELEGRAM_PARSER_ESC													; ^
 
-	RJMP	TELEGRAM_JUMP								; Repeat
+	RJMP	TELEGRAM_JUMP														; Repeat
 
 TELEGRAM_EXECUTE:
 
-	ADIW	ZH:ZL, 2									; Point at & read LOW of Table address
-	LPM		R16, Z										; ^
+	ADIW	ZH:ZL, 2															; Point at & read LOW of Table address
+	LPM		R16, Z																; ^
 
-	ADIW	ZH:ZL, 1									; Point at & read HIGH of Table address
-	LPM		R17, Z										; ^
+	ADIW	ZH:ZL, 1															; Point at & read HIGH of Table address
+	LPM		R17, Z																; ^
 
-	MOV		ZL, R16										; Load Z Pointer
-	MOV		ZH, R17										; ^
+	MOV		ZL, R16																; Load Z Pointer
+	MOV		ZH, R17																; ^
 
-	SBR		FNFLG, (1<<CMDPD)							; Enable command execution flag
+	STS		RECENT_DAT, RXREG
+
+	RCALL	SET_COMMAND															; Clear command pending flag
 
 TELEGRAM_RESET:
 	
-	CLR		TELSC										; Reset parse counter
-	RET													; Return
+	CLR		TELSC																; Reset parse counter
+
+	RET																			; Return
 
 TELEGRAM_CLRBUFFER:
-	IN		TEMP1, UDR									; Empty buffer
-	SBIC	UCSRA, RXC									; ^
-	RJMP	TELEGRAM_CLRBUFFER							; ^
 
-	RET													; Return
+	IN		TEMP1, UDR															; Empty buffer
+	SBIC	UCSRA, RXC															; ^
+	RJMP	TELEGRAM_CLRBUFFER													; ^
+
+	RET																			; Return
 
 TELEGRAM_ERROR:
 
-	CLR		TELSC										; Clear parse counter
-	CLR		RXREG										; Clear reception register
-	CBR		FNFLG, (1<<CMDPD)							; CLEAR command execution flag
+	CLR		TELSC																; Clear parse counter
+	CLR		RXREG																; Clear reception register
+	RCALL	CLR_COMMAND															; Clear command pending flag
 
-	RCALL	TELEGRAM_CLRBUFFER							; Clear reception buffer
+	RCALL	TELEGRAM_CLRBUFFER													; Clear reception buffer
 	
-	RET													; Return
+	RET																			; Return
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > COMMANDS
 
-EXECUTE_COMMAND:
+SET_COMMAND:
 
+	MOV		TEMP1, FNFLG														; Load current Flags Register and set CMDPD bit
+	SBR		TEMP1, (1<<CMDPD)													; ^
+	MOV		FNFLG, TEMP1														; ^
 	
-	CBR		FLAGS, (1<<CMDPD)							; CLEAR command execution flag
-	ICALL												; CALL function of Z-pointer
+	RET
 
-	RET													; Return
+CLR_COMMAND:
+	
+	MOV		TEMP1, FNFLG														; Load current Flags Register and clear CMDPD bit
+	CBR		TEMP1, (1<<CMDPD)													; ^
+	MOV		FNFLG, TEMP1														; ^
+	
+	RET
 
+EXECUTE_COMMAND:
+	
+	RCALL	CLR_COMMAND															; Clear command pending flag
 
+	ICALL																		; Call function of Z-pointer
+
+	RET																			; Return
 
 ; ____________________________________________________________________________________________________________________________________________________
 ; >> DEVICE CONTROL
@@ -420,6 +439,40 @@ EXECUTE_COMMAND:
 EMPTY:
 	NOP
 	RET
+
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+;  > PURE TESTING
+
+TEST:
+
+	LDI		TEMP1, 60
+	STS		RECENT_DAT, TEMP1
+
+	CALL	SET_MOTOR_PWM
+	CALL	DELAY
+	CALL	SET_MOTOR_MIN
+	CALL	DELAY
+
+	RET
+
+DELAY:
+    LDI		R27, 100
+LOOP3:
+	LDI		R26, 100
+LOOP2:
+	LDI		R25, 100
+LOOP1:
+    DEC		R25
+    BRNE	LOOP1
+    DEC		R26
+    BRNE	LOOP2
+    DEC		R27
+    BRNE	LOOP3
+
+    RET
+
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+;  > MOTOR CONTROL
 
 SET_MOTOR_PWM:
 
@@ -440,7 +493,9 @@ SET_MOTOR_PWM_ESC:
 
 SET_MOTOR_MIN:
 
-	CBI 	PORTD, PD7															; Clear BIT on PIN7 of PORTD
+	LDI		TEMP1, 0x00															; Disable Timer2
+	OUT		TCCR2, TEMP1														; ^
+
 	RJMP	SET_MOTOR_PWM_ESC													; Return
 
 SET_MOTOR_MAX:
@@ -501,7 +556,14 @@ TMR1_ISR:
 
 TELEGRAM_ISR:
 	
-	NOP
+	; !!! Race Condition! Flag should be cleared instead.
+	
+	IN		RXREG, UDR															; Read UDR register
+	
+	LDS		TEMPI, FUNC_FLG														; Load Function Flags from SRAM into Temporary Interrupt Register
+	SET																			; Set T flag
+	BLD		TEMPI, TELPD														; Set BIT in Temporary Interrupt Register
+	STS		FUNC_FLG, TEMPI														; Store Function Flags to SRAM
 
 	RETI																		; Return
 

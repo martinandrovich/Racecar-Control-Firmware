@@ -25,34 +25,41 @@
  </OUTPUT_FILES>
  <LABELS>
   <INIT><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>95</LINE></INIT>
-  <INT0_ISR><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>474</LINE></INT0_ISR>
-  <INT1_ISR><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>483</LINE></INT1_ISR>
-  <INT2_ISR><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>489</LINE></INT2_ISR>
-  <TMR1_ISR><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>495</LINE></TMR1_ISR>
-  <TELEGRAM_ISR><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>501</LINE></TELEGRAM_ISR>
-  <ADC_ISR><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>507</LINE></ADC_ISR>
+  <INT0_ISR><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>530</LINE></INT0_ISR>
+  <INT1_ISR><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>539</LINE></INT1_ISR>
+  <INT2_ISR><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>545</LINE></INT2_ISR>
+  <TMR1_ISR><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>551</LINE></TMR1_ISR>
+  <TELEGRAM_ISR><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>557</LINE></TELEGRAM_ISR>
+  <ADC_ISR><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>570</LINE></ADC_ISR>
   <COMMANDS><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\command_table.inc</FILE><LINE>1</LINE></COMMANDS>
-  <EMPTY><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>419</LINE></EMPTY>
-  <MAIN><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>191</LINE></MAIN>
-  <LOAD_FLAGS><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>453</LINE></LOAD_FLAGS>
-  <LOG><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>239</LINE></LOG>
-  <LOG_TACHOMETER><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>248</LINE></LOG_TACHOMETER>
-  <LOG_FINISHLINE><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>257</LINE></LOG_FINISHLINE>
-  <LOG_ACCELEROMETER><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>266</LINE></LOG_ACCELEROMETER>
-  <SERIAL_READ><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>292</LINE></SERIAL_READ>
-  <SERIAL_WRITE><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>302</LINE></SERIAL_WRITE>
-  <TELEGRAM_PARSER><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>314</LINE></TELEGRAM_PARSER>
-  <TELEGRAM_PARSE_SETUP><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>346</LINE></TELEGRAM_PARSE_SETUP>
-  <TELEGRAM_EXECUTE><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>369</LINE></TELEGRAM_EXECUTE>
-  <TELEGRAM_JUMP><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>355</LINE></TELEGRAM_JUMP>
-  <TELEGRAM_PARSER_ESC><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>342</LINE></TELEGRAM_PARSER_ESC>
-  <TELEGRAM_ERROR><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>394</LINE></TELEGRAM_ERROR>
-  <TELEGRAM_RESET><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>382</LINE></TELEGRAM_RESET>
-  <TELEGRAM_CLRBUFFER><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>387</LINE></TELEGRAM_CLRBUFFER>
-  <EXECUTE_COMMAND><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>407</LINE></EXECUTE_COMMAND>
-  <SET_MOTOR_PWM><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>423</LINE></SET_MOTOR_PWM>
-  <SET_MOTOR_MIN><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>440</LINE></SET_MOTOR_MIN>
-  <SET_MOTOR_PWM_ESC><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>436</LINE></SET_MOTOR_PWM_ESC>
-  <SET_MOTOR_MAX><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>445</LINE></SET_MOTOR_MAX>
+  <EMPTY><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>439</LINE></EMPTY>
+  <SET_MOTOR_PWM><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>477</LINE></SET_MOTOR_PWM>
+  <TELEGRAM_ERROR><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>399</LINE></TELEGRAM_ERROR>
+  <MAIN><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>197</LINE></MAIN>
+  <LOAD_FLAGS><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>509</LINE></LOAD_FLAGS>
+  <TELEGRAM_PARSER><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>323</LINE></TELEGRAM_PARSER>
+  <EXECUTE_COMMAND><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>428</LINE></EXECUTE_COMMAND>
+  <LOG><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>248</LINE></LOG>
+  <LOG_TACHOMETER><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>257</LINE></LOG_TACHOMETER>
+  <LOG_FINISHLINE><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>266</LINE></LOG_FINISHLINE>
+  <LOG_ACCELEROMETER><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>275</LINE></LOG_ACCELEROMETER>
+  <SERIAL_READ><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>301</LINE></SERIAL_READ>
+  <SERIAL_WRITE><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>311</LINE></SERIAL_WRITE>
+  <TELEGRAM_PARSE_SETUP><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>347</LINE></TELEGRAM_PARSE_SETUP>
+  <TELEGRAM_EXECUTE><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>370</LINE></TELEGRAM_EXECUTE>
+  <TELEGRAM_JUMP><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>356</LINE></TELEGRAM_JUMP>
+  <TELEGRAM_PARSER_ESC><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>343</LINE></TELEGRAM_PARSER_ESC>
+  <SET_COMMAND><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>412</LINE></SET_COMMAND>
+  <TELEGRAM_RESET><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>385</LINE></TELEGRAM_RESET>
+  <TELEGRAM_CLRBUFFER><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>391</LINE></TELEGRAM_CLRBUFFER>
+  <CLR_COMMAND><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>420</LINE></CLR_COMMAND>
+  <TEST><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>446</LINE></TEST>
+  <DELAY><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>458</LINE></DELAY>
+  <SET_MOTOR_MIN><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>494</LINE></SET_MOTOR_MIN>
+  <LOOP3><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>460</LINE></LOOP3>
+  <LOOP2><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>462</LINE></LOOP2>
+  <LOOP1><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>464</LINE></LOOP1>
+  <SET_MOTOR_PWM_ESC><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>490</LINE></SET_MOTOR_PWM_ESC>
+  <SET_MOTOR_MAX><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>501</LINE></SET_MOTOR_MAX>
  </LABELS>
 </ASSEMBLER_INFO>
