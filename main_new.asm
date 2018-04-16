@@ -107,6 +107,7 @@ INIT:
 	STS		RECENT_DAT, TEMP1
 	STS		MODE_FLG, TEMP1
 	STS		FUNC_FLG, TEMP1
+	STS		TEL_STEP, TEMP1
 
 	; USART Config
 
@@ -118,7 +119,7 @@ INIT:
 	LDI		TEMP1, 0x02															; Clear all Error Flags + Enable DoubleMode
 	OUT		UCSRA, TEMP1														; ^
 
-	LDI		TEMP1, (1<<RXEN)|(1<<RXCIE)|(1<<TXEN)							; Enable Transmission & Reception + Interrupts
+	LDI		TEMP1, (1<<RXEN)|(1<<RXCIE)|(1<<TXEN)								; Enable Transmission & Reception + Interrupts
 	OUT		UCSRB, TEMP1														; ^
 
 	LDI		TEMP1, (1<<URSEL)|(3<<UCSZ0)										; Set Frame Format (8, N, 1)
@@ -126,9 +127,7 @@ INIT:
 
 	CLR		RXREG																; Reset Reception Register
 	CLR		TXREG																; Reset Transmission Register
-	CLR		TELSC
-
-	CALL	TELEGRAM_ERROR
+	CLR		TELSC																; Reset Telegram Step Counter
 
 	; ADC Config	
 
@@ -163,7 +162,7 @@ INIT:
 
 	LDI		TEMP1, HIGH(TMR1FREQ)												; Set timer offset
 	OUT		OCR1AH, TEMP1														; ^
-	LDI		TEMP1, LOW(TMR1FREQ)												; ^
+	LDI		TEMP1,  LOW(TMR1FREQ)												; ^
 	OUT		OCR1AL, TEMP1														; ^
 
 	LDI		TEMP1, (1<<TOV1)													; Enable Timer1
@@ -176,8 +175,8 @@ INIT:
 
 	; !!! Works, but needs further analysis & revision.
 
-	LDI		TEMP1, 0x6A															; Initialize Timer2 with 0110_1010
-	OUT		TCCR2, TEMP1														; ^
+	;LDI		TEMP1, 0x6A															; Initialize Timer2 with 0110_1010
+	;OUT		TCCR2, TEMP1														; ^
 
 	; External Interrupt Setup
 
@@ -234,8 +233,8 @@ MAIN:
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > END OF LOOP
 	
-	CLR		MDFLG
-	CLR		FNFLG
+	CLR		MDFLG																; Clear Flags
+	CLR		FNFLG																; ^
 
 	RJMP	MAIN																; Loop forever
 
@@ -324,8 +323,6 @@ TELEGRAM_PARSER:
 	
 	INC		TELSC																; Increment Telegram Step Counter
 
-	;CALL	STEP_TEST
-
 	CPI		TELSC, 1															; Setup Telegram Parser if Step = 1
 	BREQ	TELEGRAM_PARSE_SETUP												; ^
 
@@ -357,12 +354,12 @@ TELEGRAM_JUMP:
 
 	ADIW	ZH:ZL, 4															; Increment Z Pointer (by 4)
 
-	LPM		R16, Z																; Load the matching duty cycle
+	LPM		TEMP1, Z															; Load the matching duty cycle
 
-	CPI		R16, 0xEE															; Reset everything if out of table bounds
+	CPI		TEMP1, 0xEE															; Reset everything if out of table bounds
 	BREQ	TELEGRAM_ERROR														; ^
 
-	CP		R16, RXREG															; Find match in jump table
+	CP		TEMP1, RXREG														; Find match in jump table
 	BREQ	TELEGRAM_PARSER_ESC													; ^
 
 	RJMP	TELEGRAM_JUMP														; Repeat
@@ -370,17 +367,17 @@ TELEGRAM_JUMP:
 TELEGRAM_EXECUTE:
 
 	ADIW	ZH:ZL, 2															; Point at & read LOW of Table address
-	LPM		R16, Z																; ^
+	LPM		TEMP1, Z															; ^
 
 	ADIW	ZH:ZL, 1															; Point at & read HIGH of Table address
-	LPM		R17, Z																; ^
+	LPM		TEMP2, Z															; ^
 
-	MOV		ZL, R16																; Load Z Pointer
-	MOV		ZH, R17																; ^
+	MOV		ZL, TEMP1															; Load Z Pointer
+	MOV		ZH, TEMP2															; ^
 
-	STS		RECENT_DAT, RXREG
+	STS		RECENT_DAT, RXREG													; Store recieved data in SRAM
 
-	RCALL	SET_COMMAND															; Clear command pending flag
+	RCALL	SET_COMMAND															; Set command pending flag
 
 TELEGRAM_RESET:
 	
