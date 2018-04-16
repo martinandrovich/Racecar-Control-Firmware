@@ -124,7 +124,7 @@ INIT:
 
 	; !!! Needs revision.
 
-	LDI		TEMP1, 0x00															; Choose -> ADC0 and AVCC. Vcc = 5V
+	LDI		TEMP1, (1<<ADLAR)													; Choose -> ADC0 and AVCC. Vcc = 5V
 	OUT		ADMUX, TEMP1														; AUTOTRIGGER ENABLED (ADATE) otherwise it doesnt work?
 
 	LDI		TEMP1, (1<<ADEN)|(1<<ADIE)|(1<<ADPS1)|(1<<ADPS0)|(1<<ADPS2)			; ADEN: ENABLE ADC, ADSC: START CONVERSATION ; (1<<ADPS2)
@@ -167,7 +167,7 @@ INIT:
 	LDI		TEMP1, 0x6A															; Initialize Timer2 with 0110_1010
 	OUT		TCCR2, TEMP1														; ^
 
-	; Interrupt Setup
+	; External Interrupt Setup
 
 	LDI		TEMP1, (1<<ISC01)|(1<<ISC00)										; Set INT0 to rising edge
 	OUT		MCUCR, TEMP1														; ^
@@ -321,7 +321,7 @@ SET_MOTOR_PWM:
 	OUT		TCCR2, TEMP1														; ^
 
 	LDS		TEMP1, RECENT_DAT													; Load recent recieved telegram data from SRAM
-	STS		DUTYCYCLE, TEMP1													; Store loaded Duty Cycle in SRAM
+	STS		DUTY_CYCLE, TEMP1													; Store loaded Duty Cycle in SRAM
 
 	TST		TEMP1																; Check if PWM is Zero
 	BREQ	SET_MOTOR_MIN														; Stop vehicle if true (or BRAKE)
@@ -365,16 +365,6 @@ LOAD_FLAGS:
 
 ; ____________________________________________________________________________________________________________________________________________________
 ; >> INTERRUPT SERVICE ROUTINES
-
-/*INT0_ISR:
-	
-	; !!! Uses ORI...
-	
-	LDS		TEMPI, FUNC_FLG														; Load Mode Flags from SRAM into Register
-	SBR		TEMPI, (1<<TACHO)													; ^
-	STS		FUNC_FLG, TEMPI														; ^
-
-	RETI																		; Return*/
 
 INT0_ISR:
 	
