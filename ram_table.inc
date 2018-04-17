@@ -31,14 +31,16 @@
 ; ___________________________________________________________________________________________________________________________________________________
 ; >> MOVING_AVG		:					; 32 values in the moving avg filter
 
-.EQU	MOVAVG							= 0x0080
+.EQU	MOVAVG							= 0x0100
+.EQU	RECENT_XAVG_L					= 0x01FE
+.EQU	RECENT_XAVG_H					= 0x01FF
 
 ; ___________________________________________________________________________________________________________________________________________________
 ; >> MAPPING_START	:					; 128 values in the moving avg filter, does not have to take care of HIGH bit on ZH when first passed to ZH
 
-.EQU	MAPP							= 0x0100
+.EQU	MAPP							= 0x0200
 
 ; ___________________________________________________________________________________________________________________________________________________
 ; >> Tracjectory	:					; 1024 values in the moving avg filter
 
-.EQU	TRAC							= 0x0180
+.EQU	TRAC							= 0x0300
