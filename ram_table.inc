@@ -28,10 +28,10 @@
 
 .EQU	FINISHLINE						= 0x0070
 
-.EQU	RECENT_XAVG_L					= 0x0071
-.EQU	RECENT_XAVG_H					= 0x0072
+.EQU	RECENT_XAVG_H					= 0x0071
+.EQU	RECENT_XAVG_L					= 0x0072
 
-.EQU	ACC_L							= 0x0073
+.EQU	ACCELEROMETER					= 0x0073
 
 ; ___________________________________________________________________________________________________________________________________________________
 ; >> MOVING_AVG		:					; 32 values in the moving avg filter
