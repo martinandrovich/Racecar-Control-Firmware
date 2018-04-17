@@ -8,8 +8,8 @@ COMMANDS:
 
 	.DW		0x55_00, 0										; >> SET
 	  .DW	  0x00_10, SET_MOTOR_PWM							; START
-	  .DW	  0x00_02, EMPTY									; DATA2
-	  .DW	  0x00_03, EMPTY									; DATA3
-	  .DW	  0x00_12, EMPTY									; VAR1
+	  .DW	  0x00_01, EMPTY									; DATA2
+	  .DW	  0x00_02, EMPTY									; DATA3
+	  .DW	  0x00_03, BROADCAST_SET							; BROD0:2
 
 	.DW		0xEE_EE, 0										; EoT

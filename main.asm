@@ -16,9 +16,6 @@
 .ORG	0x04																	; INT1 Interrupt (PD3)
 	JMP 	INT1_ISR															; ^
 
-.ORG	0x06																	; INT2 Interrupt (PB2)
-	JMP		INT2_ISR															; ^
-
 .ORG	0x14																	; TIMER1 Compare Match Interrupt
 	JMP		TMR1_ISR															; ^
 
@@ -50,7 +47,8 @@
 	
 	.DEF	TEMP1		= R16													; Temporary Register #1
 	.DEF	TEMP2		= R17													; Temporary Register #2
-	.DEF	TEMPI		= R18													; Temporary Interrupts Register
+	.DEF	TEMP3		= R18
+	.DEF	TEMPI		= R19													; Temporary Interrupts Register
 
 	.DEF	RXREG		= R20													; USART Reception Register
 	.DEF	TXREG		= R21													; USART Transmission Register
@@ -102,6 +100,11 @@ INIT:
 	STS		FUNC_FLG, TEMP1
 	STS		TEL_STEP, TEMP1
 
+	; Flags Initialization
+
+	CLR		MDFLG																; Clear Flags
+	CLR		FNFLG																; ^
+
 	; USART Config
 
 	LDI		TEMP1, HIGH(BAUDRATE)												; Set Transmission Rate
@@ -123,13 +126,13 @@ INIT:
 
 	; ADC Config	
 
-	; !!! Needs revision.
-
 	LDI		TEMP1, (1<<ADLAR)													; Choose -> ADC0 and AVCC. Vcc = 5V
 	OUT		ADMUX, TEMP1														; AUTOTRIGGER ENABLED (ADATE) otherwise it doesnt work?
 
 	LDI		TEMP1, (1<<ADEN)|(1<<ADIE)|(1<<ADPS1)|(1<<ADPS0)|(1<<ADPS2)			; ADEN: ENABLE ADC, ADSC: START CONVERSATION ; (1<<ADPS2)
-	OUT		ADCSRA, TEMP1														; ADFR: Activate Free Running Select, Prescaler: 128 // 125kHz ADC clock 
+	OUT		ADCSRA, TEMP1														; ADFR: Activate Free Running Select, Prescaler: 128 // 125kHz ADC clock
+
+	SBI		ADCSR, ADSC															; Start ADC Conversion	
 
 	; I/O (Port) Setup
 
@@ -194,7 +197,7 @@ MAIN:
 	NOP																			; ^
 
 	SBRC	MDFLG, BROD0														; Broadcast Mode
-	NOP																			; ^
+	CALL	BROADCAST															; ^
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > FUNCTIONS
@@ -219,7 +222,7 @@ MAIN:
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > REPEAT LOOP
 	
-	CLR		MDFLG																; Clear Flags
+	;CLR		MDFLG																; Clear Flags
 	CLR		FNFLG																; ^
 
 	RJMP	MAIN																; Loop forever
@@ -258,8 +261,18 @@ LOG_FINISHLINE:
 ;  > ACCELEROMETER
 
 LOG_ACCELEROMETER:
+	
+	IN		TEMP1, ADCL															; Read LOW of ADC
+	NOP																			; ^
+	STS		ADC_L, TEMP1														; ^
 
-	NOP																			; Do Someting
+	IN		TEMP1, ADCH															; Read HIGH of ADC
+	NOP																			; ^
+	STS		ADC_H, TEMP1														; ^
+
+	; Moving AVG
+
+	SBI		ADCSR, ADSC															; Start ADC Conversion		
 
 	RET																			; Return
 
@@ -272,10 +285,63 @@ LOG_ACCELEROMETER:
 ; ____________________________________________________________________________________________________________________________________________________
 ; >> BROADCAST
 
-	// PLACEHOLDER
-	// ...
-
 	// Check if Timer1 ready before broadcasting?
+
+BROADCAST:
+	
+	LDI		TEMP1, (1<<BROD2)|(1<<BROD1)										;MASK SETTINGS
+	AND		TEMP1, MDFLG			
+
+	CPI		TEMP1, (1<<BROD1)													;TACHOMETER
+	BREQ	BROADCAST_TACHOMETER
+
+	CPI		TEMP1, (1<<BROD2)													;ACCELEROMETER
+	BREQ	BROADCAST_ACCELEROMETER
+	
+	CPI		TEMP1, (1<<BROD2)|(1<<BROD1)										;FINISHLINE
+	BREQ	BROADCAST_FINISHLINE
+
+	RCALL	BROADCAST_TACHOMETER												;ALL
+	RCALL	BROADCAST_ACCELEROMETER
+	RCALL	BROADCAST_FINISHLINE
+
+	RET
+
+BROADCAST_TACHOMETER:
+
+	LDS		TXREG, TACHOMETER_H
+	CALL	SERIAL_WRITE
+	LDS		TXREG, TACHOMETER_L
+
+	CALL	SERIAL_WRITE
+
+	RET
+
+BROADCAST_ACCELEROMETER:
+
+	LDS		TXREG, ADC_L
+	CALL	SERIAL_WRITE
+
+	RET
+
+BROADCAST_FINISHLINE:
+
+	LDS		TXREG, FINISHLINE
+	CALL	SERIAL_WRITE
+
+	RET
+
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+BROADCAST_SET:
+
+	MOV		TEMP1, MDFLG
+	ANDI	TEMP1, 0b11000111
+	LDS		TEMP2, RECENT_DAT
+	OR		TEMP1, TEMP2
+	MOV		MDFLG, TEMP1
+
+	RET
 
 ; ____________________________________________________________________________________________________________________________________________________
 ; >> COMMUNICATION PROTOCOL
@@ -508,8 +574,8 @@ LOAD_FLAGS:
 	
 	CLI																			; Disable Interrupts
 	
-	LDS		TEMPI, MODE_FLG														; Load Mode Flags from SRAM into Register
-	MOV		MDFLG, TEMPI														; ^
+	;LDS		TEMPI, MODE_FLG														; Load Mode Flags from SRAM into Register
+	;MOV		MDFLG, TEMPI														; ^
 
 	LDS		TEMPI, FUNC_FLG														; Load Function Flags from SRAM into Register
 	MOV		FNFLG, TEMPI														; ^
@@ -536,24 +602,27 @@ INT0_ISR:
 
 INT1_ISR:
 	
-	NOP
-
-	RETI																		; Return
-
-INT2_ISR:
-	
-	NOP
+	LDS		TEMPI, FUNC_FLG														; Load Function Flags from SRAM into Temporary Interrupt Register
+	SET																			; Set T flag
+	BLD		TEMPI, FNLNE														; Set BIT in Temporary Interrupt Register
+	STS		FUNC_FLG, TEMPI														; Store Function Flags to SRAM
 
 	RETI																		; Return
 
 TMR1_ISR:
 	
-	NOP
+	LDS		TEMPI, FUNC_FLG														; Load Function Flags from SRAM into Temporary Interrupt Register
+	SET																			; Set T flag
+	BLD		TEMPI, TMR1															; Set BIT in Temporary Interrupt Register
+	STS		FUNC_FLG, TEMPI														; Store Function Flags to SRAM
 
 	RETI																		; Return
 
 ADC_ISR:
-	
-	NOP
 
-	RETI																		; Return
+	LDS		TEMPI, FUNC_FLG														; Load Function Flags from SRAM into Temporary Interrupt Register
+	SET																			; Set T flag
+	BLD		TEMPI, ACCLR														; Set BIT in Temporary Interrupt Register
+	STS		FUNC_FLG, TEMPI														; Store Function Flags to SRAM		
+
+	RETI

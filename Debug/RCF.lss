@@ -1,12 +1,12 @@
 
-AVRASM ver. 2.2.7  C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm Mon Apr 16 22:37:09 2018
+AVRASM ver. 2.2.7  C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm Tue Apr 17 11:33:29 2018
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.150\avrasm\inc\m32def.inc'
-C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(82): Including file 'C:\Users\Martin\Desktop\Racecar-Control-Firmware\ram_table.inc'
-C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(83): Including file 'C:\Users\Martin\Desktop\Racecar-Control-Firmware\command_table.inc'
+C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(80): Including file 'C:\Users\Martin\Desktop\Racecar-Control-Firmware\ram_table.inc'
+C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(81): Including file 'C:\Users\Martin\Desktop\Racecar-Control-Firmware\command_table.inc'
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.150\avrasm\inc\m32def.inc'
-C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(82): Including file 'C:\Users\Martin\Desktop\Racecar-Control-Firmware\ram_table.inc'
-C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(83): Including file 'C:\Users\Martin\Desktop\Racecar-Control-Firmware\command_table.inc'
+C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(80): Including file 'C:\Users\Martin\Desktop\Racecar-Control-Firmware\ram_table.inc'
+C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(81): Including file 'C:\Users\Martin\Desktop\Racecar-Control-Firmware\command_table.inc'
                                  
                                  ; ###################################################################################################################################################
                                  
@@ -836,19 +836,16 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(83): Including file 'C
 000000 940c 003a                 	JMP		INIT																; ^
                                  
                                  .ORG 	0x02																	; INT0 Interrupt (PD2)
-000002 940c 0111                 	JMP		INT0_ISR															; ^
+000002 940c 0142                 	JMP		INT0_ISR															; ^
                                  
                                  .ORG	0x04																	; INT1 Interrupt (PD3)
-000004 940c 0118                 	JMP 	INT1_ISR															; ^
-                                 
-                                 .ORG	0x06																	; INT2 Interrupt (PB2)
-000006 940c 011a                 	JMP		INT2_ISR															; ^
+000004 940c 0149                 	JMP 	INT1_ISR															; ^
                                  
                                  .ORG	0x14																	; TIMER1 Compare Match Interrupt
-000014 940c 011c                 	JMP		TMR1_ISR															; ^
+000014 940c 0150                 	JMP		TMR1_ISR															; ^
                                  
                                  .ORG	0x20																	; ADC Conversion Complete Interrupt
-000020 940c 011e                 	JMP		ADC_ISR																; ^
+000020 940c 0157                 	JMP		ADC_ISR																; ^
                                  
                                  ; ____________________________________________________________________________________________________________________________________________________
                                  ; >> DEFINITIONS
@@ -875,7 +872,8 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(83): Including file 'C
                                  	
                                  	.DEF	TEMP1		= R16													; Temporary Register #1
                                  	.DEF	TEMP2		= R17													; Temporary Register #2
-                                 	.DEF	TEMPI		= R18													; Temporary Interrupts Register
+                                 	.DEF	TEMP3		= R18
+                                 	.DEF	TEMPI		= R19													; Temporary Interrupts Register
                                  
                                  	.DEF	RXREG		= R20													; USART Reception Register
                                  	.DEF	TXREG		= R21													; USART Transmission Register
@@ -938,12 +936,14 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(83): Including file 'C
                                  ; ___________________________________________________________________________________________________________________________________________________
                                  ; >> MOVING_AVG		:					; 32 values in the moving avg filter
                                  
-                                 .EQU	MOVAVG							= 0x0080
+                                 .EQU	MOVAVG							= 0x0100
+                                 .EQU	RECENT_XAVG_L					= 0x01FE
+                                 .EQU	RECENT_XAVG_H					= 0x01FF
                                  
                                  ; ___________________________________________________________________________________________________________________________________________________
                                  ; >> MAPPING_START	:					; 128 values in the moving avg filter, does not have to take care of HIGH bit on ZH when first passed to ZH
                                  
-                                 .EQU	MAPP							= 0x0100
+                                 .EQU	MAPP							= 0x0200
                                  
                                  ; ___________________________________________________________________________________________________________________________________________________
                                  ; >> Tracjectory	:					; 1024 values in the moving avg filter
@@ -956,20 +956,20 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(83): Including file 'C
 000028 aa00
 000029 0000                      	.DW		0xAA_00, 0										; >> GET
 00002a 0003
-00002b 00da                      	  .DW	  0x00_03, EMPTY									; DATA3
+00002b 010e                      	  .DW	  0x00_03, EMPTY									; DATA3
 00002c 0012
-00002d 00da                      	  .DW	  0x00_12, EMPTY									; VAR1
+00002d 010e                      	  .DW	  0x00_12, EMPTY									; VAR1
                                  
 00002e 5500
 00002f 0000                      	.DW		0x55_00, 0										; >> SET
 000030 0010
-000031 00f2                      	  .DW	  0x00_10, SET_MOTOR_PWM							; START
-000032 0002
-000033 00da                      	  .DW	  0x00_02, EMPTY									; DATA2
-000034 0003
-000035 00da                      	  .DW	  0x00_03, EMPTY									; DATA3
-000036 0012
-000037 00da                      	  .DW	  0x00_12, EMPTY									; VAR1
+000031 0126                      	  .DW	  0x00_10, SET_MOTOR_PWM							; START
+000032 0001
+000033 010e                      	  .DW	  0x00_01, EMPTY									; DATA2
+000034 0002
+000035 010e                      	  .DW	  0x00_02, EMPTY									; DATA3
+000036 0003
+000037 00bd                      	  .DW	  0x00_03, BROADCAST_SET							; BROD0:2
                                  
 000038 eeee
 000039 0000                      
@@ -993,127 +993,132 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(83): Including file 'C
 000043 9300 006e                 	STS		FUNC_FLG, TEMP1
 000045 9300 0066                 	STS		TEL_STEP, TEMP1
                                  
+                                 	; Flags Initialization
+                                 
+000047 2400                      	CLR		MDFLG																; Clear Flags
+000048 2411                      	CLR		FNFLG																; ^
+                                 
                                  	; USART Config
                                  
-000047 e000                      	LDI		TEMP1, HIGH(BAUDRATE)												; Set Transmission Rate
-000048 bd00                      	OUT		UBRRH, TEMP1														; ^
-000049 ec0f                      	LDI		TEMP1, LOW(BAUDRATE)												; ^
-00004a b909                      	OUT		UBRRL, TEMP1														; ^
+000049 e000                      	LDI		TEMP1, HIGH(BAUDRATE)												; Set Transmission Rate
+00004a bd00                      	OUT		UBRRH, TEMP1														; ^
+00004b ec0f                      	LDI		TEMP1, LOW(BAUDRATE)												; ^
+00004c b909                      	OUT		UBRRL, TEMP1														; ^
                                  
-00004b e002                      	LDI		TEMP1, 0x02															; Clear all Error Flags + Enable DoubleMode
-00004c b90b                      	OUT		UCSRA, TEMP1														; ^
+00004d e002                      	LDI		TEMP1, 0x02															; Clear all Error Flags + Enable DoubleMode
+00004e b90b                      	OUT		UCSRA, TEMP1														; ^
                                  
-00004d e108                      	LDI		TEMP1, (1<<RXEN)|(1<<TXEN)											; Enable Transmission & Reception
-00004e b90a                      	OUT		UCSRB, TEMP1														; ^
+00004f e108                      	LDI		TEMP1, (1<<RXEN)|(1<<TXEN)											; Enable Transmission & Reception
+000050 b90a                      	OUT		UCSRB, TEMP1														; ^
                                  
-00004f e806                      	LDI		TEMP1, (1<<URSEL)|(3<<UCSZ0)										; Set Frame Format (8, N, 1)
-000050 bd00                      	OUT		UCSRC, TEMP1														; ^
+000051 e806                      	LDI		TEMP1, (1<<URSEL)|(3<<UCSZ0)										; Set Frame Format (8, N, 1)
+000052 bd00                      	OUT		UCSRC, TEMP1														; ^
                                  
-000051 2744                      	CLR		RXREG																; Reset Reception Register
-000052 2755                      	CLR		TXREG																; Reset Transmission Register
+000053 2744                      	CLR		RXREG																; Reset Reception Register
+000054 2755                      	CLR		TXREG																; Reset Transmission Register
                                  
                                  	; ADC Config	
                                  
-                                 	; !!! Needs revision.
+000055 e200                      	LDI		TEMP1, (1<<ADLAR)													; Choose -> ADC0 and AVCC. Vcc = 5V
+000056 b907                      	OUT		ADMUX, TEMP1														; AUTOTRIGGER ENABLED (ADATE) otherwise it doesnt work?
                                  
-000053 e200                      	LDI		TEMP1, (1<<ADLAR)													; Choose -> ADC0 and AVCC. Vcc = 5V
-000054 b907                      	OUT		ADMUX, TEMP1														; AUTOTRIGGER ENABLED (ADATE) otherwise it doesnt work?
+000057 e80f                      	LDI		TEMP1, (1<<ADEN)|(1<<ADIE)|(1<<ADPS1)|(1<<ADPS0)|(1<<ADPS2)			; ADEN: ENABLE ADC, ADSC: START CONVERSATION ; (1<<ADPS2)
+000058 b906                      	OUT		ADCSRA, TEMP1														; ADFR: Activate Free Running Select, Prescaler: 128 // 125kHz ADC clock
                                  
-000055 e80f                      	LDI		TEMP1, (1<<ADEN)|(1<<ADIE)|(1<<ADPS1)|(1<<ADPS0)|(1<<ADPS2)			; ADEN: ENABLE ADC, ADSC: START CONVERSATION ; (1<<ADPS2)
-000056 b906                      	OUT		ADCSRA, TEMP1														; ADFR: Activate Free Running Select, Prescaler: 128 // 125kHz ADC clock 
+000059 9a36                      	SBI		ADCSR, ADSC															; Start ADC Conversion	
                                  
                                  	; I/O (Port) Setup
                                  
-000057 9a8f                      	SBI		DDRD, PD7															; Set PD7 on PORTD as Output
-000058 9a92                      	SBI		PORTD, PD2															; Set PD2 on PORTD as Pullup Input
+00005a 9a8f                      	SBI		DDRD, PD7															; Set PD7 on PORTD as Output
+00005b 9a92                      	SBI		PORTD, PD2															; Set PD2 on PORTD as Pullup Input
                                  
-000059 e000                      	LDI		TEMP1, 0x00															; Set Port A as Input (is this needed?)
-00005a bb0a                      	OUT		DDRA, TEMP1															; ^
+00005c e000                      	LDI		TEMP1, 0x00															; Set Port A as Input (is this needed?)
+00005d bb0a                      	OUT		DDRA, TEMP1															; ^
                                  
-00005b 0000                      	NOP
+00005e 0000                      	NOP
                                  
                                  	; Timer1 Setup
                                  
-00005c e100                      	LDI		TEMP1, (1<<OCIE1A)													; Enable Timer1 Compare Match Interrupt
-00005d bf09                      	OUT		TIMSK, TEMP1														; ^
+00005f e100                      	LDI		TEMP1, (1<<OCIE1A)													; Enable Timer1 Compare Match Interrupt
+000060 bf09                      	OUT		TIMSK, TEMP1														; ^
                                  
-00005e e000                      	LDI		TEMP1, 0x00															; Set Default
-00005f bd0f                      	OUT		TCCR1A, TEMP1														; ^
+000061 e000                      	LDI		TEMP1, 0x00															; Set Default
+000062 bd0f                      	OUT		TCCR1A, TEMP1														; ^
                                  
-000060 e00b                      	LDI		TEMP1, (1<<CS11)|(1<<CS10)|(1<<WGM12)								; Set 64 Prescelar, CTC-MODE
-000061 bd0e                      	OUT		TCCR1B, TEMP1														; ^
+000063 e00b                      	LDI		TEMP1, (1<<CS11)|(1<<CS10)|(1<<WGM12)								; Set 64 Prescelar, CTC-MODE
+000064 bd0e                      	OUT		TCCR1B, TEMP1														; ^
                                  
-000062 e007                      	LDI		TEMP1, HIGH(TMR1FREQ)												; Set timer offset
-000063 bd0b                      	OUT		OCR1AH, TEMP1														; ^
-000064 ea00                      	LDI		TEMP1,  LOW(TMR1FREQ)												; ^
-000065 bd0a                      	OUT		OCR1AL, TEMP1														; ^
+000065 e007                      	LDI		TEMP1, HIGH(TMR1FREQ)												; Set timer offset
+000066 bd0b                      	OUT		OCR1AH, TEMP1														; ^
+000067 ea00                      	LDI		TEMP1,  LOW(TMR1FREQ)												; ^
+000068 bd0a                      	OUT		OCR1AL, TEMP1														; ^
                                  
-000066 e004                      	LDI		TEMP1, (1<<TOV1)													; Enable Timer1
-000067 bf08                      	OUT		TIFR, TEMP1															; ^
+000069 e004                      	LDI		TEMP1, (1<<TOV1)													; Enable Timer1
+00006a bf08                      	OUT		TIFR, TEMP1															; ^
                                  	
                                  	; Waveform Generator (Timer2)
                                  
-000068 e000                      	LDI		TEMP1, 0x00															; Reset Timer2
-000069 bd03                      	OUT		OCR2, TEMP1															; ^
+00006b e000                      	LDI		TEMP1, 0x00															; Reset Timer2
+00006c bd03                      	OUT		OCR2, TEMP1															; ^
                                  
                                  	; External Interrupt Setup
                                  
-00006a e003                      	LDI		TEMP1, (1<<ISC01)|(1<<ISC00)										; Set INT0 to rising edge
-00006b bf05                      	OUT		MCUCR, TEMP1														; ^
+00006d e003                      	LDI		TEMP1, (1<<ISC01)|(1<<ISC00)										; Set INT0 to rising edge
+00006e bf05                      	OUT		MCUCR, TEMP1														; ^
                                  
-00006c e400                      	LDI 	TEMP1, (1<<INT0)													; Enable external interrupts
-00006d bf0b                      	OUT 	GICR, TEMP1															; ^
+00006f e400                      	LDI 	TEMP1, (1<<INT0)													; Enable external interrupts
+000070 bf0b                      	OUT 	GICR, TEMP1															; ^
                                  
-00006e 9478                      	SEI																			; Set global interrupt flag
+000071 9478                      	SEI																			; Set global interrupt flag
                                  
-00006f c000                      	RJMP	MAIN																; Start MAIN Program
+000072 c000                      	RJMP	MAIN																; Start MAIN Program
                                  
                                  ; ____________________________________________________________________________________________________________________________________________________
                                  ; >> MAIN PROGRAM
                                  
                                  MAIN:
                                  	
-000070 940e 0103                 	CALL	LOAD_FLAGS															; Load Flags
+000073 940e 0137                 	CALL	LOAD_FLAGS															; Load Flags
                                  	
                                  ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
                                  ;  > MODES:
                                  
-000072 fc07                      	SBRC	MDFLG, AUTO															; Autonomous Mode
-000073 0000                      	NOP																			; ^
+000075 fc07                      	SBRC	MDFLG, AUTO															; Autonomous Mode
+000076 0000                      	NOP																			; ^
                                  
-000074 fc06                      	SBRC	MDFLG, MAP															; Mapping Mode
-000075 0000                      	NOP																			; ^
+000077 fc06                      	SBRC	MDFLG, MAP															; Mapping Mode
+000078 0000                      	NOP																			; ^
                                  
-000076 fc03                      	SBRC	MDFLG, BROD0														; Broadcast Mode
-000077 0000                      	NOP																			; ^
+000079 fc03                      	SBRC	MDFLG, BROD0														; Broadcast Mode
+00007a 940e 009b                 	CALL	BROADCAST															; ^
                                  
                                  ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
                                  ;  > FUNCTIONS
                                  
-000078 fc17                      	SBRC	FNFLG, TACHO														; Tachometer Ready
-000079 0000                      	NOP																			; ^
-                                 
-00007a fc16                      	SBRC	FNFLG, FNLNE														; Finishline Ready
-00007b 0000                      	NOP																			; ^
-                                 
-00007c fc15                      	SBRC	FNFLG, ACCLR														; Accelerometer Ready
+00007c fc17                      	SBRC	FNFLG, TACHO														; Tachometer Ready
 00007d 0000                      	NOP																			; ^
-                                 	
-00007e fc14                      	SBRC	FNFLG, TMR1															; Timer1 Ready
+                                 
+00007e fc16                      	SBRC	FNFLG, FNLNE														; Finishline Ready
 00007f 0000                      	NOP																			; ^
                                  
-000080 940e 009a                 	CALL	TELEGRAM_CHECK														; Check for Telegrams
+000080 fc15                      	SBRC	FNFLG, ACCLR														; Accelerometer Ready
+000081 0000                      	NOP																			; ^
+                                 	
+000082 fc14                      	SBRC	FNFLG, TMR1															; Timer1 Ready
+000083 0000                      	NOP																			; ^
                                  
-000082 fc13                      	SBRC	FNFLG, CMDPD														; Command Pending
-000083 940e 00d7                 	CALL	EXECUTE_COMMAND														; ^
+000084 940e 00ce                 	CALL	TELEGRAM_CHECK														; Check for Telegrams
+                                 
+000086 fc13                      	SBRC	FNFLG, CMDPD														; Command Pending
+000087 940e 010b                 	CALL	EXECUTE_COMMAND														; ^
                                  
                                  ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
                                  ;  > REPEAT LOOP
                                  	
-000085 2400                      	CLR		MDFLG																; Clear Flags
-000086 2411                      	CLR		FNFLG																; ^
+                                 	;CLR		MDFLG																; Clear Flags
+000089 2411                      	CLR		FNFLG																; ^
                                  
-000087 cfe8                      	RJMP	MAIN																; Loop forever
+00008a cfe8                      	RJMP	MAIN																; Loop forever
                                  
                                  ; ____________________________________________________________________________________________________________________________________________________
                                  ; >> SENSOR PROCESSING & LOGGING
@@ -1123,36 +1128,46 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(83): Including file 'C
                                  
                                  LOG:
                                  
-000088 0000                      	NOP																			; Do Someting
+00008b 0000                      	NOP																			; Do Someting
                                  
-000089 9508                      	RET																			; Return
+00008c 9508                      	RET																			; Return
                                  
                                  ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
                                  ;  > TACHOMETER
                                  
                                  LOG_TACHOMETER:
                                  
-00008a 0000                      	NOP																			; Do Someting
+00008d 0000                      	NOP																			; Do Someting
                                  
-00008b 9508                      	RET																			; Return
+00008e 9508                      	RET																			; Return
                                  
                                  ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
                                  ;  > FINISH LINE
                                  
                                  LOG_FINISHLINE:
                                  
-00008c 0000                      	NOP																			; Do Someting
+00008f 0000                      	NOP																			; Do Someting
                                  
-00008d 9508                      	RET																			; Return
+000090 9508                      	RET																			; Return
                                  
                                  ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
                                  ;  > ACCELEROMETER
                                  
                                  LOG_ACCELEROMETER:
+                                 	
+000091 b104                      	IN		TEMP1, ADCL															; Read LOW of ADC
+000092 0000                      	NOP																			; ^
+000093 9300 0065                 	STS		ADC_L, TEMP1														; ^
                                  
-00008e 0000                      	NOP																			; Do Someting
+000095 b105                      	IN		TEMP1, ADCH															; Read HIGH of ADC
+000096 0000                      	NOP																			; ^
+000097 9300 0064                 	STS		ADC_H, TEMP1														; ^
                                  
-00008f 9508                      	RET																			; Return
+                                 	; Moving AVG
+                                 
+000099 9a36                      	SBI		ADCSR, ADSC															; Start ADC Conversion		
+                                 
+00009a 9508                      	RET																			; Return
                                  
                                  ; ____________________________________________________________________________________________________________________________________________________
                                  ; >> MAPPING
@@ -1163,10 +1178,66 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(83): Including file 'C
                                  ; ____________________________________________________________________________________________________________________________________________________
                                  ; >> BROADCAST
                                  
-                                 	// PLACEHOLDER
-                                 	// ...
-                                 
                                  	// Check if Timer1 ready before broadcasting?
+                                 
+                                 BROADCAST:
+                                 	
+00009b e300                      	LDI		TEMP1, (1<<BROD2)|(1<<BROD1)										;MASK SETTINGS
+00009c 2100                      	AND		TEMP1, MDFLG			
+                                 
+00009d 3100                      	CPI		TEMP1, (1<<BROD1)													;TACHOMETER
+00009e f041                      	BREQ	BROADCAST_TACHOMETER
+                                 
+00009f 3200                      	CPI		TEMP1, (1<<BROD2)													;ACCELEROMETER
+0000a0 f081                      	BREQ	BROADCAST_ACCELEROMETER
+                                 	
+0000a1 3300                      	CPI		TEMP1, (1<<BROD2)|(1<<BROD1)										;FINISHLINE
+0000a2 f0a1                      	BREQ	BROADCAST_FINISHLINE
+                                 
+0000a3 d003                      	RCALL	BROADCAST_TACHOMETER												;ALL
+0000a4 d00c                      	RCALL	BROADCAST_ACCELEROMETER
+0000a5 d011                      	RCALL	BROADCAST_FINISHLINE
+                                 
+0000a6 9508                      	RET
+                                 
+                                 BROADCAST_TACHOMETER:
+                                 
+0000a7 9150 0060                 	LDS		TXREG, TACHOMETER_H
+0000a9 940e 00ca                 	CALL	SERIAL_WRITE
+0000ab 9150 0061                 	LDS		TXREG, TACHOMETER_L
+                                 
+0000ad e051                      	LDI		TXREG, 0x01
+0000ae 940e 00ca                 	CALL	SERIAL_WRITE
+                                 
+0000b0 9508                      	RET
+                                 
+                                 BROADCAST_ACCELEROMETER:
+                                 
+0000b1 9150 0065                 	LDS		TXREG, ADC_L
+0000b3 e052                      	LDI		TXREG, 0x02
+0000b4 940e 00ca                 	CALL	SERIAL_WRITE
+                                 
+0000b6 9508                      	RET
+                                 
+                                 BROADCAST_FINISHLINE:
+                                 
+0000b7 9150 0070                 	LDS		TXREG, FINISHLINE
+0000b9 e053                      	LDI		TXREG, 0x03
+0000ba 940e 00ca                 	CALL	SERIAL_WRITE
+                                 
+0000bc 9508                      	RET
+                                 
+                                 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+                                 
+                                 BROADCAST_SET:
+                                 
+0000bd 2d00                      	MOV		TEMP1, MDFLG
+0000be 7c07                      	ANDI	TEMP1, 0b11000111
+0000bf 9110 0068                 	LDS		TEMP2, RECENT_DAT
+0000c1 2b01                      	OR		TEMP1, TEMP2
+0000c2 2e00                      	MOV		MDFLG, TEMP1
+                                 
+0000c3 9508                      	RET
                                  
                                  ; ____________________________________________________________________________________________________________________________________________________
                                  ; >> COMMUNICATION PROTOCOL
@@ -1176,22 +1247,22 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(83): Including file 'C
                                  
                                  SERIAL_READ:
                                  	
-000090 9b5f                      	SBIS	UCSRA, RXC															; Wait for Recieve (RXC) Flag
-000091 cffe                      	RJMP	SERIAL_READ															; ^
+0000c4 9b5f                      	SBIS	UCSRA, RXC															; Wait for Recieve (RXC) Flag
+0000c5 cffe                      	RJMP	SERIAL_READ															; ^
                                  
-000092 b14c                      	IN		RXREG, UDR															; Read data into Reception Register
-000093 9340 006b                 	STS		SERIAL_RX, RXREG													; Store data in SRAM
+0000c6 b14c                      	IN		RXREG, UDR															; Read data into Reception Register
+0000c7 9340 006b                 	STS		SERIAL_RX, RXREG													; Store data in SRAM
                                  
-000095 9508                      	RET																			; Return
+0000c9 9508                      	RET																			; Return
                                  
                                  SERIAL_WRITE:
                                  	
-000096 9b5d                      	SBIS	UCSRA, UDRE															; Wait for Empty Transmit Buffer (UDRE) Flag
-000097 cffe                      	RJMP	SERIAL_WRITE														; ^
+0000ca 9b5d                      	SBIS	UCSRA, UDRE															; Wait for Empty Transmit Buffer (UDRE) Flag
+0000cb cffe                      	RJMP	SERIAL_WRITE														; ^
                                  
-000098 b95c                      	OUT		UDR, TXREG															; Write data from Transmission Register
+0000cc b95c                      	OUT		UDR, TXREG															; Write data from Transmission Register
                                  
-000099 9508                      	RET																			; Return
+0000cd 9508                      	RET																			; Return
                                  
                                  ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
                                  ;  > TELEGRAM PARSER
@@ -1199,253 +1270,256 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(83): Including file 'C
                                  
                                  TELEGRAM_CHECK:
                                  
-00009a 9b5f                      	SBIS	UCSRA, RXC															; Return if no data in USART reception buffer
-00009b 9508                      	RET																			; ^
+0000ce 9b5f                      	SBIS	UCSRA, RXC															; Return if no data in USART reception buffer
+0000cf 9508                      	RET																			; ^
                                  
-00009c b14c                      	IN		RXREG, UDR															; Read data into Reception Register
-00009d 9340 006b                 	STS		SERIAL_RX, RXREG													; Store data in SRAM
+0000d0 b14c                      	IN		RXREG, UDR															; Read data into Reception Register
+0000d1 9340 006b                 	STS		SERIAL_RX, RXREG													; Store data in SRAM
                                  
                                  TELEGRAM_PARSER:
                                  	
-00009f 9100 0066                 	LDS		TEMP1, TEL_STEP														; Load, increment & store Telegram Step Counter
-0000a1 9503                      	INC		TEMP1																; ^
-0000a2 9300 0066                 	STS		TEL_STEP, TEMP1														; ^
+0000d3 9100 0066                 	LDS		TEMP1, TEL_STEP														; Load, increment & store Telegram Step Counter
+0000d5 9503                      	INC		TEMP1																; ^
+0000d6 9300 0066                 	STS		TEL_STEP, TEMP1														; ^
                                  
-0000a4 3001                      	CPI		TEMP1, 1															; Setup Telegram Parser if Step = 1
-0000a5 f041                      	BREQ	TELEGRAM_PARSE_SETUP												; ^
+0000d8 3001                      	CPI		TEMP1, 1															; Setup Telegram Parser if Step = 1
+0000d9 f041                      	BREQ	TELEGRAM_PARSE_SETUP												; ^
                                  
-0000a6 3004                      	CPI		TEMP1, 4															; Execute Telegram if Step = 4
-0000a7 f089                      	BREQ	TELEGRAM_EXECUTE													; ^
+0000da 3004                      	CPI		TEMP1, 4															; Execute Telegram if Step = 4
+0000db f089                      	BREQ	TELEGRAM_EXECUTE													; ^
                                  
-0000a8 3002                      	CPI		TEMP1, 2															; Parse (TYPE) if Step = 2
-0000a9 f041                      	BREQ	TELEGRAM_JUMP														; ^
+0000dc 3002                      	CPI		TEMP1, 2															; Parse (TYPE) if Step = 2
+0000dd f041                      	BREQ	TELEGRAM_JUMP														; ^
                                  
-0000aa 95ea                      	DEC		ZL																	; Offset Z pointer (-1) to parse TYPE (0x00_XX)
+0000de 95ea                      	DEC		ZL																	; Offset Z pointer (-1) to parse TYPE (0x00_XX)
                                  
-0000ab 3003                      	CPI		TEMP1, 3															; Parse (COMMAND) if Step = 3
-0000ac f029                      	BREQ	TELEGRAM_JUMP														; ^
+0000df 3003                      	CPI		TEMP1, 3															; Parse (COMMAND) if Step = 3
+0000e0 f029                      	BREQ	TELEGRAM_JUMP														; ^
                                  
                                  TELEGRAM_PARSER_ESC:
                                  	
-0000ad 9508                      	RET
+0000e1 9508                      	RET
                                  
                                  TELEGRAM_PARSE_SETUP:
                                  
-0000ae e0f0                      	LDI		ZH, HIGH(COMMANDS*2)												; Reset Z Pointer to COMMANDS jump table
-0000af e5e0                      	LDI 	ZL,  LOW(COMMANDS*2)												; ^
+0000e2 e0f0                      	LDI		ZH, HIGH(COMMANDS*2)												; Reset Z Pointer to COMMANDS jump table
+0000e3 e5e0                      	LDI 	ZL,  LOW(COMMANDS*2)												; ^
                                  
-0000b0 95e3                      	INC		ZL																	; Offset Z pointer (+1) to parse COMMAND (0xXX_00)
+0000e4 95e3                      	INC		ZL																	; Offset Z pointer (+1) to parse COMMAND (0xXX_00)
                                  
-0000b1 cfed                      	RJMP	TELEGRAM_PARSER														; Return
+0000e5 cfed                      	RJMP	TELEGRAM_PARSER														; Return
                                  
                                  TELEGRAM_JUMP:
                                  
-0000b2 9634                      	ADIW	ZH:ZL, 4															; Increment Z Pointer (by 4)
+0000e6 9634                      	ADIW	ZH:ZL, 4															; Increment Z Pointer (by 4)
                                  
-0000b3 9104                      	LPM		TEMP1, Z															; Load the matching duty cycle
+0000e7 9104                      	LPM		TEMP1, Z															; Load the matching duty cycle
                                  
-0000b4 3e0e                      	CPI		TEMP1, 0xEE															; Reset everything if out of table bounds
-0000b5 f0a1                      	BREQ	TELEGRAM_ERROR														; ^
+0000e8 3e0e                      	CPI		TEMP1, 0xEE															; Reset everything if out of table bounds
+0000e9 f0a1                      	BREQ	TELEGRAM_ERROR														; ^
                                  
-0000b6 1704                      	CP		TEMP1, RXREG														; Find match in jump table
-0000b7 f3a9                      	BREQ	TELEGRAM_PARSER_ESC													; ^
+0000ea 1704                      	CP		TEMP1, RXREG														; Find match in jump table
+0000eb f3a9                      	BREQ	TELEGRAM_PARSER_ESC													; ^
                                  
-0000b8 cff9                      	RJMP	TELEGRAM_JUMP														; Repeat
+0000ec cff9                      	RJMP	TELEGRAM_JUMP														; Repeat
                                  
                                  TELEGRAM_EXECUTE:
                                  
-0000b9 9632                      	ADIW	ZH:ZL, 2															; Point at & read LOW of Table address
-0000ba 9104                      	LPM		TEMP1, Z															; ^
+0000ed 9632                      	ADIW	ZH:ZL, 2															; Point at & read LOW of Table address
+0000ee 9104                      	LPM		TEMP1, Z															; ^
                                  
-0000bb 9631                      	ADIW	ZH:ZL, 1															; Point at & read HIGH of Table address
-0000bc 9114                      	LPM		TEMP2, Z															; ^
+0000ef 9631                      	ADIW	ZH:ZL, 1															; Point at & read HIGH of Table address
+0000f0 9114                      	LPM		TEMP2, Z															; ^
                                  
-0000bd 2fe0                      	MOV		ZL, TEMP1															; Load Z Pointer
-0000be 2ff1                      	MOV		ZH, TEMP2															; ^
+0000f1 2fe0                      	MOV		ZL, TEMP1															; Load Z Pointer
+0000f2 2ff1                      	MOV		ZH, TEMP2															; ^
                                  
-0000bf 9340 0068                 	STS		RECENT_DAT, RXREG													; Store recieved data in SRAM
+0000f3 9340 0068                 	STS		RECENT_DAT, RXREG													; Store recieved data in SRAM
                                  
-0000c1 d00d                      	RCALL	SET_COMMAND															; Set command pending flag
+0000f5 d00d                      	RCALL	SET_COMMAND															; Set command pending flag
                                  
                                  TELEGRAM_RESET:
                                  	
-0000c2 2700                      	CLR		TEMP1																; Reset parse counter
-0000c3 9300 0066                 	STS		TEL_STEP, TEMP1
+0000f6 2700                      	CLR		TEMP1																; Reset parse counter
+0000f7 9300 0066                 	STS		TEL_STEP, TEMP1
                                  
-0000c5 9508                      	RET																			; Return
+0000f9 9508                      	RET																			; Return
                                  
                                  TELEGRAM_CLRBUFFER:
                                  
-0000c6 b10c                      	IN		TEMP1, UDR															; Empty buffer
-0000c7 995f                      	SBIC	UCSRA, RXC															; ^
-0000c8 cffd                      	RJMP	TELEGRAM_CLRBUFFER													; ^
+0000fa b10c                      	IN		TEMP1, UDR															; Empty buffer
+0000fb 995f                      	SBIC	UCSRA, RXC															; ^
+0000fc cffd                      	RJMP	TELEGRAM_CLRBUFFER													; ^
                                  
-0000c9 9508                      	RET																			; Return
+0000fd 9508                      	RET																			; Return
                                  
                                  TELEGRAM_ERROR:
                                  
-0000ca 2744                      	CLR		RXREG																; Clear reception register
+0000fe 2744                      	CLR		RXREG																; Clear reception register
                                  
-0000cb d007                      	RCALL	CLR_COMMAND															; Clear command pending flag
-0000cc dff5                      	RCALL	TELEGRAM_RESET
-0000cd dff8                      	RCALL	TELEGRAM_CLRBUFFER													; Clear reception buffer
+0000ff d007                      	RCALL	CLR_COMMAND															; Clear command pending flag
+000100 dff5                      	RCALL	TELEGRAM_RESET
+000101 dff8                      	RCALL	TELEGRAM_CLRBUFFER													; Clear reception buffer
                                  	
-0000ce 9508                      	RET																			; Return
+000102 9508                      	RET																			; Return
                                  
                                  ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
                                  ;  > COMMANDS
                                  
                                  SET_COMMAND:
                                  
-0000cf 2d01                      	MOV		TEMP1, FNFLG														; Load current Flags Register and set CMDPD bit
-0000d0 6008                      	SBR		TEMP1, (1<<CMDPD)													; ^
-0000d1 2e10                      	MOV		FNFLG, TEMP1														; ^
+000103 2d01                      	MOV		TEMP1, FNFLG														; Load current Flags Register and set CMDPD bit
+000104 6008                      	SBR		TEMP1, (1<<CMDPD)													; ^
+000105 2e10                      	MOV		FNFLG, TEMP1														; ^
                                  	
-0000d2 9508                      	RET
+000106 9508                      	RET
                                  
                                  CLR_COMMAND:
                                  	
-0000d3 2d01                      	MOV		TEMP1, FNFLG														; Load current Flags Register and clear CMDPD bit
-0000d4 7f07                      	CBR		TEMP1, (1<<CMDPD)													; ^
-0000d5 2e10                      	MOV		FNFLG, TEMP1														; ^
+000107 2d01                      	MOV		TEMP1, FNFLG														; Load current Flags Register and clear CMDPD bit
+000108 7f07                      	CBR		TEMP1, (1<<CMDPD)													; ^
+000109 2e10                      	MOV		FNFLG, TEMP1														; ^
                                  	
-0000d6 9508                      	RET
+00010a 9508                      	RET
                                  
                                  EXECUTE_COMMAND:
                                  	
-0000d7 dffb                      	RCALL	CLR_COMMAND															; Clear command pending flag
+00010b dffb                      	RCALL	CLR_COMMAND															; Clear command pending flag
                                  
-0000d8 9509                      	ICALL																		; Call function of Z-pointer
+00010c 9509                      	ICALL																		; Call function of Z-pointer
                                  
-0000d9 9508                      	RET																			; Return
+00010d 9508                      	RET																			; Return
                                  
                                  ; ____________________________________________________________________________________________________________________________________________________
                                  ; >> DEVICE CONTROL
                                  
                                  EMPTY:
-0000da 0000                      	NOP
-0000db 9508                      	RET
+00010e 0000                      	NOP
+00010f 9508                      	RET
                                  
                                  ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
                                  ;  > PURE TESTING
                                  
                                  TEST:
                                  
-0000dc e30c                      	LDI		TEMP1, 60
-0000dd 9300 0068                 	STS		RECENT_DAT, TEMP1
+000110 e30c                      	LDI		TEMP1, 60
+000111 9300 0068                 	STS		RECENT_DAT, TEMP1
                                  
-0000df 940e 00f2                 	CALL	SET_MOTOR_PWM
-0000e1 940e 00e8                 	CALL	DELAY
-0000e3 940e 00fc                 	CALL	SET_MOTOR_MIN
-0000e5 940e 00e8                 	CALL	DELAY
+000113 940e 0126                 	CALL	SET_MOTOR_PWM
+000115 940e 011c                 	CALL	DELAY
+000117 940e 0130                 	CALL	SET_MOTOR_MIN
+000119 940e 011c                 	CALL	DELAY
                                  
-0000e7 9508                      	RET
+00011b 9508                      	RET
                                  
                                  DELAY:
-0000e8 e6b4                          LDI		R27, 100
+00011c e6b4                          LDI		R27, 100
                                  LOOP3:
-0000e9 e6a4                      	LDI		R26, 100
+00011d e6a4                      	LDI		R26, 100
                                  LOOP2:
-0000ea e694                      	LDI		R25, 100
+00011e e694                      	LDI		R25, 100
                                  LOOP1:
-0000eb 959a                          DEC		R25
-0000ec f7f1                          BRNE	LOOP1
-0000ed 95aa                          DEC		R26
-0000ee f7d9                          BRNE	LOOP2
-0000ef 95ba                          DEC		R27
-0000f0 f7c1                          BRNE	LOOP3
+00011f 959a                          DEC		R25
+000120 f7f1                          BRNE	LOOP1
+000121 95aa                          DEC		R26
+000122 f7d9                          BRNE	LOOP2
+000123 95ba                          DEC		R27
+000124 f7c1                          BRNE	LOOP3
                                  
-0000f1 9508                          RET
+000125 9508                          RET
                                  
                                  ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
                                  ;  > MOTOR CONTROL
                                  
                                  SET_MOTOR_PWM:
                                  
-0000f2 e60a                      	LDI		TEMP1, 0x6A															; Initialize Waveform Generator (Timer2) (0110_1010)
-0000f3 bd05                      	OUT		TCCR2, TEMP1														; ^
+000126 e60a                      	LDI		TEMP1, 0x6A															; Initialize Waveform Generator (Timer2) (0110_1010)
+000127 bd05                      	OUT		TCCR2, TEMP1														; ^
                                  
-0000f4 9100 0068                 	LDS		TEMP1, RECENT_DAT													; Load recent recieved telegram data from SRAM
-0000f6 9300 006d                 	STS		DUTY_CYCLE, TEMP1													; Store loaded Duty Cycle in SRAM
+000128 9100 0068                 	LDS		TEMP1, RECENT_DAT													; Load recent recieved telegram data from SRAM
+00012a 9300 006d                 	STS		DUTY_CYCLE, TEMP1													; Store loaded Duty Cycle in SRAM
                                  
-0000f8 2300                      	TST		TEMP1																; Check if PWM is Zero
-0000f9 f011                      	BREQ	SET_MOTOR_MIN														; Stop vehicle if true (or BRAKE)
+00012c 2300                      	TST		TEMP1																; Check if PWM is Zero
+00012d f011                      	BREQ	SET_MOTOR_MIN														; Stop vehicle if true (or BRAKE)
                                  
-0000fa bd03                      	OUT		OCR2, TEMP1															; Set Duty Cycle (0-255) on Timer2
+00012e bd03                      	OUT		OCR2, TEMP1															; Set Duty Cycle (0-255) on Timer2
                                  
                                  SET_MOTOR_PWM_ESC:
                                  
-0000fb 9508                      	RET																			; Return
+00012f 9508                      	RET																			; Return
                                  
                                  SET_MOTOR_MIN:
                                  
-0000fc e000                      	LDI		TEMP1, 0x00															; Disable Timer2
-0000fd bd05                      	OUT		TCCR2, TEMP1														; ^
+000130 e000                      	LDI		TEMP1, 0x00															; Disable Timer2
+000131 bd05                      	OUT		TCCR2, TEMP1														; ^
                                  
-0000fe 9897                      	CBI 	PORTD, PD7															; Clear BIT on PIN7 of PORTD
-0000ff cffb                      	RJMP	SET_MOTOR_PWM_ESC													; Return
+000132 9897                      	CBI 	PORTD, PD7															; Clear BIT on PIN7 of PORTD
+000133 cffb                      	RJMP	SET_MOTOR_PWM_ESC													; Return
                                  
-000100 cffa                      	RJMP	SET_MOTOR_PWM_ESC													; Return
+000134 cffa                      	RJMP	SET_MOTOR_PWM_ESC													; Return
                                  
                                  SET_MOTOR_MAX:
                                  
-000101 9a97                      	SBI 	PORTD, PD7															; Set BIT on PIN7 of PORTD
-000102 cff8                      	RJMP	SET_MOTOR_PWM_ESC													; Return
+000135 9a97                      	SBI 	PORTD, PD7															; Set BIT on PIN7 of PORTD
+000136 cff8                      	RJMP	SET_MOTOR_PWM_ESC													; Return
                                  
                                  ; ____________________________________________________________________________________________________________________________________________________
                                  ; >> FLAGS MANAGEMENT
                                  
                                  LOAD_FLAGS:
                                  	
-000103 94f8                      	CLI																			; Disable Interrupts
+000137 94f8                      	CLI																			; Disable Interrupts
                                  	
-000104 9120 006f                 	LDS		TEMPI, MODE_FLG														; Load Mode Flags from SRAM into Register
-000106 2e02                      	MOV		MDFLG, TEMPI														; ^
+                                 	;LDS		TEMPI, MODE_FLG														; Load Mode Flags from SRAM into Register
+                                 	;MOV		MDFLG, TEMPI														; ^
                                  
-000107 9120 006e                 	LDS		TEMPI, FUNC_FLG														; Load Function Flags from SRAM into Register
-000109 2e12                      	MOV		FNFLG, TEMPI														; ^
+000138 9130 006e                 	LDS		TEMPI, FUNC_FLG														; Load Function Flags from SRAM into Register
+00013a 2e13                      	MOV		FNFLG, TEMPI														; ^
                                  
-00010a 2722                      	CLR		TEMPI																; Clear stored flags
-00010b 9320 006f                 	STS		MODE_FLG, TEMPI														; ^
-00010d 9320 006e                 	STS		FUNC_FLG, TEMPI														; ^
+00013b 2733                      	CLR		TEMPI																; Clear stored flags
+00013c 9330 006f                 	STS		MODE_FLG, TEMPI														; ^
+00013e 9330 006e                 	STS		FUNC_FLG, TEMPI														; ^
                                  
-00010f 9478                      	SEI																			; Enable Interrupts
+000140 9478                      	SEI																			; Enable Interrupts
                                  
-000110 9508                      	RET																			; Return
+000141 9508                      	RET																			; Return
                                  
                                  ; ____________________________________________________________________________________________________________________________________________________
                                  ; >> INTERRUPT SERVICE ROUTINES
                                  
                                  INT0_ISR:
                                  	
-000111 9120 006e                 	LDS		TEMPI, FUNC_FLG														; Load Function Flags from SRAM into Temporary Interrupt Register
-000113 9468                      	SET																			; Set T flag
-000114 f927                      	BLD		TEMPI, TACHO														; Set BIT in Temporary Interrupt Register
-000115 9320 006e                 	STS		FUNC_FLG, TEMPI														; Store Function Flags to SRAM
+000142 9130 006e                 	LDS		TEMPI, FUNC_FLG														; Load Function Flags from SRAM into Temporary Interrupt Register
+000144 9468                      	SET																			; Set T flag
+000145 f937                      	BLD		TEMPI, TACHO														; Set BIT in Temporary Interrupt Register
+000146 9330 006e                 	STS		FUNC_FLG, TEMPI														; Store Function Flags to SRAM
                                  
-000117 9518                      	RETI																		; Return
+000148 9518                      	RETI																		; Return
                                  
                                  INT1_ISR:
                                  	
-000118 0000                      	NOP
+000149 9130 006e                 	LDS		TEMPI, FUNC_FLG														; Load Function Flags from SRAM into Temporary Interrupt Register
+00014b 9468                      	SET																			; Set T flag
+00014c f936                      	BLD		TEMPI, FNLNE														; Set BIT in Temporary Interrupt Register
+00014d 9330 006e                 	STS		FUNC_FLG, TEMPI														; Store Function Flags to SRAM
                                  
-000119 9518                      	RETI																		; Return
-                                 
-                                 INT2_ISR:
-                                 	
-00011a 0000                      	NOP
-                                 
-00011b 9518                      	RETI																		; Return
+00014f 9518                      	RETI																		; Return
                                  
                                  TMR1_ISR:
                                  	
-00011c 0000                      	NOP
+000150 9130 006e                 	LDS		TEMPI, FUNC_FLG														; Load Function Flags from SRAM into Temporary Interrupt Register
+000152 9468                      	SET																			; Set T flag
+000153 f934                      	BLD		TEMPI, TMR1															; Set BIT in Temporary Interrupt Register
+000154 9330 006e                 	STS		FUNC_FLG, TEMPI														; Store Function Flags to SRAM
                                  
-00011d 9518                      	RETI																		; Return
+000156 9518                      	RETI																		; Return
                                  
                                  ADC_ISR:
-                                 	
-00011e 0000                      	NOP
+                                 
+000157 9130 006e                 	LDS		TEMPI, FUNC_FLG														; Load Function Flags from SRAM into Temporary Interrupt Register
+000159 9468                      	SET																			; Set T flag
+00015a f935                      	BLD		TEMPI, ACCLR														; Set BIT in Temporary Interrupt Register
+00015b 9330 006e                 	STS		FUNC_FLG, TEMPI														; Store Function Flags to SRAM		
                                  
 
 
@@ -1464,39 +1538,39 @@ counted separately from r26..r31 here.
 .dseg memory usage only counts static data declared with .byte
 
 "ATmega32" register use summary:
-x  :   0 y  :   0 z  :   3 r0 :   5 r1 :  11 r2 :   0 r3 :   0 r4 :   0 
+x  :   0 y  :   0 z  :   3 r0 :   7 r1 :  12 r2 :   0 r3 :   0 r4 :   0 
 r5 :   0 r6 :   0 r7 :   0 r8 :   0 r9 :   0 r10:   0 r11:   0 r12:   0 
-r13:   0 r14:   0 r15:   0 r16:  74 r17:   2 r18:  10 r19:   0 r20:   8 
-r21:   2 r22:   0 r23:   0 r24:   0 r25:   2 r26:   2 r27:   2 r28:   0 
+r13:   0 r14:   0 r15:   0 r16:  87 r17:   4 r18:   0 r19:  17 r20:   8 
+r21:   9 r22:   0 r23:   0 r24:   0 r25:   2 r26:   2 r27:   2 r28:   0 
 r29:   0 r30:   7 r31:   5 
 Registers used: 13 out of 35 (37.1%)
 
 "ATmega32" instruction use summary:
-.lds  :   0 .sts  :   0 adc   :   0 add   :   0 adiw  :   3 and   :   0 
-andi  :   0 asr   :   0 bclr  :   0 bld   :   1 brbc  :   0 brbs  :   0 
-brcc  :   0 brcs  :   0 break :   0 breq  :   7 brge  :   0 brhc  :   0 
+.lds  :   0 .sts  :   0 adc   :   0 add   :   0 adiw  :   3 and   :   1 
+andi  :   1 asr   :   0 bclr  :   0 bld   :   4 brbc  :   0 brbs  :   0 
+brcc  :   0 brcs  :   0 break :   0 breq  :  10 brge  :   0 brhc  :   0 
 brhs  :   0 brid  :   0 brie  :   0 brlo  :   0 brlt  :   0 brmi  :   0 
 brne  :   3 brpl  :   0 brsh  :   0 brtc  :   0 brts  :   0 brvc  :   0 
-brvs  :   0 bset  :   0 bst   :   0 call  :   7 cbi   :   1 cbr   :   1 
-clc   :   0 clh   :   0 cli   :   1 cln   :   0 clr   :   8 cls   :   0 
+brvs  :   0 bset  :   0 bst   :   0 call  :  12 cbi   :   1 cbr   :   1 
+clc   :   0 clh   :   0 cli   :   1 cln   :   0 clr   :   9 cls   :   0 
 clt   :   0 clv   :   0 clz   :   0 com   :   0 cp    :   1 cpc   :   0 
-cpi   :   5 cpse  :   0 dec   :   4 eor   :   0 fmul  :   0 fmuls :   0 
-fmulsu:   0 icall :   1 ijmp  :   0 in    :   3 inc   :   2 jmp   :   6 
-ld    :   0 ldd   :   0 ldi   :  27 lds   :   5 lpm   :   6 lsl   :   0 
-lsr   :   0 mov   :   8 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
-neg   :   0 nop   :  17 or    :   0 ori   :   0 out   :  23 pop   :   0 
-push  :   0 rcall :   5 ret   :  19 reti  :   5 rjmp  :  10 rol   :   0 
-ror   :   0 sbc   :   0 sbci  :   0 sbi   :   3 sbic  :   1 sbis  :   3 
+cpi   :   8 cpse  :   0 dec   :   4 eor   :   0 fmul  :   0 fmuls :   0 
+fmulsu:   0 icall :   1 ijmp  :   0 in    :   5 inc   :   2 jmp   :   5 
+ld    :   0 ldd   :   0 ldi   :  31 lds   :  12 lpm   :   6 lsl   :   0 
+lsr   :   0 mov   :   9 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
+neg   :   0 nop   :  13 or    :   1 ori   :   0 out   :  23 pop   :   0 
+push  :   0 rcall :   8 ret   :  24 reti  :   4 rjmp  :  10 rol   :   0 
+ror   :   0 sbc   :   0 sbci  :   0 sbi   :   5 sbic  :   1 sbis  :   3 
 sbiw  :   0 sbr   :   1 sbrc  :   8 sbrs  :   0 sec   :   0 seh   :   0 
-sei   :   2 sen   :   0 ser   :   0 ses   :   0 set   :   1 sev   :   0 
-sez   :   0 sleep :   0 spm   :   0 st    :   0 std   :   0 sts   :  14 
+sei   :   2 sen   :   0 ser   :   0 ses   :   0 set   :   4 sev   :   0 
+sez   :   0 sleep :   0 spm   :   0 st    :   0 std   :   0 sts   :  19 
 sub   :   0 subi  :   0 swap  :   0 tst   :   1 wdr   :   0 
-Instructions used: 35 out of 113 (31.0%)
+Instructions used: 38 out of 113 (33.6%)
 
 "ATmega32" memory use summary [bytes]:
 Segment   Begin    End      Code   Data   Used    Size   Use%
 ---------------------------------------------------------------
-[.cseg] 0x000000 0x000240    484     36    520   32768   1.6%
+[.cseg] 0x000000 0x0002bc    604     36    640   32768   2.0%
 [.dseg] 0x000060 0x000060      0      0      0    2048   0.0%
 [.eseg] 0x000000 0x000000      0      0      0    1024   0.0%
 
