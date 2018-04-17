@@ -86,6 +86,9 @@
     <Compile Include="files\adc_test.asm">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="files\adc_v2.asm">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="files\broadcast.asm">
       <SubType>Code</SubType>
     </Compile>

@@ -98,6 +98,10 @@ RET													;
 SETUP_SRAM:											;
 LDI TEMP1, AVGSIZE									;
 
+STS RECENT_XAVG_H, XH
+STS RECENT_XAVG_L, XL
+
+
 CONTINUE_NULL:										;
 ST	X+, TEMP1 										;
 CPI XL, LOW(MOVAVG_END)								;

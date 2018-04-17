@@ -1,6 +1,6 @@
 % Log some cool stuff
 disp("MatLAB Accelerometer POST Data Analyzer");
-disp("Version 1.0.2");
+disp("Version 1.0.3");
 
 % Clear everything
 clear;
@@ -20,6 +20,14 @@ yMin            = -2;
 plotGrid        = 'on';
 
 % Definitions
+broadcastModes  = struct(...
+                    'Disabled',         0,      ...                    
+                    'All',              8,      ...
+                    'Tachometer',       24,     ...
+                    'Finishline',       56,     ...
+                    'Accelerometer',    40      ...
+                  );           
+
 movingAvgSize   = 32;
 timerFreq       = 1;
 movingAvg       = (1/movingAvgSize) * ones(1, movingAvgSize);
@@ -38,8 +46,12 @@ fopen(bmodule);
 
 disp('Connection established; starting data logging.');
 
+% Set broadcasting mode
+setBroadcastMode(broadcastModes.All);
+
 % Start vehicle
-fwrite(bmodule, uint8(speedValue));
+setDutyCycle(101);
+%fwrite(bmodule, uint8(speedValue));
 
 % Enable timer
 tic
@@ -86,3 +98,19 @@ set(get(handle(gcf), 'JavaFrame'), 'Maximized', 1);
 
 % Close connection
 fclose(bmodule);
+
+% -----------------------------------------------------------------------------------------------------------------------------------
+
+% Device Control Functions
+
+function setDutyCycle(value)
+    fwrite(bmodule, uint8(85));
+    fwrite(bmodule, uint8(16));
+    fwrite(bmodule, uint8(value));
+end
+
+function setBroadcastMode(mode)
+    fwrite(bmodule, uint8(85));
+    fwrite(bmodule, uint8(16));
+    fwrite(bmodule, uint8(mode));
+end

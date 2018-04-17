@@ -26,6 +26,14 @@
 ; >> DEFINITIONS
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+;  > INCLUDES
+
+.ORG	0x28
+
+	.INCLUDE	"ram_table.inc"
+	.INCLUDE	"command_table.inc"
+
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > CONSTANTS
 
 	.EQU	BAUDRATE	= 0x00CF												; Baudrate settings
@@ -38,6 +46,10 @@
 																				;  7812 - 1		= 32Hz
 																				;  1953 - 1		= 128Hz
 																				;   976 - 1		= 256Hz
+
+	.EQU	AVGSIZE		= 128								;
+	.EQU	AVGDIV		= 7								; => 2^5 = 32
+	.EQU	MOVAVG_END	= MOVAVG+AVGSIZE				;
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > REGISTERS
@@ -72,14 +84,6 @@
 	.EQU	TMR1		= 4														; Timer1 Ready
 	.EQU	CMDPD		= 3														; Command Pending
 
-;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-;  > INCLUDES
-
-.ORG	0x28
-
-	.INCLUDE	"ram_table.inc"
-	.INCLUDE	"command_table.inc"
-
 ; ____________________________________________________________________________________________________________________________________________________
 ; >> INITIALIZATION
 
@@ -99,6 +103,9 @@ INIT:
 	STS		MODE_FLG, TEMP1
 	STS		FUNC_FLG, TEMP1
 	STS		TEL_STEP, TEMP1
+
+	;CALL	SET_POINTERAVG_X
+	;CALL	SETUP_SRAM
 
 	; Flags Initialization
 
@@ -288,6 +295,8 @@ LOG_ACCELEROMETER:
 	// Check if Timer1 ready before broadcasting?
 
 BROADCAST:
+
+	
 	
 	LDI		TEMP1, (1<<BROD2)|(1<<BROD1)										;MASK SETTINGS
 	AND		TEMP1, MDFLG			
@@ -319,7 +328,7 @@ BROADCAST_TACHOMETER:
 
 BROADCAST_ACCELEROMETER:
 
-	LDS		TXREG, ADC_L
+	LDS		TXREG, ADC_H
 	CALL	SERIAL_WRITE
 
 	RET
