@@ -38,7 +38,7 @@
 
 	.EQU	BAUDRATE	= 0x00CF												; Baudrate settings
 
-	.EQU	TMR1FREQ	= 1953 - 1												; Settings for Timer1
+	.EQU	TMR1FREQ	= 62500 - 1												; Settings for Timer1
 
 																				; 62500 - 1		= 4Hz
 																				; 31250 - 1		= 8Hz
@@ -59,11 +59,16 @@
 	
 	.DEF	TEMP1		= R16													; Temporary Register #1
 	.DEF	TEMP2		= R17													; Temporary Register #2
-	.DEF	TEMP3		= R18
+	.DEF	TEMP3		= R18													; Temporary Register #3
 	.DEF	TEMPI		= R19													; Temporary Interrupts Register
+	
+	.DEF	TEMPWH		= R25													; 
+	.DEF	TEMPWL		= R24													; 
 
 	.DEF	RXREG		= R20													; USART Reception Register
 	.DEF	TXREG		= R21													; USART Transmission Register
+
+
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > FLAGS
@@ -193,24 +198,12 @@ INIT:
 MAIN:
 	
 	CALL	LOAD_FLAGS															; Load Flags
-	
-;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-;  > MODES:
-
-	SBRC	MDFLG, AUTO															; Autonomous Mode
-	NOP																			; ^
-
-	SBRC	MDFLG, MAP															; Mapping Mode
-	NOP																			; ^
-
-	SBRC	MDFLG, BROD0														; Broadcast Mode
-	CALL	BROADCAST															; ^
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > FUNCTIONS
-
+	
 	SBRC	FNFLG, TACHO														; Tachometer Ready
-	NOP																			; ^
+	CALL	LOG_TACHOMETER														; ^
 
 	SBRC	FNFLG, FNLNE														; Finishline Ready
 	NOP																			; ^
@@ -227,9 +220,21 @@ MAIN:
 	CALL	EXECUTE_COMMAND														; ^
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+;  > MODES:
+
+	SBRC	MDFLG, AUTO															; Autonomous Mode
+	NOP																			; ^
+
+	SBRC	MDFLG, MAP															; Mapping Mode
+	NOP																			; ^
+
+	SBRC	MDFLG, BROD0														; Broadcast Mode
+	CALL	BROADCAST															; ^
+
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > REPEAT LOOP
 	
-	;CLR		MDFLG																; Clear Flags
+	;CLR		MDFLG															; Clear Flags
 	CLR		FNFLG																; ^
 
 	RJMP	MAIN																; Loop forever
@@ -238,20 +243,17 @@ MAIN:
 ; >> SENSOR PROCESSING & LOGGING
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-;  > GENERAL (ALL)
-
-LOG:
-
-	NOP																			; Do Someting
-
-	RET																			; Return
-
-;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > TACHOMETER
 
 LOG_TACHOMETER:
 
-	NOP																			; Do Someting
+	LDS		TEMPWH, TACHOMETER_H												; Load previous values from SRAM
+	LDS		TEMPWL, TACHOMETER_L												; into WORD registers
+
+	ADIW	TEMPWH:TEMPWL, 1													; Increment data
+
+	STS		TACHOMETER_H, TEMPWH												; Store new values into SRAM
+	STS		TACHOMETER_L, TEMPWL												; ^
 
 	RET																			; Return
 
@@ -277,9 +279,9 @@ LOG_ACCELEROMETER:
 	NOP																			; ^
 	STS		ADC_H, TEMP1														; ^
 
-	; Moving AVG
+	// Moving AVG
 
-	SBI		ADCSR, ADSC															; Start ADC Conversion		
+	SBI		ADCSR, ADSC															; Start ADC Conversion
 
 	RET																			; Return
 
@@ -292,36 +294,35 @@ LOG_ACCELEROMETER:
 ; ____________________________________________________________________________________________________________________________________________________
 ; >> BROADCAST
 
-	// Check if Timer1 ready before broadcasting?
-
 BROADCAST:
 
+	SBRS	FNFLG, TMR1															; Check if broadcast is synchronized with frequency (Timer1)
+	RET																			; ^
 	
+	LDI		TEMP1, (1<<BROD2)|(1<<BROD1)										; Mask Broadcast Modes
+	AND		TEMP1, MDFLG														; ^
+
+	CPI		TEMP1, (1<<BROD1)													; Tachometer Mode (011)
+	BREQ	BROADCAST_TACHOMETER												; ^
 	
-	LDI		TEMP1, (1<<BROD2)|(1<<BROD1)										;MASK SETTINGS
-	AND		TEMP1, MDFLG			
+	CPI		TEMP1, (1<<BROD2)|(1<<BROD1)										; Finishline Mode (111)
+	BREQ	BROADCAST_FINISHLINE												; ^
 
-	CPI		TEMP1, (1<<BROD1)													;TACHOMETER
-	BREQ	BROADCAST_TACHOMETER
+	CPI		TEMP1, (1<<BROD2)													; Accelerometer Mode (101)
+	BREQ	BROADCAST_ACCELEROMETER												; ^
 
-	CPI		TEMP1, (1<<BROD2)													;ACCELEROMETER
-	BREQ	BROADCAST_ACCELEROMETER
-	
-	CPI		TEMP1, (1<<BROD2)|(1<<BROD1)										;FINISHLINE
-	BREQ	BROADCAST_FINISHLINE
+	RCALL	BROADCAST_TACHOMETER												; Broadcast All
+	RCALL	BROADCAST_ACCELEROMETER												; ^
+	RCALL	BROADCAST_FINISHLINE												; ^
 
-	RCALL	BROADCAST_TACHOMETER												;ALL
-	RCALL	BROADCAST_ACCELEROMETER
-	RCALL	BROADCAST_FINISHLINE
-
-	RET
+	RET																			; Return
 
 BROADCAST_TACHOMETER:
 
 	LDS		TXREG, TACHOMETER_H
 	CALL	SERIAL_WRITE
-	LDS		TXREG, TACHOMETER_L
 
+	LDS		TXREG, TACHOMETER_L
 	CALL	SERIAL_WRITE
 
 	RET

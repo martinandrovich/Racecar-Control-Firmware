@@ -64,7 +64,8 @@ while toc < logDuration
    count = count + 1;
    
    if toc > (logDuration - 0.5)
-       fwrite(bmodule, uint8(1));
+       setDutyCycle(0);
+       %fwrite(bmodule, uint8(1));
    end
    
 end
