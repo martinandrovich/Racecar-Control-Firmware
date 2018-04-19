@@ -11,16 +11,16 @@
 	JMP		INIT																; ^
 
 .ORG 	0x02																	; INT0 Interrupt (PD2)
-	JMP		INT0_ISR															; ^
+	JMP		INT0_HANDLER														; ^
 
 .ORG	0x04																	; INT1 Interrupt (PD3)
-	JMP 	INT1_ISR															; ^
+	JMP 	INT1_HANDLER														; ^
 
 .ORG	0x14																	; TIMER1 Compare Match Interrupt
-	JMP		TMR1_ISR															; ^
+	JMP		TMR1_HANDLER														; ^
 
 .ORG	0x20																	; ADC Conversion Complete Interrupt
-	JMP		ADC_ISR																; ^
+	JMP		ADC_HANDLER															; ^
 
 ; ____________________________________________________________________________________________________________________________________________________
 ; >> DEFINITIONS
@@ -36,9 +36,9 @@
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > CONSTANTS
 
-	.EQU	BAUDRATE	= 0x00CF												; Baudrate settings
+	.EQU	BAUDRATE	= 0x00CF												; Baudrate configuration
 
-	.EQU	TMR1FREQ	= 62500 - 1												; Settings for Timer1
+	.EQU	TMR1FREQ	= 62500 - 1												; Timer1 configuration
 
 																				; 62500 - 1		= 4Hz
 																				; 31250 - 1		= 8Hz
@@ -47,9 +47,9 @@
 																				;  1953 - 1		= 128Hz
 																				;   976 - 1		= 256Hz
 
-	.EQU	AVGSIZE		= 128								;
-	.EQU	AVGDIV		= 7								; => 2^5 = 32
-	.EQU	MOVAVG_END	= MOVAVG+AVGSIZE				;
+	.EQU	AVGSIZE		= 128													; Size (bytes) of Moving Average Filter
+	.EQU	AVGDIV		= 7														; 2^5 = 32
+	.EQU	MOVAVG_END	= MOVAVG+AVGSIZE										;
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > REGISTERS
@@ -62,13 +62,11 @@
 	.DEF	TEMP3		= R18													; Temporary Register #3
 	.DEF	TEMPI		= R19													; Temporary Interrupts Register
 	
-	.DEF	TEMPWH		= R25													; 
-	.DEF	TEMPWL		= R24													; 
+	.DEF	TEMPWH		= R25													; Temporary Register (Word) Pair
+	.DEF	TEMPWL		= R24													; ^
 
 	.DEF	RXREG		= R20													; USART Reception Register
 	.DEF	TXREG		= R21													; USART Transmission Register
-
-
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > FLAGS
@@ -103,11 +101,11 @@ INIT:
 
 	; SRAM Initialization
 
-	CLR		TEMP1
-	STS		RECENT_DAT, TEMP1
-	STS		MODE_FLG, TEMP1
-	STS		FUNC_FLG, TEMP1
-	STS		TEL_STEP, TEMP1
+	CLR		TEMP1																; Set all allocated SRAM to NULL
+	STS		RECENT_DAT, TEMP1													; ^
+	STS		TEL_STEP, TEMP1														; ^
+	STS		MODE_FLG, TEMP1														; ^
+	STS		FUNC_FLG, TEMP1														; ^
 
 	;CALL	SET_POINTERAVG_X
 	;CALL	SETUP_SRAM
@@ -209,7 +207,7 @@ MAIN:
 	NOP																			; ^
 
 	SBRC	FNFLG, ACCLR														; Accelerometer Ready
-	NOP																			; ^
+	CALL	LOG_ACCELEROMETER													; ^
 	
 	SBRC	FNFLG, TMR1															; Timer1 Ready
 	NOP																			; ^
@@ -219,8 +217,10 @@ MAIN:
 	SBRC	FNFLG, CMDPD														; Command Pending
 	CALL	EXECUTE_COMMAND														; ^
 
+	CLR		FNFLG																; Clear Functions Flags
+
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-;  > MODES:
+;  > MODES
 
 	SBRC	MDFLG, AUTO															; Autonomous Mode
 	NOP																			; ^
@@ -233,9 +233,6 @@ MAIN:
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > REPEAT LOOP
-	
-	;CLR		MDFLG															; Clear Flags
-	CLR		FNFLG																; ^
 
 	RJMP	MAIN																; Loop forever
 
@@ -319,39 +316,45 @@ BROADCAST:
 
 BROADCAST_TACHOMETER:
 
-	LDS		TXREG, TACHOMETER_H
-	CALL	SERIAL_WRITE
+	LDS		TXREG, TACHOMETER_H													; Load & transmit HIGH byte of Tachometer data
+	CALL	SERIAL_WRITE														; ^
 
-	LDS		TXREG, TACHOMETER_L
-	CALL	SERIAL_WRITE
+	LDS		TXREG, TACHOMETER_L													; Load & transmit HIGH byte of Tachometer data
+	CALL	SERIAL_WRITE														; ^
 
-	RET
+	RET																			; Return
 
 BROADCAST_ACCELEROMETER:
 
-	LDS		TXREG, ADC_H
-	CALL	SERIAL_WRITE
+	LDS		TXREG, ADC_H														; Load & transmit HIGH byte of ADC (accelerometer) data
+	;LDS		TXREG, ACCELEROMETER												; Load & transmit Accelerometer data
+	CALL	SERIAL_WRITE														; ^
 
-	RET
+	RET																			; Return
 
 BROADCAST_FINISHLINE:
 
+	// A bit retarded.
+	
 	LDS		TXREG, FINISHLINE
 	CALL	SERIAL_WRITE
 
-	RET
+	RET																			; Return
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 BROADCAST_SET:
 
-	MOV		TEMP1, MDFLG
-	ANDI	TEMP1, 0b11000111
-	LDS		TEMP2, RECENT_DAT
-	OR		TEMP1, TEMP2
-	MOV		MDFLG, TEMP1
+	MOV		TEMP1, MDFLG														; Load & reset current Broadcast Flags in Mode Register
+	ANDI	TEMP1, 0b11000111													; ^
 
-	RET
+	LDS		TEMP2, RECENT_DAT													; Load & apply recieved Broadcast Flags
+	OR		TEMP1, TEMP2														; ^
+
+	MOV		MDFLG, TEMP1														; Save new mode flags
+	STS		MODE_FLG, MDFLG														; Store new mode flags to SRAM
+
+	RET																			; Return
 
 ; ____________________________________________________________________________________________________________________________________________________
 ; >> COMMUNICATION PROTOCOL
@@ -591,7 +594,7 @@ LOAD_FLAGS:
 	MOV		FNFLG, TEMPI														; ^
 
 	CLR		TEMPI																; Clear stored flags
-	STS		MODE_FLG, TEMPI														; ^
+	;STS		MODE_FLG, TEMPI														; ^
 	STS		FUNC_FLG, TEMPI														; ^
 
 	SEI																			; Enable Interrupts
@@ -599,9 +602,9 @@ LOAD_FLAGS:
 	RET																			; Return
 
 ; ____________________________________________________________________________________________________________________________________________________
-; >> INTERRUPT SERVICE ROUTINES
+; >> INTERRUPT HANDLERS
 
-INT0_ISR:
+INT0_HANDLER:
 	
 	LDS		TEMPI, FUNC_FLG														; Load Function Flags from SRAM into Temporary Interrupt Register
 	SET																			; Set T flag
@@ -610,7 +613,7 @@ INT0_ISR:
 
 	RETI																		; Return
 
-INT1_ISR:
+INT1_HANDLER:
 	
 	LDS		TEMPI, FUNC_FLG														; Load Function Flags from SRAM into Temporary Interrupt Register
 	SET																			; Set T flag
@@ -619,7 +622,7 @@ INT1_ISR:
 
 	RETI																		; Return
 
-TMR1_ISR:
+TMR1_HANDLER:
 	
 	LDS		TEMPI, FUNC_FLG														; Load Function Flags from SRAM into Temporary Interrupt Register
 	SET																			; Set T flag
@@ -628,7 +631,7 @@ TMR1_ISR:
 
 	RETI																		; Return
 
-ADC_ISR:
+ADC_HANDLER:
 
 	LDS		TEMPI, FUNC_FLG														; Load Function Flags from SRAM into Temporary Interrupt Register
 	SET																			; Set T flag

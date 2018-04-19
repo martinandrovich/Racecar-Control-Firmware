@@ -107,9 +107,6 @@
     <Compile Include="main.asm">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="main_new2.asm">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="ram_table.inc">
       <SubType>Code</SubType>
     </Compile>
