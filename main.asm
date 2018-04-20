@@ -1,6 +1,6 @@
 ; ###################################################################################################################################################
 ; Racecar Control Firmware
-; Version 1.1.0
+; Version 1.1.1
 ; 
 ; Sequential Flag Architecture
 
@@ -36,7 +36,7 @@
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > CONSTANTS
 
-	.EQU	BAUDRATE	= 0x0022												; Baudrate configuration (default = 0xCF)
+	.EQU	BAUDRATE	= 0x00CF												; Baudrate configuration (default = 0xCF)
 
 	.EQU	TMR1FREQ	= 976 - 1												; Timer1 configuration
 
@@ -112,9 +112,12 @@ INIT:
 	STS		FUNC_FLG, TEMP1														; ^
 	STS		TACHOMETER_H, TEMP1													; ^
 	STS		TACHOMETER_L, TEMP1													; ^
+	STS		ACCELEROMETER, TEMP1
+	STS		ADC_H, TEMP1
+	STS		ADC_L, TEMP1
 
-	;CALL	SET_POINTERAVG_X
-	;CALL	SETUP_SRAM
+	CALL	SET_POINTERAVG_X
+	CALL	SETUP_SRAM
 
 	; Flags Initialization
 
@@ -210,13 +213,13 @@ MAIN:
 	CALL	LOG_TACHOMETER														; ^
 
 	SBRC	FNFLG, FNLNE														; Finishline Ready
-	NOP																			; ^
+	CALL	LOG_FINISHLINE														; ^
 
 	SBRC	FNFLG, ACCLR														; Accelerometer Ready
 	CALL	LOG_ACCELEROMETER													; ^
 	
 	SBRC	FNFLG, TMR1															; Timer1 Ready
-	NOP																			; ^
+	CALL	CLOCK																; ^
 
 	CALL	TELEGRAM_CHECK														; Check for Telegrams
 
@@ -238,7 +241,7 @@ MAIN:
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > REPEAT LOOP
 
-	CLR		FNFLG																; Clear Functions Flags
+	;CLR		FNFLG																; Clear Functions Flags
 
 	RJMP	MAIN																; Loop forever
 
@@ -250,21 +253,17 @@ MAIN:
 
 LOG_TACHOMETER:
 
-	LDS		R25, TACHOMETER_H									; Load previous values from RAM
-	LDS		R24, TACHOMETER_L									; ^
-
-	ADIW	R25:R24, 1											; Increment data
-
-	STS		TACHOMETER_H, R25									; Store values into RAM
-	STS		TACHOMETER_L, R24									; ^
-
-	/*LDS		TEMPWH, TACHOMETER_H												; Load previous values from SRAM
+	LDS		TEMPWH, TACHOMETER_H												; Load previous values from SRAM
 	LDS		TEMPWL, TACHOMETER_L												; into WORD registers
 
 	ADIW	TEMPWH:TEMPWL, 1													; Increment data
 
 	STS		TACHOMETER_H, TEMPWH												; Store new values into SRAM
-	STS		TACHOMETER_L, TEMPWL												; ^*/
+	STS		TACHOMETER_L, TEMPWL												; ^
+
+	MOV		TEMP1, FNFLG														; Clear Tachometer functional flag
+	CBR		TEMP1, (1<<TACHO)													; ^
+	MOV		FNFLG, TEMP1														; ^
 
 	RET																			; Return
 
@@ -275,13 +274,20 @@ LOG_FINISHLINE:
 
 	NOP																			; Do Someting
 
+	MOV		TEMP1, FNFLG														; Clear Finishline functional flag
+	CBR		TEMP1, (1<<FNLNE)													; ^
+	MOV		FNFLG, TEMP1														; ^
+
 	RET																			; Return
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > ACCELEROMETER
 
 LOG_ACCELEROMETER:
-	
+
+	SBRS	FNFLG, TMR1															; Check if broadcast is synchronized with frequency (Timer1)
+	RET																			; ^
+
 	IN		TEMP1, ADCL															; Read LOW of ADC
 	NOP																			; ^
 	STS		ADC_L, TEMP1														; ^
@@ -290,9 +296,13 @@ LOG_ACCELEROMETER:
 	NOP																			; ^
 	STS		ADC_H, TEMP1														; ^
 
-	// Moving AVG
+	CALL	ADC_MOVING
 
 	SBI		ADCSR, ADSC															; Start ADC Conversion
+
+	MOV		TEMP1, FNFLG														; Clear Accelerometer functional flag
+	CBR		TEMP1, (1<<ACCLR)													; ^
+	MOV		FNFLG, TEMP1														; ^
 
 	RET																			; Return
 
@@ -309,6 +319,10 @@ BROADCAST:
 	
 	SBRS	FNFLG, TMR1															; Check if broadcast is synchronized with frequency (Timer1)
 	RET																			; ^
+
+	MOV		TEMP1, FNFLG														; Clear TIMER1 functional flag
+	CBR		TEMP1, TMR1															; ^
+	MOV		FNFLG, TEMP1														; ^
 	
 	LDI		TEMP1, (1<<BROD2)|(1<<BROD1)										; Mask Broadcast Modes
 	AND		TEMP1, MDFLG														; ^
@@ -340,8 +354,8 @@ BROADCAST_TACHOMETER:
 
 BROADCAST_ACCELEROMETER:
 
-	LDS		TXREG, ADC_H														; Load & transmit HIGH byte of ADC (accelerometer) data
-	;LDS		TXREG, ACCELEROMETER												; Load & transmit Accelerometer data
+	;LDS		TXREG, ADC_H														; Load & transmit HIGH byte of ADC (accelerometer) data
+	LDS		TXREG, ACCELEROMETER												; Load & transmit Accelerometer data
 	CALL	SERIAL_WRITE														; ^
 
 	RET																			; Return
@@ -528,6 +542,15 @@ EMPTY:
 	NOP
 	RET
 
+CLOCK:
+	NOP
+
+	MOV		TEMP1, FNFLG														; Clear Timer1 functional flag
+	CBR		TEMP1, TMR1															; ^
+	MOV		FNFLG, TEMP1														; ^
+
+	RET
+
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > PURE TESTING
 
@@ -594,22 +617,99 @@ SET_MOTOR_MAX:
 	SBI 	PORTD, PD7															; Set BIT on PIN7 of PORTD
 	RJMP	SET_MOTOR_PWM_ESC													; Return
 
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+;  > MOVING AVERAGE
+
+ADC_MOVING:
+
+	LDS		XH, RECENT_XAVG_H							;
+	LDS		XL, RECENT_XAVG_L							;
+
+	
+	LDS		TEMP1, ADC_H
+	ST		X+, TEMP1									;insert ADC_val from high because of ADLAR
+
+	CPI		XL, AVGSIZE									;check for reset
+	BRNE	SKIP_THIS_RESET								;
+
+	RCALL	SET_POINTERAVG_X							;	
+
+SKIP_THIS_RESET:										;
+
+	STS		RECENT_XAVG_L, XL							;
+
+	RCALL	ADD_LOOP									;add loop
+	RCALL	DIV_LOOP									;
+
+	RET
+
+SET_POINTERAVG_X:
+
+
+	LDI		XH, HIGH(MOVAVG)							;
+	LDI		XL, LOW(MOVAVG)								;
+
+	RET
+
+SETUP_SRAM:												;
+	LDI TEMP1, AVGSIZE									;
+
+	STS RECENT_XAVG_H, XH
+	STS RECENT_XAVG_L, XL
+
+CONTINUE_NULL:											;
+	ST	X+, TEMP1 										;
+	CPI XL, LOW(MOVAVG_END)								;
+	BRNE CONTINUE_NULL									;
+	RET													;
+
+ADD_LOOP:
+	CLR		TEMP1										;
+	CLR		TEMP2										;
+	CLR		TEMP3										;
+	RCALL	SET_POINTERAVG_X
+
+ADDER_LOOP:												;
+	LD		TEMP1, X+ 									;load from pointer
+	ADD		TEMP2, TEMP1								;
+
+	BRCC	SKIP_INCREMENT_H							;branch if carry is not set %% can change to SBIC, SREG <- 
+	INC		TEMP3										;
+
+SKIP_INCREMENT_H:									;
+
+	CPI		XL, LOW(MOVAVG_END)							;remember to compare ZH aswell.
+	BRNE	ADDER_LOOP									;
+
+	RET													;
+
+DIV_LOOP:
+	LDI		TEMP1, AVGDIV								;
+
+DIVIDE_LOOP_CONTINUE:								;
+
+	ASR		TEMP3										;TEMP3 IS HIGH
+	ROR		TEMP2										;TEMP2 IS LOW
+
+	DEC		TEMP1										;
+	BRNE	DIVIDE_LOOP_CONTINUE						;
+
+	STS		ACCELEROMETER, TEMP2						;save val
+
+	RET													;
+
 ; ____________________________________________________________________________________________________________________________________________________
 ; >> FLAGS MANAGEMENT
 
 LOAD_FLAGS:
 	
 	CLI																			; Disable Interrupts
-	
-	;LDS		TEMPI, MODE_FLG														; Load Mode Flags from SRAM into Register
-	;MOV		MDFLG, TEMPI														; ^
 
-	LDS		TEMPI, FUNC_FLG														; Load Function Flags from SRAM into Register
-	MOV		FNFLG, TEMPI														; ^
+	LDS		TEMP1, FUNC_FLG														; Load Function Flags from SRAM into Register
+	OR		FNFLG, TEMP1
 
-	CLR		TEMPI																; Clear stored flags
-	;STS		MODE_FLG, TEMPI														; ^
-	STS		FUNC_FLG, TEMPI														; ^
+	CLR		TEMP1
+	STS		FUNC_FLG, TEMP1														; ^
 
 	SEI																			; Enable Interrupts
 

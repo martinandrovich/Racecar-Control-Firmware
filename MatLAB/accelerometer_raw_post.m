@@ -44,7 +44,7 @@ disp('Connection established; starting data logging.');
 setBroadcastMode(broadcastModes.Accelerometer);
 
 % Start vehicle
-setDutyCycle(101);
+setDutyCycle(90);
 
 % Enable timer
 tic
@@ -60,6 +60,17 @@ while toc < logDuration
        setDutyCycle(0);
    end
    
+end
+
+disp('Stopping data logging...');
+setBroadcastMode(broadcastModes.Disabled);
+
+pause(0.2);
+
+while (bmodule.BytesAvailable)
+   dataBytes = fread(bmodule, 1);   
+   data(1+count*timerFreq:timerFreq*(count+1)) = dataBytes(1:timerFreq);
+   count = count + 1;   
 end
 
 % Calculate elapsed time
