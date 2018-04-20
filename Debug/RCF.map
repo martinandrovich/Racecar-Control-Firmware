@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.7  C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm Thu Apr 19 18:31:12 2018
+AVRASM ver. 2.2.7  C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_baudtest.asm Fri Apr 20 10:43:10 2018
 
 
 EQU  SIGNATURE_000 0000001e
@@ -600,8 +600,8 @@ CSEG COMMANDS     00000028
 CSEG EMPTY        00000119
 CSEG SET_MOTOR_PWM 00000131
 CSEG BROADCAST_SET 000000c6
-EQU  BAUDRATE     000000cf
-EQU  TMR1FREQ     0000f423
+EQU  BAUDRATE     00000022
+EQU  TMR1FREQ     000003cf
 EQU  AVGSIZE      00000080
 EQU  AVGDIV       00000007
 EQU  MOVAVG_END   00000180

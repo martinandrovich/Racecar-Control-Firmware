@@ -1,12 +1,12 @@
 
-AVRASM ver. 2.2.7  C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm Thu Apr 19 18:31:12 2018
+AVRASM ver. 2.2.7  C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_baudtest.asm Fri Apr 20 10:43:10 2018
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.150\avrasm\inc\m32def.inc'
-C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm(33): Including file 'C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\ram_table.inc'
-C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm(34): Including file 'C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\command_table.inc'
+C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_baudtest.asm(33): Including file 'C:\Users\Martin\Desktop\Racecar-Control-Firmware\ram_table.inc'
+C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_baudtest.asm(34): Including file 'C:\Users\Martin\Desktop\Racecar-Control-Firmware\command_table.inc'
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.150\avrasm\inc\m32def.inc'
-C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm(33): Including file 'C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\ram_table.inc'
-C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm(34): Including file 'C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\command_table.inc'
+C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_baudtest.asm(33): Including file 'C:\Users\Martin\Desktop\Racecar-Control-Firmware\ram_table.inc'
+C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_baudtest.asm(34): Including file 'C:\Users\Martin\Desktop\Racecar-Control-Firmware\command_table.inc'
                                  
                                  ; ###################################################################################################################################################
                                  
@@ -934,9 +934,9 @@ C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Course
                                  ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
                                  ;  > CONSTANTS
                                  
-                                 	.EQU	BAUDRATE	= 0x00CF												; Baudrate configuration
+                                 	.EQU	BAUDRATE	= 0x0022												; Baudrate configuration
                                  
-                                 	.EQU	TMR1FREQ	= 62500 - 1												; Timer1 configuration
+                                 	.EQU	TMR1FREQ	= 976 - 1												; Timer1 configuration
                                  
                                  																				; 62500 - 1		= 4Hz
                                  																				; 31250 - 1		= 8Hz
@@ -944,6 +944,10 @@ C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Course
                                  																				;  7812 - 1		= 32Hz
                                  																				;  1953 - 1		= 128Hz
                                  																				;   976 - 1		= 256Hz
+                                 																				;   488 - 1		= 512Hz
+                                 																				;	244 - 1		= 1024Hz
+                                 																				;	122 - 1		= 2048Hz
+                                 																				;	 61 - 1		= 4096Hz
                                  
                                  	.EQU	AVGSIZE		= 128													; Size (bytes) of Moving Average Filter
                                  	.EQU	AVGDIV		= 7														; 2^5 = 32
@@ -1017,7 +1021,7 @@ C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Course
                                  
 00004b e000                      	LDI		TEMP1, HIGH(BAUDRATE)												; Set Transmission Rate
 00004c bd00                      	OUT		UBRRH, TEMP1														; ^
-00004d ec0f                      	LDI		TEMP1, LOW(BAUDRATE)												; ^
+00004d e202                      	LDI		TEMP1, LOW(BAUDRATE)												; ^
 00004e b909                      	OUT		UBRRL, TEMP1														; ^
                                  
 00004f e002                      	LDI		TEMP1, 0x02															; Clear all Error Flags + Enable DoubleMode
@@ -1063,9 +1067,9 @@ C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Course
 000065 e00b                      	LDI		TEMP1, (1<<CS11)|(1<<CS10)|(1<<WGM12)								; Set 64 Prescelar, CTC-MODE
 000066 bd0e                      	OUT		TCCR1B, TEMP1														; ^
                                  
-000067 ef04                      	LDI		TEMP1, HIGH(TMR1FREQ)												; Set timer offset
+000067 e003                      	LDI		TEMP1, HIGH(TMR1FREQ)												; Set timer offset
 000068 bd0b                      	OUT		OCR1AH, TEMP1														; ^
-000069 e203                      	LDI		TEMP1,  LOW(TMR1FREQ)												; ^
+000069 ec0f                      	LDI		TEMP1,  LOW(TMR1FREQ)												; ^
 00006a bd0a                      	OUT		OCR1AL, TEMP1														; ^
                                  
 00006b e004                      	LDI		TEMP1, (1<<TOV1)													; Enable Timer1
@@ -1115,22 +1119,22 @@ C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Course
 000083 fc13                      	SBRC	FNFLG, CMDPD														; Command Pending
 000084 940e 0116                 	CALL	EXECUTE_COMMAND														; ^
                                  
-000086 2411                      	CLR		FNFLG																; Clear Functions Flags
-                                 
                                  ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
                                  ;  > MODES
                                  
-000087 fc07                      	SBRC	MDFLG, AUTO															; Autonomous Mode
-000088 0000                      	NOP																			; ^
+000086 fc07                      	SBRC	MDFLG, AUTO															; Autonomous Mode
+000087 0000                      	NOP																			; ^
                                  
-000089 fc06                      	SBRC	MDFLG, MAP															; Mapping Mode
-00008a 0000                      	NOP																			; ^
+000088 fc06                      	SBRC	MDFLG, MAP															; Mapping Mode
+000089 0000                      	NOP																			; ^
                                  
-00008b fc03                      	SBRC	MDFLG, BROD0														; Broadcast Mode
-00008c 940e 00a5                 	CALL	BROADCAST															; ^
+00008a fc03                      	SBRC	MDFLG, BROD0														; Broadcast Mode
+00008b 940e 00a5                 	CALL	BROADCAST															; ^
                                  
                                  ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
                                  ;  > REPEAT LOOP
+                                 
+00008d 2411                      	CLR		FNFLG																; Clear Functions Flags
                                  
 00008e cfe6                      	RJMP	MAIN																; Loop forever
                                  
@@ -1190,7 +1194,7 @@ C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Course
                                  ; >> BROADCAST
                                  
                                  BROADCAST:
-                                 
+                                 	
 0000a5 fe14                      	SBRS	FNFLG, TMR1															; Check if broadcast is synchronized with frequency (Timer1)
 0000a6 9508                      	RET																			; ^
                                  	

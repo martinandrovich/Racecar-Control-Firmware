@@ -1,6 +1,6 @@
 % Log some cool stuff
 disp("MatLAB Accelerometer POST Data Analyzer");
-disp("Version 1.0.3");
+disp("Version 1.0.4");
 
 % Clear everything
 clear;
@@ -13,8 +13,7 @@ plotTitle       = 'ADC plot';
 xLabel          = 'Elapsed Time (s)';
 yLabel          = 'g [m/s^2]';
 legend1         = 'Accelerometer Value (Raw)';
-legend2         = 'Filter: Moving Average';
-legend3         = 'Filter: Moving Mean';
+legend2         = 'Filter: Moving Mean';
 yMax            = 2;
 yMin            = -2;
 plotGrid        = 'on';
@@ -28,13 +27,10 @@ broadcastModes  = struct(...
                     'Accelerometer',    40      ...
                   );           
 
+logDuration     = 10;
 movingAvgSize   = 32;
 timerFreq       = 1;
-movingAvg       = (1/movingAvgSize) * ones(1, movingAvgSize);
-
-logDuration     = 60;
-refreshDelay    = 0.0001;
-speedValue      = 40;
+dataLength      = 1;
 
 time            = 0;
 data            = 0;
@@ -44,14 +40,44 @@ count           = 0;
 bmodule = Bluetooth('RNBT-E2A9', 1);
 fopen(bmodule);
 
-disp('Connection established; starting data logging.');
-
 % Set broadcasting mode
-setBroadcastMode(broadcastModes.All);
+prompt = 'Please enter a mode (1-4): ';
+broadcastMode = input(prompt);
+
+switch broadcastMode
+    
+    % ALL
+    case 1
+        disp('Yet not implemented.');
+        return;
+    
+    % TACHOMETER
+    case 2
+        setBroadcastMode(broadcastModes.Tachometer);
+        dataLength = 2;
+        dataLong = uint16(0);
+        
+    % FINISHLINE
+    case 3
+        disp('Yet not implemented.');
+        return;
+        
+    % ACCELEROMETER
+    case 4
+        setBroadcastMode(broadcastModes.Accelerometer);
+        dataLength = 1;
+    
+    otherwise
+        disp('Mode does not exist.');
+        fclose(bmodule);
+        return;
+        
+end
+
+disp('Connection established; starting data logging.');
 
 % Start vehicle
 setDutyCycle(101);
-%fwrite(bmodule, uint8(speedValue));
 
 % Enable timer
 tic
@@ -59,13 +85,26 @@ tic
 % Log data
 while toc < logDuration
     
-   dataBytes = fread(bmodule, timerFreq);   
-   data(1+count*timerFreq:timerFreq*(count+1)) = dataBytes(1:timerFreq);
+   dataBytes = fread(bmodule, dataLength);
+   
+   switch broadcastMode
+       
+    % ACCELEROMETER
+    case 4
+        data(1+count*timerFreq:timerFreq*(count+1)) = dataBytes(1:timerFreq);
+        
+    % TACHOMETER
+    case 2
+        dataLong = (bitshift(dataBytes(1), 8, 'uint8')) | uint8(dataBytes(2));
+        data(count+1) = dataLong;
+        
+   end
+   
    count = count + 1;
    
+   % Stop vehicle
    if toc > (logDuration - 0.5)
        setDutyCycle(0);
-       %fwrite(bmodule, uint8(1));
    end
    
 end
@@ -76,12 +115,20 @@ timeActual = timeWaited/length(data);
 timeElapsed = 0 + timeActual : timeActual : timeWaited;
 
 % Calculate data & filters
-data = (data / 256) * 4 - 2;
-dataAvg = filter(movingAvg, 1, data);
-dataMean = movmean(data, movingAvgSize);
 
+switch broadcastMode
+    
+    case 2
+        plotGraph = plot(timeElapsed, data, '-');
+        
+    case 4
+        data = (data / 256) * 4 - 2;
+        dataMean = movmean(data, movingAvgSize);
+        plotGraph = plot(timeElapsed, data, '-', timeElapsed, dataMean, '-');
+        
+end
+    
 % Plot data
-plotGraph = plot(timeElapsed, data, '--', timeElapsed, dataAvg, '-', timeElapsed, dataMean, '-g');
 hold on;
 title(plotTitle, 'FontSize', 15);
 xlabel(xLabel, 'FontSize', 15);
@@ -89,7 +136,7 @@ ylabel(yLabel, 'FontSize', 15);
 ax = gca;
 ax.XAxisLocation = 'origin';
 ax.YAxisLocation = 'origin';
-legend(legend1, legend2, legend3);
+legend(legend1, legend2);
 axis([0 timeWaited yMin yMax]);
 grid(plotGrid);
 
@@ -105,13 +152,15 @@ fclose(bmodule);
 % Device Control Functions
 
 function setDutyCycle(value)
+    bmodule = evalin('base', 'bmodule');
     fwrite(bmodule, uint8(85));
     fwrite(bmodule, uint8(16));
     fwrite(bmodule, uint8(value));
 end
 
 function setBroadcastMode(mode)
+    bmodule = evalin('base', 'bmodule');
     fwrite(bmodule, uint8(85));
-    fwrite(bmodule, uint8(16));
+    fwrite(bmodule, uint8(20));
     fwrite(bmodule, uint8(mode));
 end

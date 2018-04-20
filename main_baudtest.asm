@@ -36,9 +36,9 @@
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > CONSTANTS
 
-	.EQU	BAUDRATE	= 0x00CF												; Baudrate configuration
+	.EQU	BAUDRATE	= 0x0022												; Baudrate configuration
 
-	.EQU	TMR1FREQ	= 488 - 1												; Timer1 configuration
+	.EQU	TMR1FREQ	= 976 - 1												; Timer1 configuration
 
 																				; 62500 - 1		= 4Hz
 																				; 31250 - 1		= 8Hz
@@ -48,6 +48,8 @@
 																				;   976 - 1		= 256Hz
 																				;   488 - 1		= 512Hz
 																				;	244 - 1		= 1024Hz
+																				;	122 - 1		= 2048Hz
+																				;	 61 - 1		= 4096Hz
 
 	.EQU	AVGSIZE		= 128													; Size (bytes) of Moving Average Filter
 	.EQU	AVGDIV		= 7														; 2^5 = 32
