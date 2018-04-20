@@ -1,4 +1,4 @@
-% Log some cool stuff
+% MatLAB Accelerometer POST Data Analyzer
 disp("MatLAB Accelerometer POST Data Analyzer");
 disp("Version 1.0.3");
 
