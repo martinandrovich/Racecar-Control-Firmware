@@ -1,6 +1,6 @@
 % MatLAB Tachometer POST Data Analyzer
 disp("MatLAB Tachometer POST Data Analyzer");
-disp("Version 1.0.0");
+disp("Version 1.0.2");
 
 % Clear everything
 clear;
@@ -12,8 +12,8 @@ close(gcf);
 plotTitle       = 'Tachometer Plot';
 xLabel          = 'Elapsed Time [s]';
 yLabel          = 'Ticks';
-legend1         = 'Tachometer Value (Raw)';
-yMax            =  200;
+legend1         = 'Tachometer Value';
+yMax            =  inf;
 yMin            =  0;
 plotGrid        = 'on';
 
@@ -26,7 +26,7 @@ broadcastModes  = struct(...
                     'Accelerometer',    40      ...
                   );           
 
-logDuration     = 10;
+logDuration     = 4.5;
 data            = 0;
 dataLong        = uint16(0);
 count           = 0;
@@ -51,7 +51,8 @@ while toc < logDuration
     
    dataBytes = fread(bmodule, 2);   
    
-   dataLong = (bitshift(dataBytes(1), 8, 'uint8')) | uint8(dataBytes(2));
+   dataLong = bitor(bitshift(dataBytes(1), 8), dataBytes(2));
+   disp(dataLong);
    data(count+1) = dataLong;
    
    count = count + 1;
@@ -68,7 +69,7 @@ timeActual = timeWaited/length(data);
 timeElapsed = 0 + timeActual : timeActual : timeWaited;
 
 % Plot data
-plotGraph = plot(timeElapsed, data, '-', timeElapsed, dataAvg, '-', timeElapsed, dataMean, '-g');
+plotGraph = plot(timeElapsed, data, '-');
 hold on;
 title(plotTitle, 'FontSize', 15);
 xlabel(xLabel, 'FontSize', 15);
@@ -76,7 +77,7 @@ ylabel(yLabel, 'FontSize', 15);
 ax = gca;
 ax.XAxisLocation = 'origin';
 ax.YAxisLocation = 'origin';
-legend(legend1, legend2, legend3);
+legend(legend1);
 axis([0 timeWaited yMin yMax]);
 grid(plotGrid);
 

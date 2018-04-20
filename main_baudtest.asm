@@ -36,7 +36,7 @@
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > CONSTANTS
 
-	.EQU	BAUDRATE	= 0x0022												; Baudrate configuration
+	.EQU	BAUDRATE	= 0x0022												; Baudrate configuration (default = 0xCF)
 
 	.EQU	TMR1FREQ	= 976 - 1												; Timer1 configuration
 
@@ -53,7 +53,7 @@
 
 	.EQU	AVGSIZE		= 128													; Size (bytes) of Moving Average Filter
 	.EQU	AVGDIV		= 7														; 2^5 = 32
-	.EQU	MOVAVG_END	= MOVAVG+AVGSIZE										;
+	.EQU	MOVAVG_END	= MOVAVG + AVGSIZE										;
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > REGISTERS
@@ -110,6 +110,8 @@ INIT:
 	STS		TEL_STEP, TEMP1														; ^
 	STS		MODE_FLG, TEMP1														; ^
 	STS		FUNC_FLG, TEMP1														; ^
+	STS		TACHOMETER_H, TEMP1													; ^
+	STS		TACHOMETER_L, TEMP1													; ^
 
 	;CALL	SET_POINTERAVG_X
 	;CALL	SETUP_SRAM
@@ -248,13 +250,21 @@ MAIN:
 
 LOG_TACHOMETER:
 
-	LDS		TEMPWH, TACHOMETER_H												; Load previous values from SRAM
+	LDS		R25, TACHOMETER_H									; Load previous values from RAM
+	LDS		R24, TACHOMETER_L									; ^
+
+	ADIW	R25:R24, 1											; Increment data
+
+	STS		TACHOMETER_H, R25									; Store values into RAM
+	STS		TACHOMETER_L, R24									; ^
+
+	/*LDS		TEMPWH, TACHOMETER_H												; Load previous values from SRAM
 	LDS		TEMPWL, TACHOMETER_L												; into WORD registers
 
 	ADIW	TEMPWH:TEMPWL, 1													; Increment data
 
 	STS		TACHOMETER_H, TEMPWH												; Store new values into SRAM
-	STS		TACHOMETER_L, TEMPWL												; ^
+	STS		TACHOMETER_L, TEMPWL												; ^*/
 
 	RET																			; Return
 
