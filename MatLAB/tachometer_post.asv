@@ -27,6 +27,8 @@ broadcastModes  = struct(...
                   );           
 
 logDuration     = 10;
+
+time            = 0;
 data            = 0;
 dataLong        = uint16(0);
 count           = 0;
