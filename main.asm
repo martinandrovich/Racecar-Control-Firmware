@@ -51,9 +51,11 @@
 																				;	122 - 1		= 2048Hz
 																				;	 61 - 1		= 4096Hz
 
-	.EQU	AVGSIZE		= 128													; Size (bytes) of Moving Average Filter
-	.EQU	AVGDIV		= 7														; 2^5 = 32
-	.EQU	MOVAVG_END	= MOVAVG + AVGSIZE										;
+	; Moving Average Filter
+	
+	.EQU	MOVAVG_SIZE				= 128										; Size (bytes) of Moving Average Filter
+	.EQU	MOVAVG_DIVS				= 7											; Number of division to perform (2^5 = 32)
+	.EQU	MOVAVG_TABLE_END		= MOVAVG_TABLE + MOVAVG_SIZE				;
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > REGISTERS
@@ -68,7 +70,7 @@
 	
 	.DEF	TEMPWH		= R25													; Temporary Register (Word) Pair
 	.DEF	TEMPWL		= R24													; ^
-
+		
 	.DEF	RXREG		= R20													; USART Reception Register
 	.DEF	TXREG		= R21													; USART Transmission Register
 
@@ -100,24 +102,24 @@ INIT:
 
 	LDI 	TEMP1, HIGH(RAMEND)
 	OUT 	SPH, TEMP1
-	LDI 	TEMP1, LOW(RAMEND)
+	LDI 	TEMP1,  LOW(RAMEND)
 	OUT 	SPL, TEMP1
 
 	; SRAM Initialization
 
-	CLR		TEMP1																; Set all allocated SRAM to NULL
+	CLR		TEMP1																; Initialize allocated SRAM to NULL
 	STS		RECENT_DAT, TEMP1													; ^
 	STS		TEL_STEP, TEMP1														; ^
 	STS		MODE_FLG, TEMP1														; ^
 	STS		FUNC_FLG, TEMP1														; ^
 	STS		TACHOMETER_H, TEMP1													; ^
 	STS		TACHOMETER_L, TEMP1													; ^
-	STS		ACCELEROMETER, TEMP1
-	STS		ADC_H, TEMP1
-	STS		ADC_L, TEMP1
+	STS		ACCELEROMETER, TEMP1												; ^
+	STS		ADC_H, TEMP1														; ^
+	STS		ADC_L, TEMP1														; ^
 
-	CALL	SET_POINTERAVG_X
-	CALL	SETUP_SRAM
+	CALL	MOVAVG_POINTER_RESET
+	CALL	MOVAVG_SRAM_SETUP
 
 	; Flags Initialization
 
@@ -217,9 +219,6 @@ MAIN:
 
 	SBRC	FNFLG, ACCLR														; Accelerometer Ready
 	CALL	LOG_ACCELEROMETER													; ^
-	
-	SBRC	FNFLG, TMR1															; Timer1 Ready
-	CALL	CLOCK																; ^
 
 	CALL	TELEGRAM_CHECK														; Check for Telegrams
 
@@ -239,9 +238,13 @@ MAIN:
 	CALL	BROADCAST															; ^
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-;  > REPEAT LOOP
+;  > CLOCK (TIMER1)
 
-	;CLR		FNFLG																; Clear Functions Flags
+	SBRC	FNFLG, TMR1															; Timer1 Ready
+	CALL	CLOCK																; ^
+
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+;  > REPEAT LOOP
 
 	RJMP	MAIN																; Loop forever
 
@@ -261,7 +264,7 @@ LOG_TACHOMETER:
 	STS		TACHOMETER_H, TEMPWH												; Store new values into SRAM
 	STS		TACHOMETER_L, TEMPWL												; ^
 
-	MOV		TEMP1, FNFLG														; Clear Tachometer functional flag
+	MOV		TEMP1, FNFLG														; Clear Tachometer Flag
 	CBR		TEMP1, (1<<TACHO)													; ^
 	MOV		FNFLG, TEMP1														; ^
 
@@ -274,7 +277,7 @@ LOG_FINISHLINE:
 
 	NOP																			; Do Someting
 
-	MOV		TEMP1, FNFLG														; Clear Finishline functional flag
+	MOV		TEMP1, FNFLG														; Clear Finishline Flag
 	CBR		TEMP1, (1<<FNLNE)													; ^
 	MOV		FNFLG, TEMP1														; ^
 
@@ -296,11 +299,11 @@ LOG_ACCELEROMETER:
 	NOP																			; ^
 	STS		ADC_H, TEMP1														; ^
 
-	CALL	ADC_MOVING
+	CALL	MOVAVG																; Apply Moving Average Filter
 
 	SBI		ADCSR, ADSC															; Start ADC Conversion
 
-	MOV		TEMP1, FNFLG														; Clear Accelerometer functional flag
+	MOV		TEMP1, FNFLG														; Clear Accelerometer Flag
 	CBR		TEMP1, (1<<ACCLR)													; ^
 	MOV		FNFLG, TEMP1														; ^
 
@@ -312,17 +315,18 @@ LOG_ACCELEROMETER:
 	// PLACEHOLDER
 	// ...
 
+
+	// 1. Compare previous Tachometer value with new -> add entry if necessary
+	// 2. Check for swings
+	// 3. Check for finishline
+
 ; ____________________________________________________________________________________________________________________________________________________
 ; >> BROADCAST
 
 BROADCAST:
 	
-	SBRS	FNFLG, TMR1															; Check if broadcast is synchronized with frequency (Timer1)
+	SBRS	FNFLG, TMR1															; Check if broadcast is synchronized with CLOCK (Timer1)
 	RET																			; ^
-
-	MOV		TEMP1, FNFLG														; Clear TIMER1 functional flag
-	CBR		TEMP1, TMR1															; ^
-	MOV		FNFLG, TEMP1														; ^
 	
 	LDI		TEMP1, (1<<BROD2)|(1<<BROD1)										; Mask Broadcast Modes
 	AND		TEMP1, MDFLG														; ^
@@ -412,6 +416,8 @@ SERIAL_WRITE:
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > TELEGRAM PARSER
 
+	// !#!#!#!
+	// Needs to be changed to support recent Z pointer from SRAM!
 
 TELEGRAM_CHECK:
 
@@ -481,7 +487,7 @@ TELEGRAM_EXECUTE:
 
 	STS		RECENT_DAT, RXREG													; Store recieved data in SRAM
 
-	RCALL	SET_COMMAND															; Set command pending flag
+	RCALL	SET_COMMAND_FLG														; Set command pending flag
 
 TELEGRAM_RESET:
 	
@@ -502,7 +508,7 @@ TELEGRAM_ERROR:
 
 	CLR		RXREG																; Clear reception register
 
-	RCALL	CLR_COMMAND															; Clear command pending flag
+	RCALL	CLR_COMMAND_FLG														; Clear command pending flag
 	RCALL	TELEGRAM_RESET
 	RCALL	TELEGRAM_CLRBUFFER													; Clear reception buffer
 	
@@ -511,7 +517,7 @@ TELEGRAM_ERROR:
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > COMMANDS
 
-SET_COMMAND:
+SET_COMMAND_FLG:
 
 	MOV		TEMP1, FNFLG														; Load current Flags Register and set CMDPD bit
 	SBR		TEMP1, (1<<CMDPD)													; ^
@@ -519,7 +525,7 @@ SET_COMMAND:
 	
 	RET
 
-CLR_COMMAND:
+CLR_COMMAND_FLG:
 	
 	MOV		TEMP1, FNFLG														; Load current Flags Register and clear CMDPD bit
 	CBR		TEMP1, (1<<CMDPD)													; ^
@@ -529,58 +535,14 @@ CLR_COMMAND:
 
 EXECUTE_COMMAND:
 	
-	RCALL	CLR_COMMAND															; Clear command pending flag
+	RCALL	CLR_COMMAND_FLG														; Clear Command Pending Flag
 
 	ICALL																		; Call function of Z-pointer
 
 	RET																			; Return
 
 ; ____________________________________________________________________________________________________________________________________________________
-; >> DEVICE CONTROL
-
-EMPTY:
-	NOP
-	RET
-
-CLOCK:
-	NOP
-
-	MOV		TEMP1, FNFLG														; Clear Timer1 functional flag
-	CBR		TEMP1, TMR1															; ^
-	MOV		FNFLG, TEMP1														; ^
-
-	RET
-
-;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-;  > PURE TESTING
-
-TEST:
-
-	LDI		TEMP1, 60
-	STS		RECENT_DAT, TEMP1
-
-	CALL	SET_MOTOR_PWM
-	CALL	DELAY
-	CALL	SET_MOTOR_MIN
-	CALL	DELAY
-
-	RET
-
-DELAY:
-    LDI		R27, 100
-LOOP3:
-	LDI		R26, 100
-LOOP2:
-	LDI		R25, 100
-LOOP1:
-    DEC		R25
-    BRNE	LOOP1
-    DEC		R26
-    BRNE	LOOP2
-    DEC		R27
-    BRNE	LOOP3
-
-    RET
+; >> DEVICE (RACECAR) CONTROL
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > MOTOR CONTROL
@@ -620,100 +582,163 @@ SET_MOTOR_MAX:
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > MOVING AVERAGE
 
-ADC_MOVING:
+	// !#!#!#!
+	// Needs to be changed to support an arbitrary SRAM Location!
 
-	LDS		XH, RECENT_XAVG_H							;
-	LDS		XL, RECENT_XAVG_L							;
+MOVAVG:
 
+	LDS		XH, MOVAVG_RECENT_XH												; Load recent MOVAVG X pointer
+	LDS		XL, MOVAVG_RECENT_XL												; ^
+
+	LDS		TEMP1, ADC_H														; Insert ADC_val from high because of ADLAR
+	ST		X+, TEMP1															
+
+	CPI		XL, MOVAVG_SIZE														; Check if Pointer should be reset
+	BRNE	MOVAVG_SKIP_RESET													; ^
+	RCALL	MOVAVG_POINTER_RESET												; ^
+
+MOVAVG_SKIP_RESET:
+
+	STS		MOVAVG_RECENT_XL, XL												; -
+
+	RCALL	MOVAVG_ADD															; Do Moving Average Addition
+	RCALL	MOVAVG_DIVIDE														; Do Moving Average Division
+
+	RET																			; Return
+
+MOVAVG_POINTER_RESET:
+
+	LDI		XH, HIGH(MOVAVG_TABLE)												; Load reset values into X Pointer
+	LDI		XL,  LOW(MOVAVG_TABLE)												; ^
+
+	RET																			; Return
+
+MOVAVG_SRAM_SETUP:
+
+	LDI		TEMP1, MOVAVG_SIZE													; Load size of Moving Average filter into register
+
+	STS		MOVAVG_RECENT_XH, XH												; Store location of X pointer into SRAM
+	STS		MOVAVG_RECENT_XL, XL												; ^
+
+MOVAVG_SRAM_SETUP_LOOP:
 	
-	LDS		TEMP1, ADC_H
-	ST		X+, TEMP1									;insert ADC_val from high because of ADLAR
+	ST		X+, TEMP1															; Set all values of SRAM to default value
 
-	CPI		XL, AVGSIZE									;check for reset
-	BRNE	SKIP_THIS_RESET								;
+	CPI		XL, LOW(MOVAVG_TABLE_END)											; Check if reached end of table.
+	BRNE	MOVAVG_SRAM_SETUP_LOOP												; ^
 
-	RCALL	SET_POINTERAVG_X							;	
+	RET																			; Return
 
-SKIP_THIS_RESET:										;
+MOVAVG_ADD:
+	
+	CLR		TEMP1																; Reset Temporary Register
+	CLR		TEMP2																; ^
+	CLR		TEMP3																; ^
 
-	STS		RECENT_XAVG_L, XL							;
+	RCALL	MOVAVG_POINTER_RESET												; Reset X Pointer
 
-	RCALL	ADD_LOOP									;add loop
-	RCALL	DIV_LOOP									;
+MOVAVG_ADD_LOOP:
+	
+	LD		TEMP1, X+ 															; Load value from X pointer location.
+	ADD		TEMP2, TEMP1														; Add values
 
-	RET
+	// Can be changed to SBIC, SREG ..
+	
+	BRCC	MOVAVG_ADD_SKIP_CARRY												; Branch if carry is not set
+	INC		TEMP3																; ^
 
-SET_POINTERAVG_X:
+MOVAVG_ADD_SKIP_CARRY:
 
+	// Remember to compare XH aswell!
+	
+	CPI		XL, LOW(MOVAVG_TABLE_END)											; Check if reached end of table.
+	BRNE	MOVAVG_ADD_LOOP														; ^
 
-	LDI		XH, HIGH(MOVAVG)							;
-	LDI		XL, LOW(MOVAVG)								;
+	RET																			; Return
 
-	RET
+MOVAVG_DIVIDE:
 
-SETUP_SRAM:												;
-	LDI TEMP1, AVGSIZE									;
+	LDI		TEMP1, MOVAVG_DIVS													; Load number of Divisions
 
-	STS RECENT_XAVG_H, XH
-	STS RECENT_XAVG_L, XL
+MOVAVG_DIVIDE_LOOP:
 
-CONTINUE_NULL:											;
-	ST	X+, TEMP1 										;
-	CPI XL, LOW(MOVAVG_END)								;
-	BRNE CONTINUE_NULL									;
-	RET													;
+	ASR		TEMP3																; TEMP3 IS HIGH
+	ROR		TEMP2																; TEMP2 IS LOW
 
-ADD_LOOP:
-	CLR		TEMP1										;
-	CLR		TEMP2										;
-	CLR		TEMP3										;
-	RCALL	SET_POINTERAVG_X
+	DEC		TEMP1																; Perform 16 bit divison until done
+	BRNE	MOVAVG_DIVIDE_LOOP													; ^
 
-ADDER_LOOP:												;
-	LD		TEMP1, X+ 									;load from pointer
-	ADD		TEMP2, TEMP1								;
+	STS		ACCELEROMETER, TEMP2												; Save value of division into SRAM
 
-	BRCC	SKIP_INCREMENT_H							;branch if carry is not set %% can change to SBIC, SREG <- 
-	INC		TEMP3										;
-
-SKIP_INCREMENT_H:									;
-
-	CPI		XL, LOW(MOVAVG_END)							;remember to compare ZH aswell.
-	BRNE	ADDER_LOOP									;
-
-	RET													;
-
-DIV_LOOP:
-	LDI		TEMP1, AVGDIV								;
-
-DIVIDE_LOOP_CONTINUE:								;
-
-	ASR		TEMP3										;TEMP3 IS HIGH
-	ROR		TEMP2										;TEMP2 IS LOW
-
-	DEC		TEMP1										;
-	BRNE	DIVIDE_LOOP_CONTINUE						;
-
-	STS		ACCELEROMETER, TEMP2						;save val
-
-	RET													;
+	RET																			; Return
 
 ; ____________________________________________________________________________________________________________________________________________________
-; >> FLAGS MANAGEMENT
+; >> CONTROL UNIT
+
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+;  > FLAGS
 
 LOAD_FLAGS:
 	
 	CLI																			; Disable Interrupts
 
-	LDS		TEMP1, FUNC_FLG														; Load Function Flags from SRAM into Register
-	OR		FNFLG, TEMP1
+	LDS		TEMP1, FUNC_FLG														; Merge SRAM Function Flags from SRAM with Register Function Flags
+	OR		FNFLG, TEMP1														; ^
 
-	CLR		TEMP1
+	CLR		TEMP1																; Reset SRAM Function Flags
 	STS		FUNC_FLG, TEMP1														; ^
 
 	SEI																			; Enable Interrupts
 
 	RET																			; Return
+
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+;  > CLOCK
+
+CLOCK:
+
+	NOP
+
+	MOV		TEMP1, FNFLG														; Clear Timer1 Flag
+	CBR		TEMP1, TMR1															; ^
+	MOV		FNFLG, TEMP1														; ^
+
+	RET
+
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+;  > PURE TESTING
+
+EMPTY:
+	NOP
+	RET
+
+TEST:
+
+	LDI		TEMP1, 60
+	STS		RECENT_DAT, TEMP1
+
+	CALL	SET_MOTOR_PWM
+	CALL	DELAY
+	CALL	SET_MOTOR_MIN
+	CALL	DELAY
+
+	RET
+
+DELAY:
+    LDI		TEMP1, 100
+LOOP3:
+	LDI		TEMP2, 100
+LOOP2:
+	LDI		TEMP3, 100
+LOOP1:
+    DEC		TEMP3
+    BRNE	LOOP1
+    DEC		TEMP2
+    BRNE	LOOP2
+    DEC		TEMP1
+    BRNE	LOOP3
+
+    RET
 
 ; ____________________________________________________________________________________________________________________________________________________
 ; >> INTERRUPT HANDLERS

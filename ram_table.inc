@@ -31,12 +31,15 @@
 .EQU	RECENT_XAVG_H					= 0x0071
 .EQU	RECENT_XAVG_L					= 0x0072
 
+.EQU	MOVAVG_RECENT_XH				= 0x0071
+.EQU	MOVAVG_RECENT_XL				= 0x0071
+
 .EQU	ACCELEROMETER					= 0x0073
 
 ; ___________________________________________________________________________________________________________________________________________________
-; >> MOVING_AVG		:					; 32 values in the moving avg filter
+; >> MOVAVG		:					; 32 values in the moving avg filter
 
-.EQU	MOVAVG							= 0x0100
+.EQU	MOVAVG_TABLE					= 0x0100
 
 ; ___________________________________________________________________________________________________________________________________________________
 ; >> MAPPING_START	:					; 128 values in the moving avg filter, does not have to take care of HIGH bit on ZH when first passed to ZH

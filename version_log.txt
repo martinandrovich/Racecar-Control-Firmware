@@ -1,25 +1,33 @@
 # 1.0.0
-- Added:	Baudrate Configuration
-- Added:	UART Communication (Read & Write)
-- Added:	Simple Motor Control w/ Value-table
+- Added:		Baudrate Configuration
+- Added:		UART Communication (Read & Write)
+- Added:		Simple Motor Control w/ Value-table
 
 # 1.0.1
-- Added:	GIT integration
-- Added:	Placeholder for Telegram parser
-- Added:	Module management
+- Added:		GIT integration
+- Added:		Placeholder for Telegram parser
+- Added:		Module management
 
 # 1.0.2
-- Added:	Interrupts Tests
-- Fixed:	Motor Control
-- Fixed:	Code Layout	
+- Added:		Interrupts Tests
+- Fixed:		Motor Control
+- Fixed:		Code Layout	
 
 # 1.0.3
-- Added:	Variable Flags
-- Added:	Sensor Interrupts
-- Added:	ADC for Accelerometer
-- Added:	Moving Average Filter
+- Added:		Variable Flags
+- Added:		Sensor Interrupts
+- Added:		ADC for Accelerometer
 
-# 1.1.0 <<
-- Changed:	Refactored Architecture (Sequential Flag Architecture)
-- Added:	RAM Table
-- Added:	Communication Protocol
+# 1.1.0
+- Modified:		Refactored to Sequential Flag Architecture
+- Added:		RAM Table
+- Added:		Communication Protocol
+- Added:		Tachometer Logging
+- Added:		Accelerometer Logging (Raw)
+- Addded:		Broadcast Mode
+
+
+# 1.1.1  <<
+- Modified:		Flag Loading Method (no clearing)
+- Added:		Moving Average Filter
+- Added:		Accelerometer Logging (Filtered)
