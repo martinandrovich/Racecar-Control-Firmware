@@ -163,8 +163,6 @@ INIT:
 	LDI		TEMP1, 0x00															; Set Port A as Input (is this needed?)
 	OUT		DDRA, TEMP1															; ^
 
-	NOP
-
 	; Timer1 Setup
 
 	LDI		TEMP1, (1<<OCIE1A)													; Enable Timer1 Compare Match Interrupt
@@ -275,7 +273,7 @@ LOG_TACHOMETER:
 
 LOG_FINISHLINE:
 
-	NOP																			; Do Someting
+	NOP																			; Do Something
 
 	MOV		TEMP1, FNFLG														; Clear Finishline Flag
 	CBR		TEMP1, (1<<FNLNE)													; ^
@@ -491,8 +489,8 @@ TELEGRAM_EXECUTE:
 
 TELEGRAM_RESET:
 	
-	CLR		TEMP1																; Reset parse counter
-	STS		TEL_STEP, TEMP1
+	CLR		TEMP1																; Reset & store parse step counter
+	STS		TEL_STEP, TEMP1														; ^
 
 	RET																			; Return
 
@@ -509,7 +507,7 @@ TELEGRAM_ERROR:
 	CLR		RXREG																; Clear reception register
 
 	RCALL	CLR_COMMAND_FLG														; Clear command pending flag
-	RCALL	TELEGRAM_RESET
+	RCALL	TELEGRAM_RESET														; Reset parse step counter
 	RCALL	TELEGRAM_CLRBUFFER													; Clear reception buffer
 	
 	RET																			; Return
@@ -697,13 +695,13 @@ LOAD_FLAGS:
 
 CLOCK:
 
-	NOP
+	NOP																			; Do Something
 
 	MOV		TEMP1, FNFLG														; Clear Timer1 Flag
 	CBR		TEMP1, TMR1															; ^
 	MOV		FNFLG, TEMP1														; ^
 
-	RET
+	RET																			; Return
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > PURE TESTING
@@ -777,4 +775,4 @@ ADC_HANDLER:
 	BLD		TEMPI, ACCLR														; Set BIT in Temporary Interrupt Register
 	STS		FUNC_FLG, TEMPI														; Store Function Flags to SRAM		
 
-	RETI
+	RETI																		; Return
