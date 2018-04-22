@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.7  C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm Sun Apr 22 02:56:57 2018
+AVRASM ver. 2.2.7  C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm Sun Apr 22 23:38:31 2018
 
 
 EQU  SIGNATURE_000 0000001e
@@ -591,7 +591,7 @@ EQU  FUNC_FLG     0000006e
 EQU  MODE_FLG     0000006f
 EQU  FINISHLINE   00000070
 EQU  MOVAVG_RECENT_XH 00000071
-EQU  MOVAVG_RECENT_XL 00000071
+EQU  MOVAVG_RECENT_XL 00000072
 EQU  ACCELEROMETER 00000073
 EQU  MOVAVG_TABLE 00000100
 EQU  MAPP         00000200

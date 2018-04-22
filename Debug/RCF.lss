@@ -1,12 +1,12 @@
 
-AVRASM ver. 2.2.7  C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm Sun Apr 22 02:56:57 2018
+AVRASM ver. 2.2.7  C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm Sun Apr 22 23:38:31 2018
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.150\avrasm\inc\m32def.inc'
-C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm(33): Including file 'C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\ram_table.inc'
-C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm(34): Including file 'C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\command_table.inc'
+C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm(33): Including file 'C:\Users\Danie\Desktop\Racecar-Control-Firmware\ram_table.inc'
+C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm(34): Including file 'C:\Users\Danie\Desktop\Racecar-Control-Firmware\command_table.inc'
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.150\avrasm\inc\m32def.inc'
-C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm(33): Including file 'C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\ram_table.inc'
-C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm(34): Including file 'C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\command_table.inc'
+C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm(33): Including file 'C:\Users\Danie\Desktop\Racecar-Control-Firmware\ram_table.inc'
+C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm(34): Including file 'C:\Users\Danie\Desktop\Racecar-Control-Firmware\command_table.inc'
                                  
                                  ; ###################################################################################################################################################
                                  
@@ -887,7 +887,7 @@ C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Course
                                  .EQU	FINISHLINE						= 0x0070
                                  
                                  .EQU	MOVAVG_RECENT_XH				= 0x0071
-                                 .EQU	MOVAVG_RECENT_XL				= 0x0071
+                                 .EQU	MOVAVG_RECENT_XL				= 0x0072
                                  
                                  .EQU	ACCELEROMETER					= 0x0073
                                  
@@ -1484,18 +1484,22 @@ C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Course
                                  MOVAVG:
                                  
 000145 91b0 0071                 	LDS		XH, MOVAVG_RECENT_XH												; Load recent MOVAVG X pointer
-000147 91a0 0071                 	LDS		XL, MOVAVG_RECENT_XL												; ^
+000147 91a0 0072                 	LDS		XL, MOVAVG_RECENT_XL												; ^
                                  
 000149 9100 0064                 	LDS		TEMP1, ADC_H														; Insert ADC_val from high because of ADLAR
 00014b 930d                      	ST		X+, TEMP1															
                                  
-00014c 38a0                      	CPI		XL, MOVAVG_SIZE														; Check if Pointer should be reset
+00014c 38a0                      	CPI		XL, MOVAVG_SIZE														;
+                                 	//CPI		XL, LOW(MOVAVG_TABLE_END)										; Check if Pointer should be reset
 00014d f409                      	BRNE	MOVAVG_SKIP_RESET													; ^
+                                 	//CPI		XH, HIGH(MOVAVG_TABLE_END)										; Check if Pointer should be reset
+                                 	//BRNE	MOVAVG_SKIP_RESET													; ^
 00014e d005                      	RCALL	MOVAVG_POINTER_RESET												; ^
                                  
                                  MOVAVG_SKIP_RESET:
-                                 
-00014f 93a0 0071                 	STS		MOVAVG_RECENT_XL, XL												; -
+                                 	
+                                 	//STS		MOVAVG_RECENT_XH, XH												; -
+00014f 93a0 0072                 	STS		MOVAVG_RECENT_XL, XL												; -
                                  
 000151 d00e                      	RCALL	MOVAVG_ADD															; Do Moving Average Addition
 000152 d018                      	RCALL	MOVAVG_DIVIDE														; Do Moving Average Division
@@ -1514,7 +1518,7 @@ C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Course
 000157 e800                      	LDI		TEMP1, MOVAVG_SIZE													; Load size of Moving Average filter into register
                                  
 000158 93b0 0071                 	STS		MOVAVG_RECENT_XH, XH												; Store location of X pointer into SRAM
-00015a 93a0 0071                 	STS		MOVAVG_RECENT_XL, XL												; ^
+00015a 93a0 0072                 	STS		MOVAVG_RECENT_XL, XL												; ^
                                  
                                  MOVAVG_SRAM_SETUP_LOOP:
                                  	
@@ -1522,6 +1526,8 @@ C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Course
                                  
 00015d 38a0                      	CPI		XL, LOW(MOVAVG_TABLE_END)											; Check if reached end of table.
 00015e f7e9                      	BRNE	MOVAVG_SRAM_SETUP_LOOP												; ^
+                                 	//CPI	XH, HIGH(MOVAVG_TABLE_END)											; Check if reached end of table.
+                                 	//BRNE	MOVAVG_SRAM_SETUP_LOOP												; ^
                                  
 00015f 9508                      	RET																			; Return
                                  
@@ -1540,15 +1546,16 @@ C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Course
                                  
                                  	// Can be changed to SBIC, SREG ..
                                  	
-000166 f408                      	BRCC	MOVAVG_ADD_SKIP_CARRY												; Branch if carry is not set
+                                 	//SBIC	SREG, 0
+000166 f408                      	BRCC	MOVAVG_ADD_SKIP_CARRY												; Branch if carry is not set - skal slettes
 000167 9523                      	INC		TEMP3																; ^
                                  
-                                 MOVAVG_ADD_SKIP_CARRY:
-                                 
-                                 	// Remember to compare XH aswell!
+                                 MOVAVG_ADD_SKIP_CARRY:															;skal slettes!
                                  	
 000168 38a0                      	CPI		XL, LOW(MOVAVG_TABLE_END)											; Check if reached end of table.
 000169 f7d1                      	BRNE	MOVAVG_ADD_LOOP														; ^
+                                 	//CPI		XH, HIGH(MOVAVG_TABLE_END)
+                                 	//BRNE	MOVAVG_ADD_LOOP
                                  
 00016a 9508                      	RET																			; Return
                                  
