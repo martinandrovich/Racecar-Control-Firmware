@@ -289,6 +289,11 @@ LOG_ACCELEROMETER:
 	SBRS	FNFLG, TMR1															; Check if broadcast is synchronized with frequency (Timer1)
 	RET																			; ^
 
+//	SBI, ADSC
+//	WAIT:
+//	SBIS ADCSR, ADIF															;can't trust the current method, this is better and more intended
+//	RJMP WAIT
+
 	IN		TEMP1, ADCL															; Read LOW of ADC
 	NOP																			; ^
 	STS		ADC_L, TEMP1														; ^
@@ -298,6 +303,8 @@ LOG_ACCELEROMETER:
 	STS		ADC_H, TEMP1														; ^
 
 	CALL	MOVAVG																; Apply Moving Average Filter
+
+//MAJOR MISTAKE HERE, should not make ADSC here, should be TMR1 STARTING IT!!!!!!!!!!!!!!!
 
 	SBI		ADCSR, ADSC															; Start ADC Conversion
 
@@ -674,6 +681,15 @@ MOVAVG_DIVIDE_LOOP:
 	BRNE	MOVAVG_DIVIDE_LOOP													; ^
 
 	STS		ACCELEROMETER, TEMP2												; Save value of division into SRAM
+
+//CHECK THRESH-HOLD-ROUTINE
+//	.equ LOWAR_THRESH_HOLD = 140
+//	.equ UPPER_THRESH_HOLD = 80
+//	cpi TEMP2, UPPER_THRESH_HOLD
+//	BRSH -> STS ACC, 1
+//	cpi TEMP2, LOWAR_THRESH_HOLD
+//	BRLO -> STS ACC, -1
+//	else STS ACC, ACC = 0
 
 	RET																			; Return
 
