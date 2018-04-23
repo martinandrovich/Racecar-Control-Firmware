@@ -329,16 +329,16 @@ BROADCAST:
 	LDI		TEMP1, (1<<BROD2)|(1<<BROD1)										; Mask Broadcast Modes
 	AND		TEMP1, MDFLG														; ^
 
-	CPI		TEMP1, (1<<BROD1)													; Tachometer Mode (011)
+	CPI		TEMP1, (1<<BROD1)													; Tachometer Mode		= (011)
 	BREQ	BROADCAST_TACHOMETER												; ^
 	
-	CPI		TEMP1, (1<<BROD2)|(1<<BROD1)										; Finishline Mode (111)
+	CPI		TEMP1, (1<<BROD2)|(1<<BROD1)										; Finishline Mode		= (111)
 	BREQ	BROADCAST_FINISHLINE												; ^
 
-	CPI		TEMP1, (1<<BROD2)													; Accelerometer Mode (101)
+	CPI		TEMP1, (1<<BROD2)													; Accelerometer Mode	= (101)
 	BREQ	BROADCAST_ACCELEROMETER												; ^
 
-	RCALL	BROADCAST_TACHOMETER												; Broadcast All
+	RCALL	BROADCAST_TACHOMETER												; Broadcast All			= (001)
 	RCALL	BROADCAST_ACCELEROMETER												; ^
 	RCALL	BROADCAST_FINISHLINE												; ^
 
