@@ -319,8 +319,43 @@ LOG_ACCELEROMETER:
 
 	// PLACEHOLDER
 	// ...
+	//
+	// FOR MAPPING
 
+	//.EQU	MAPPING_RECENT_XH				= 0x0074
+	//.EQU	MAPPING_RECENT_XL				= 0x0075
+	
+	//MAPPING_POINTER_RESET:
+	//	LDI		XH, HIGH(MAPP)												; Load reset values into X Pointer
+	//	LDI		XL,  LOW(MAPP)												; ^
+	//	STS		MAPPING_RECENT_XH, XH
+	//	STS		MAPPING_RECENT_XL, XL
+	//	RET																	; Return
+	
+	//MAPPING_SAVE_VALUE_X:
+	//	STS		MAPPING_RECENT_XH, XH
+	//	STS		MAPPING_RECENT_XL, XL
+	//	RET
+	
+	//MAPPING_LOAD_VALUE_X:
+	//	LDS		XH, MAPPING_RECENT_XH
+	//	LDS		XL, MAPPING_RECENT_XL
+	//	RET
+	
+	//	CHECKIFSWING:
+	//	LDS		TEMP1,	FINISHLINE
+	//	CPI		TEMP1,	1
+	//	BREQ	((DO SOMETHING HAVENT FIGURED OUT WHAT YET))
+	//	LDS		TEMP1,	ACCELEROMETER
+	//	CPI		TEMP1,	0
+	//	BREQ	NOT_ANY_SWINGS
+	//	LDS		TEMP1,	TACHOMETER_H
+	//	ST		X+, TEMP1
+	//	LDS		TEMP1,	TACHOMETER_L
+	//	ST		X+, TEMP1
 
+	//	RET
+	
 	// 1. Compare previous Tachometer value with new -> add entry if necessary
 	// 2. Check for swings
 	// 3. Check for finishline
@@ -682,11 +717,13 @@ MOVAVG_DIVIDE_LOOP:
 
 	STS		ACCELEROMETER, TEMP2												; Save value of division into SRAM
 
+	RET	
+
 //CHECK THRESH-HOLD-ROUTINE		-	NO REASON TO SAVE ALL ACCELEROMETER VALUES IN SRAM - IMPLEMENT THIS TOMORROW
 //	.equ	RIGHTSWINGTHRESH		= 130
-//	.equ	RIGHTSWING_COUNTER		= 0x0074
+//	.equ	RIGHTSWING_COUNTER		= 0x0074 -> MIGHT INTEFERE
 //	.equ	LEFTSWINGTHRESH			= 90
-//  .equ	LEFTSWING_COUNTER		= 0x0075
+//  .equ	LEFTSWING_COUNTER		= 0x0075 -> MIGHT INTEREFERE
 //	.equ	DEBOUNCE_SIZE			= 10
 
 //	cpi		TEMP2, RIGHTSWINGTHRESH	
@@ -717,9 +754,7 @@ MOVAVG_DIVIDE_LOOP:
 //	BRNE	RETURN
 //	LDI		TEMP1, -1
 //	STS		ACCELEROMETER, TEMP1
-//	RET
-
-	RET																			; Return
+//	RET																			; Return
 
 ; ____________________________________________________________________________________________________________________________________________________
 ; >> CONTROL UNIT
