@@ -289,6 +289,11 @@ LOG_ACCELEROMETER:
 	SBRS	FNFLG, TMR1															; Check if broadcast is synchronized with frequency (Timer1)
 	RET																			; ^
 
+//	SBI, ADSC
+//	WAIT:
+//	SBIS ADCSR, ADIF															;can't trust the current method, this is better and more intended
+//	RJMP WAIT
+
 	IN		TEMP1, ADCL															; Read LOW of ADC
 	NOP																			; ^
 	STS		ADC_L, TEMP1														; ^
@@ -298,6 +303,8 @@ LOG_ACCELEROMETER:
 	STS		ADC_H, TEMP1														; ^
 
 	CALL	MOVAVG																; Apply Moving Average Filter
+
+//MAJOR MISTAKE HERE, should not make ADSC here, should be TMR1 STARTING IT!!!!!!!!!!!!!!!
 
 	SBI		ADCSR, ADSC															; Start ADC Conversion
 
@@ -589,14 +596,18 @@ MOVAVG:
 	LDS		XL, MOVAVG_RECENT_XL												; ^
 
 	LDS		TEMP1, ADC_H														; Insert ADC_val from high because of ADLAR
-	ST		X+, TEMP1															
+	ST		X+, TEMP1															; Save ADC_H to SRAM pointer X
 
-	CPI		XL, MOVAVG_SIZE														; Check if Pointer should be reset
+	CPI		XL, MOVAVG_SIZE														;
+	//CPI		XL, LOW(MOVAVG_TABLE_END)										; Check if Pointer should be reset
 	BRNE	MOVAVG_SKIP_RESET													; ^
+	//CPI		XH, HIGH(MOVAVG_TABLE_END)										; Check if Pointer should be reset
+	//BRNE	MOVAVG_SKIP_RESET													; ^
 	RCALL	MOVAVG_POINTER_RESET												; ^
 
 MOVAVG_SKIP_RESET:
-
+	
+	//STS		MOVAVG_RECENT_XH, XH												; - skal med
 	STS		MOVAVG_RECENT_XL, XL												; -
 
 	RCALL	MOVAVG_ADD															; Do Moving Average Addition
@@ -624,6 +635,8 @@ MOVAVG_SRAM_SETUP_LOOP:
 
 	CPI		XL, LOW(MOVAVG_TABLE_END)											; Check if reached end of table.
 	BRNE	MOVAVG_SRAM_SETUP_LOOP												; ^
+	//CPI	XH, HIGH(MOVAVG_TABLE_END)											; Check if reached end of table.
+	//BRNE	MOVAVG_SRAM_SETUP_LOOP												; ^
 
 	RET																			; Return
 
@@ -642,15 +655,16 @@ MOVAVG_ADD_LOOP:
 
 	// Can be changed to SBIC, SREG ..
 	
-	BRCC	MOVAVG_ADD_SKIP_CARRY												; Branch if carry is not set
+	//SBIC	SREG, 0
+	BRCC	MOVAVG_ADD_SKIP_CARRY												; Branch if carry is not set - skal slettes
 	INC		TEMP3																; ^
 
-MOVAVG_ADD_SKIP_CARRY:
-
-	// Remember to compare XH aswell!
+MOVAVG_ADD_SKIP_CARRY:															;skal slettes!
 	
 	CPI		XL, LOW(MOVAVG_TABLE_END)											; Check if reached end of table.
 	BRNE	MOVAVG_ADD_LOOP														; ^
+	//CPI		XH, HIGH(MOVAVG_TABLE_END)
+	//BRNE	MOVAVG_ADD_LOOP
 
 	RET																			; Return
 
@@ -667,6 +681,15 @@ MOVAVG_DIVIDE_LOOP:
 	BRNE	MOVAVG_DIVIDE_LOOP													; ^
 
 	STS		ACCELEROMETER, TEMP2												; Save value of division into SRAM
+
+//CHECK THRESH-HOLD-ROUTINE
+//	.equ LOWAR_THRESH_HOLD = 140
+//	.equ UPPER_THRESH_HOLD = 80
+//	cpi TEMP2, UPPER_THRESH_HOLD
+//	BRSH -> STS ACC, 1
+//	cpi TEMP2, LOWAR_THRESH_HOLD
+//	BRLO -> STS ACC, -1
+//	else STS ACC, ACC = 0
 
 	RET																			; Return
 
