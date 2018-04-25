@@ -80,6 +80,32 @@ legend(legend1);
 axis([0 tachometer(end) yMin yMax]);
 grid(plotGrid);
 
+peak = 125;
+
+array = [ 73 53 91 53 18 ];
+currentSize = 73;
+setTrue = true;
+
+j = 2;
+i = 1;
+
+while i < length(accelerometer) - 1
+    if (accelerometer(i) == peak) && ~setTrue
+        text(cast(tachometer(i),'double'),cast(accelerometer(i),'double'),'TEST');
+        setTrue = true;
+    end
+    if (tachometer(i) == currentSize) && setTrue
+        text(cast(tachometer(i),'double'),cast(accelerometer(i),'double'),'TESTREAL');
+        currentSize = array(j) + currentSize;
+        setTrue = false;
+        j = j + 1;
+        if (j == 6)
+            j = 1;
+        end
+    end
+    i = i + 1;
+end
+
 % test = [73, 126, 217, ];
 % t = unique(tachometer(accelerometer==125));
 

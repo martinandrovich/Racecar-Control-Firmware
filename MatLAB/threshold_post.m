@@ -103,6 +103,8 @@ while i < (length(accelerometer) - 1)
     
 end
 
+
+
 % Plot data
 plotGraph = plot(tachometer, accelerometer, '-');
 hold on;
