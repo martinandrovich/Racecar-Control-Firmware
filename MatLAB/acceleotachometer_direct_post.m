@@ -91,11 +91,11 @@ i = 1;
 
 while i < length(accelerometer) - 1
     if (accelerometer(i) == peak) && ~setTrue
-        text(cast(tachometer(i),'double'),cast(accelerometer(i),'double'),'TEST');
+        text(cast(tachometer(i),'double'),cast(accelerometer(i),'double'),num2str(tachometer(i)));
         setTrue = true;
     end
     if (tachometer(i) == currentSize) && setTrue
-        text(cast(tachometer(i),'double'),cast(accelerometer(i),'double'),'TESTREAL');
+        text(cast(tachometer(i),'double'),cast(accelerometer(i),'double'),num2str(tachometer(i)));
         currentSize = array(j) + currentSize;
         setTrue = false;
         j = j + 1;
