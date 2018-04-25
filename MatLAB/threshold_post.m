@@ -1,6 +1,6 @@
 % MatLAB Accelerometer POST Data Analyzer
 disp("MatLAB Threshold POST Data Analyzer");
-disp("Version 1.0.1");
+disp("Version 1.0.2");
 
 % Clear everything
 clear;
@@ -26,7 +26,7 @@ broadcastModes  = struct(...
                     'Accelerometer',    40      ...
                   );           
 
-logDuration     = 5;
+logDuration     = 10;
 timerFreq       = 1;
 
 accelerometer   = uint8(0);
@@ -53,13 +53,13 @@ tic
 while toc < logDuration
 
    if (bmodule.BytesAvailable >= 4)
-   dataBytes = fread(bmodule, 4);
-         if (bitor(bitshift(dataBytes(1), 8), dataBytes(2)) ~= tachometer(count-1))
-         accelerometer(count) = dataBytes(3);
-         tachometer(count) = bitor(bitshift(dataBytes(1), 8), dataBytes(2));
-         count = count + 1;
-        end
+       dataBytes = fread(bmodule, 4);
+       dataLong = bitor(bitshift(dataBytes(1), 8), dataBytes(2));
+       accelerometer(count) = dataBytes(3);
+       tachometer(count) = dataLong;
+       count = count + 1;
    end
+   
    if (toc > (logDuration - 0.5)) && stateEnabled
         setDutyCycle(0);
         setBroadcastMode(broadcastModes.Disabled);
@@ -68,25 +68,39 @@ end
 
 i = 1;
 j = 1;
+k = 2;
 
 newPlotAcc = 0;
 newPlotTach = 0;
 
-while i < length(accelerometer) - 1
-    if (accelerometer(i) ~= accelerometer(i+1))
+while i < (length(accelerometer) - 1)
+    
+    if accelerometer(i) ~= accelerometer(i+1)
         
-        newPlotAcc(i) = accelerometer(i);
-        newPlotTach(i) = tachometer(i) - 8 * j;
+        disp(i);
+        disp(accelerometer(i));
+        disp (accelerometer(i+1));
+        disp(accelerometer(i) ~= accelerometer(i+1));
         
-        newPlotAcc(i+1) = accelerometer(i+1) ;
-        newPlotTach(i+1) = tachometer(i+1) - 8 * j;
+        newPlotAcc(k) = accelerometer(i);
+        newPlotTach(k) = tachometer(i) - 8 * j;
         
+        k = k + 1;
+        
+        newPlotAcc(k) = accelerometer(i+1) ;
+        newPlotTach(k) = tachometer(i+1) - 8 * j;
+        
+        k = k + 1;
         j = j + 1;
+        
         if (j == 3)
-        j = 1;
+            j = 1;
         end   
+        
     end
+    
     i = i + 1;
+    
 end
 
 % Plot data
@@ -101,6 +115,8 @@ ax.YAxisLocation = 'origin';
 legend(legend1);
 axis([0 tachometer(end) yMin yMax]);
 grid(plotGrid);
+
+plotGraph = plot(newPlotTach, newPlotAcc, '-');
 
 % Maximize figure window
 drawnow;

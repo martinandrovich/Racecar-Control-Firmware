@@ -45,7 +45,6 @@
   <BROADCAST><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>366</LINE></BROADCAST>
   <CLOCK><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>783</LINE></CLOCK>
   <MOVAVG><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>628</LINE></MOVAVG>
-  <TURN_CHECK><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>725</LINE></TURN_CHECK>
   <BROADCAST_TACHOMETER><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>389</LINE></BROADCAST_TACHOMETER>
   <BROADCAST_FINISHLINE><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>407</LINE></BROADCAST_FINISHLINE>
   <BROADCAST_ACCELEROMETER><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>399</LINE></BROADCAST_ACCELEROMETER>
@@ -71,6 +70,7 @@
   <MOVAVG_ADD_LOOP><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>686</LINE></MOVAVG_ADD_LOOP>
   <MOVAVG_ADD_SKIP_CARRY><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>697</LINE></MOVAVG_ADD_SKIP_CARRY>
   <MOVAVG_DIVIDE_LOOP><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>710</LINE></MOVAVG_DIVIDE_LOOP>
+  <TURN_CHECK><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>725</LINE></TURN_CHECK>
   <TURN_CHECK_RIGHT><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>746</LINE></TURN_CHECK_RIGHT>
   <TURN_CHECK_LEFT><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>753</LINE></TURN_CHECK_LEFT>
   <TEST><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>800</LINE></TEST>

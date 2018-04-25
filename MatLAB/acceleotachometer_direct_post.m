@@ -39,7 +39,7 @@ bmodule = Bluetooth('RNBT-E2A9', 1);
 fopen(bmodule);
 
 disp('Connection established; starting data logging.');
-
+    
 % Set broadcasting mode
 setBroadcastMode(broadcastModes.All);
 
@@ -79,6 +79,15 @@ ax.YAxisLocation = 'origin';
 legend(legend1);
 axis([0 tachometer(end) yMin yMax]);
 grid(plotGrid);
+
+test = [73, 126, 217, ];
+for idx = 1:numel(test)
+    element = array(idx)
+    ....
+end
+
+t = unique(tachometer(accelerometer==125));
+t(1)
 
 % Maximize figure window
 drawnow;

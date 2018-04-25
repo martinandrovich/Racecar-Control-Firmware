@@ -53,8 +53,8 @@
 
 	; Moving Average Filter
 	
-	.EQU	MOVAVG_SIZE					= 32									; Size (bytes) of Moving Average Filter
-	.EQU	MOVAVG_DIVS					= 5										; Number of division to perform (2^5 = 32)
+	.EQU	MOVAVG_SIZE					= 64									; Size (bytes) of Moving Average Filter
+	.EQU	MOVAVG_DIVS					= 6										; Number of division to perform (2^5 = 32)
 	.EQU	MOVAVG_TABLE_END			= MOVAVG_TABLE + MOVAVG_SIZE			;
 
 	; Turn Detection Thresholds
@@ -156,7 +156,7 @@ INIT:
 	LDI		TEMP1, (1<<ADLAR)													; Choose -> ADC0 and AVCC. Vcc = 5V
 	OUT		ADMUX, TEMP1														; AUTOTRIGGER ENABLED (ADATE) otherwise it doesnt work?
 
-	LDI		TEMP1, (1<<ADEN)|(1<<ADIE)|(1<<ADPS1)|(1<<ADPS0)|(1<<ADPS2)			; ADEN: ENABLE ADC, ADSC: START CONVERSATION ; (1<<ADPS2)
+	LDI		TEMP1, (1<<ADEN)|(1<<ADIE)|(1<<ADPS2)|(1<<ADPS1)|(1<<ADPS0)			; ADEN: ENABLE ADC, ADSC: START CONVERSATION ; (1<<ADPS2)
 	OUT		ADCSRA, TEMP1														; ADFR: Activate Free Running Select, Prescaler: 128 // 125kHz ADC clock
 
 	SBI		ADCSR, ADSC															; Start ADC Conversion	
@@ -306,7 +306,7 @@ LOG_ACCELEROMETER:
 	SBI		ADCSR, ADSC															; Start ADC Conversion
 
 	CALL	MOVAVG																; Apply Moving Average Filter
-	CALL	TURN_CHECK															; Replace ACCLR data with Turn Detection
+	;CALL	TURN_CHECK															; Replace ACCLR data with Turn Detection
 
 	MOV		TEMP1, FNFLG														; Clear Accelerometer Flag
 	CBR		TEMP1, (1<<ACCLR)													; ^
