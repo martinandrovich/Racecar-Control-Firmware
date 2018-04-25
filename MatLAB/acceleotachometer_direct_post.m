@@ -85,23 +85,34 @@ peak = 125;
 array = [ 73 53 91 53 18 ];
 currentSize = 73;
 setTrue = true;
+kaldmigLort = 0;
 
 j = 2;
 i = 1;
 
-while i < length(accelerometer) - 1
+while i < length(accelerometer)
     if (accelerometer(i) == peak) && ~setTrue
-        text(cast(tachometer(i),'double'),cast(accelerometer(i),'double'),num2str(tachometer(i)));
+        
+        text(cast(tachometer(i),'double'),cast(accelerometer(i),'double'),num2str(tachometer(i)-kaldmigLort));
+        
         setTrue = true;
     end
+    
     if (tachometer(i) == currentSize) && setTrue
+        
         text(cast(tachometer(i),'double'),cast(accelerometer(i),'double'),num2str(tachometer(i)));
         currentSize = array(j) + currentSize;
+        
+        kaldmigLort = tachometer(i);
+        
         setTrue = false;
+        
         j = j + 1;
+        
         if (j == 6)
             j = 1;
         end
+        
     end
     i = i + 1;
 end
