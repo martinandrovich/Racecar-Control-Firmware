@@ -80,14 +80,8 @@ legend(legend1);
 axis([0 tachometer(end) yMin yMax]);
 grid(plotGrid);
 
-test = [73, 126, 217, ];
-for idx = 1:numel(test)
-    element = array(idx)
-    ....
-end
-
-t = unique(tachometer(accelerometer==125));
-t(1)
+% test = [73, 126, 217, ];
+% t = unique(tachometer(accelerometer==125));
 
 % Maximize figure window
 drawnow;
