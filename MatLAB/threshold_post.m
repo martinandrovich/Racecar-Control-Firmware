@@ -54,17 +54,39 @@ while toc < logDuration
 
    if (bmodule.BytesAvailable >= 4)
    dataBytes = fread(bmodule, 4);
-   accelerometer(count) = dataBytes(3);
-   tachometer(count) = bitor(bitshift(dataBytes(1), 8), dataBytes(2));
-   count = count + 1;
+         if (bitor(bitshift(dataBytes(1), 8), dataBytes(2)) ~= tachometer(count-1))
+         accelerometer(count) = dataBytes(3);
+         tachometer(count) = bitor(bitshift(dataBytes(1), 8), dataBytes(2));
+         count = count + 1;
+        end
    end
-   
    if (toc > (logDuration - 0.5)) && stateEnabled
         setDutyCycle(0);
         setBroadcastMode(broadcastModes.Disabled);
    end
-   
-   
+end
+
+i = 1;
+j = 1;
+
+newPlotAcc = 0;
+newPlotTach = 0;
+
+while i < length(accelerometer) - 1
+    if (accelerometer(i) ~= accelerometer(i+1))
+        
+        newPlotAcc(i) = accelerometer(i);
+        newPlotTach(i) = tachometer(i) - 8 * j;
+        
+        newPlotAcc(i+1) = accelerometer(i+1) ;
+        newPlotTach(i+1) = tachometer(i+1) - 8 * j;
+        
+        j = j + 1;
+        if (j == 3)
+        j = 1;
+        end   
+    end
+    i = i + 1;
 end
 
 % Plot data
