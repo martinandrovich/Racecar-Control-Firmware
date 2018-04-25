@@ -53,9 +53,15 @@
 
 	; Moving Average Filter
 	
-	.EQU	MOVAVG_SIZE				= 32										; Size (bytes) of Moving Average Filter
-	.EQU	MOVAVG_DIVS				= 5											; Number of division to perform (2^5 = 32)
-	.EQU	MOVAVG_TABLE_END		= MOVAVG_TABLE + MOVAVG_SIZE				;
+	.EQU	MOVAVG_SIZE					= 32									; Size (bytes) of Moving Average Filter
+	.EQU	MOVAVG_DIVS					= 5										; Number of division to perform (2^5 = 32)
+	.EQU	MOVAVG_TABLE_END			= MOVAVG_TABLE + MOVAVG_SIZE			;
+
+	; Turn Detection Thresholds
+
+	.EQU	TURN_THRESHOLD_RIGHT		= 115
+	.EQU	TURN_THRESHOLD_LEFT			= 125
+	.EQU	TURN_THRESHOLD_OFFSET		= 0
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > REGISTERS
@@ -117,8 +123,6 @@ INIT:
 	STS		ACCELEROMETER, TEMP1												; ^
 	STS		ADC_H, TEMP1														; ^
 	STS		ADC_L, TEMP1														; ^
-	STS		RIGHTSWING_COUNTER, TEMP1
-	STS		LEFTSWING_COUNTER, TEMP1
 
 	CALL	MOVAVG_POINTER_RESET												; Reset Moving Average pointer
 	CALL	MOVAVG_SRAM_SETUP													; Initialize allocated Moving Average SRAM to default
@@ -291,11 +295,6 @@ LOG_ACCELEROMETER:
 //	SBRS	FNFLG, TMR1															; Check if broadcast is synchronized with frequency (Timer1)
 //	RET																			; ^
 
-//	SBI, ADSC
-//	WAIT:
-//	SBIS ADCSR, ADIF															;can't trust the current method, this is better and more intended
-//	RJMP WAIT
-
 	IN		TEMP1, ADCL															; Read LOW of ADC
 	NOP																			; ^
 	STS		ADC_L, TEMP1														; ^
@@ -307,7 +306,7 @@ LOG_ACCELEROMETER:
 	SBI		ADCSR, ADSC															; Start ADC Conversion
 
 	CALL	MOVAVG																; Apply Moving Average Filter
-	CALL	ACCLR_THRESHHOLD_CHECK												; TEST: Acceleromter Threshhold
+	CALL	TURN_CHECK															; Replace ACCLR data with Turn Detection
 
 	MOV		TEMP1, FNFLG														; Clear Accelerometer Flag
 	CBR		TEMP1, (1<<ACCLR)													; ^
@@ -720,37 +719,38 @@ MOVAVG_DIVIDE_LOOP:
 
 	RET	
 
-ACCLR_THRESHHOLD_CHECK:
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+;  > TURN DETECTION (ACCELEROMETER THRESHOLD)
 
+TURN_CHECK:
+
+	// Replaces accelerometer data with value of swing direction
 	// 1 = LEFT, 0 = STRAIGHT, 2 = RIGHT
-
-	.equ	RIGHTSWINGTHRESH		= 115
-	.equ	RIGHTSWING_COUNTER		= 0x0074
-
-	.equ	LEFTSWINGTHRESH			= 125
-	.equ	LEFTSWING_COUNTER		= 0x0075
-
-	LDS		TEMP2, ACCELEROMETER
 	
-	cpi		TEMP2, RIGHTSWINGTHRESH	
-	BRLO	INCREMENTRIGHT
+	// !#!#!#!
+	// Tachometer should travel a minimum distance before Accelerometer value may be changed again.
 
-	cpi		TEMP2, LEFTSWINGTHRESH	
-	BRSH	INCREMENTLEFT
+	LDS		TEMP1, ACCELEROMETER
+	
+	CPI		TEMP1, TURN_THRESHOLD_RIGHT	
+	BRLO	TURN_CHECK_RIGHT
+
+	CPI		TEMP1, TURN_THRESHOLD_LEFT	
+	BRSH	TURN_CHECK_LEFT
 
 	CLR		TEMP1
 	STS		ACCELEROMETER, TEMP1
 
 	RET
  
-INCREMENTRIGHT:
+TURN_CHECK_RIGHT:
 
 	LDI		TEMP1, 2
 	STS		ACCELEROMETER, TEMP1
 
 	RET
 
-INCREMENTLEFT:
+TURN_CHECK_LEFT:
 
 	LDI		TEMP1, 1
 	STS		ACCELEROMETER, TEMP1
