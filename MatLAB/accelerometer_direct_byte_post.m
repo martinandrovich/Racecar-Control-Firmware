@@ -1,6 +1,6 @@
-% MatLAB Tachometer POST Data Analyzer
-disp("MatLAB Tachometer POST Data Analyzer");
-disp("Version 1.0.3");
+% MatLAB Accelerometer POST Data Analyzer
+disp("MatLAB Accelerometer Byte POST Data Analyzer");
+disp("Version 1.0.4");
 
 % Clear everything
 clear;
@@ -9,12 +9,12 @@ clf;
 close(gcf);
 
 % Plot configuration
-plotTitle       = 'Tachometer Plot';
+plotTitle       = 'Accelerometer Plot';
 xLabel          = 'Elapsed Time [s]';
-yLabel          = 'Ticks';
-legend1         = 'Tachometer Value';
-yMax            =  inf;
-yMin            =  0;
+yLabel          = 'g [m/s^2]';
+legend1         = 'Accelerometer Value (ASM Filtered)';
+yMax            =  2;
+yMin            = -2;
 plotGrid        = 'on';
 
 % Definitions
@@ -27,10 +27,10 @@ broadcastModes  = struct(...
                   );           
 
 logDuration     = 10;
-logDistance     = 290;
+timerFreq       = 1;
+
 data            = 0;
-dataLong        = uint16(0);
-count           = 1;
+count           = 0;
 
 % Setup Bluetooth Module
 bmodule = Bluetooth('RNBT-E2A9', 1);
@@ -39,35 +39,45 @@ fopen(bmodule);
 disp('Connection established; starting data logging.');
 
 % Set broadcasting mode
-setBroadcastMode(broadcastModes.Tachometer);
+setBroadcastMode(broadcastModes.Accelerometer);
 
 % Start vehicle
-setDutyCycle(120);
+setDutyCycle(90);
 
 % Enable timer
 tic
 
 % Log data
-while dataLong < logDistance
+while toc < logDuration
     
-   dataBytes = fread(bmodule, 2);   
-   
-   dataLong = bitor(bitshift(dataBytes(1), 8), dataBytes(2));
-   %disp(dataLong);
-   data(count) = dataLong;
-   
+   dataBytes = fread(bmodule, 1);   
+   data(1+count*timerFreq:timerFreq*(count+1)) = dataBytes(1:timerFreq);
    count = count + 1;
-  
+   
+   if toc > (logDuration - 0.5)
+       setDutyCycle(0);
+   end
+   
 end
 
-% Stop vehicle & broadcasting
-setDutyCycle(0);
+disp('Stopping data logging.');
 setBroadcastMode(broadcastModes.Disabled);
+
+pause(0.2);
+
+while (bmodule.BytesAvailable)
+   dataBytes = fread(bmodule, 1);   
+   data(1+count*timerFreq:timerFreq*(count+1)) = dataBytes(1:timerFreq);
+   count = count + 1;   
+end
 
 % Calculate elapsed time
 timeWaited = toc;
 timeActual = timeWaited/length(data);
 timeElapsed = 0 + timeActual : timeActual : timeWaited;
+
+% Calculate data & filters
+data = (data / 256) * 4 - 2;
 
 % Plot data
 plotGraph = plot(timeElapsed, data, '-');

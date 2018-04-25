@@ -12,7 +12,7 @@
 
 .ORG 	0x02																	; INT0 Interrupt (PD2)
 	JMP		INT0_HANDLER														; ^
-
+	 
 .ORG	0x04																	; INT1 Interrupt (PD3)
 	JMP 	INT1_HANDLER														; ^
 
@@ -53,8 +53,8 @@
 
 	; Moving Average Filter
 	
-	.EQU	MOVAVG_SIZE				= 128										; Size (bytes) of Moving Average Filter
-	.EQU	MOVAVG_DIVS				= 7											; Number of division to perform (2^5 = 32)
+	.EQU	MOVAVG_SIZE				= 32										; Size (bytes) of Moving Average Filter
+	.EQU	MOVAVG_DIVS				= 5											; Number of division to perform (2^5 = 32)
 	.EQU	MOVAVG_TABLE_END		= MOVAVG_TABLE + MOVAVG_SIZE				;
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
@@ -117,9 +117,11 @@ INIT:
 	STS		ACCELEROMETER, TEMP1												; ^
 	STS		ADC_H, TEMP1														; ^
 	STS		ADC_L, TEMP1														; ^
+	STS		RIGHTSWING_COUNTER, TEMP1
+	STS		LEFTSWING_COUNTER, TEMP1
 
-	CALL	MOVAVG_POINTER_RESET
-	CALL	MOVAVG_SRAM_SETUP
+	CALL	MOVAVG_POINTER_RESET												; Reset Moving Average pointer
+	CALL	MOVAVG_SRAM_SETUP													; Initialize allocated Moving Average SRAM to default
 
 	; Flags Initialization
 
@@ -286,8 +288,8 @@ LOG_FINISHLINE:
 
 LOG_ACCELEROMETER:
 
-	SBRS	FNFLG, TMR1															; Check if broadcast is synchronized with frequency (Timer1)
-	RET																			; ^
+//	SBRS	FNFLG, TMR1															; Check if broadcast is synchronized with frequency (Timer1)
+//	RET																			; ^
 
 //	SBI, ADSC
 //	WAIT:
@@ -302,11 +304,10 @@ LOG_ACCELEROMETER:
 	NOP																			; ^
 	STS		ADC_H, TEMP1														; ^
 
-	CALL	MOVAVG																; Apply Moving Average Filter
-
-//MAJOR MISTAKE HERE, should not make ADSC here, should be TMR1 STARTING IT!!!!!!!!!!!!!!! ONE COULD ARUE THAT THE PROGRAM IS LARGE ENOUGH FOR THIS TO NOT MAKE SENSE
-
 	SBI		ADCSR, ADSC															; Start ADC Conversion
+
+	CALL	MOVAVG																; Apply Moving Average Filter
+	CALL	ACCLR_THRESHHOLD_CHECK												; TEST: Acceleromter Threshhold
 
 	MOV		TEMP1, FNFLG														; Clear Accelerometer Flag
 	CBR		TEMP1, (1<<ACCLR)													; ^
@@ -719,42 +720,42 @@ MOVAVG_DIVIDE_LOOP:
 
 	RET	
 
-//CHECK THRESH-HOLD-ROUTINE		-	NO REASON TO SAVE ALL ACCELEROMETER VALUES IN SRAM - IMPLEMENT THIS TOMORROW
-//	.equ	RIGHTSWINGTHRESH		= 130
-//	.equ	RIGHTSWING_COUNTER		= 0x0074 -> MIGHT INTEFERE
-//	.equ	LEFTSWINGTHRESH			= 90
-//  .equ	LEFTSWING_COUNTER		= 0x0075 -> MIGHT INTEREFERE
-//	.equ	DEBOUNCE_SIZE			= 10
+ACCLR_THRESHHOLD_CHECK:
 
-//	cpi		TEMP2, RIGHTSWINGTHRESH	
-//	BRSH	INCREMENTRIGHT
-//	cpi		TEMP2, LEFTSWINGTHRESH	
-//	BRLO	INCREMENTLEFT
-//	CLR		TEMP1
-//	STS		ACCELEROMETER, TEMP1
-//	STS		RIGHTSWING_COUNTER, TEMP1
-//	STS		LEFTSWING_COUNTER, TEMP1
-//	RET
+	// 1 = LEFT, 0 = STRAIGHT, 2 = RIGHT
+
+	.equ	RIGHTSWINGTHRESH		= 115
+	.equ	RIGHTSWING_COUNTER		= 0x0074
+
+	.equ	LEFTSWINGTHRESH			= 125
+	.equ	LEFTSWING_COUNTER		= 0x0075
+
+	LDS		TEMP2, ACCELEROMETER
+	
+	cpi		TEMP2, RIGHTSWINGTHRESH	
+	BRLO	INCREMENTRIGHT
+
+	cpi		TEMP2, LEFTSWINGTHRESH	
+	BRSH	INCREMENTLEFT
+
+	CLR		TEMP1
+	STS		ACCELEROMETER, TEMP1
+
+	RET
  
-//INCREMENTRIGHT:
-//	LDS		TEMP1, RIGHTSWING_COUNTER
-//	INC		TEMP1
-//	STS		RIGHTSWING_COUNTER, TEMP1
-//	CPI		TEMP1, DEBOUNCE_SIZE
-//	BRNE	RETURN
-//	LDI		TEMP1, 1
-//	STS		ACCELEROMETER, TEMP1
-//	RET
+INCREMENTRIGHT:
 
-//INCREMENTRIGHT:
-//	LDS		TEMP1, LEFTSWING_COUNTER
-//	INC		TEMP1
-//	STS		LEFTSWING_COUNTER, TEMP1
-//	CPI		TEMP1, DEBOUNCE_SIZE
-//	BRNE	RETURN
-//	LDI		TEMP1, -1
-//	STS		ACCELEROMETER, TEMP1
-//	RET																			; Return
+	LDI		TEMP1, 2
+	STS		ACCELEROMETER, TEMP1
+
+	RET
+
+INCREMENTLEFT:
+
+	LDI		TEMP1, 1
+	STS		ACCELEROMETER, TEMP1
+
+	RET																			; Return
 
 ; ____________________________________________________________________________________________________________________________________________________
 ; >> CONTROL UNIT

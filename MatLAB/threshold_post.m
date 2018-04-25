@@ -1,6 +1,6 @@
 % MatLAB Accelerometer POST Data Analyzer
-disp("MatLAB Accelerometer POST Data Analyzer");
-disp("Version 1.0.4");
+disp("MatLAB Threshold POST Data Analyzer");
+disp("Version 1.0.1");
 
 % Clear everything
 clear;
@@ -9,11 +9,11 @@ clf;
 close(gcf);
 
 % Plot configuration
-plotTitle       = 'Accelerometer Plot';
-xLabel          = 'Elapsed Time [s]';
-yLabel          = 'g [m/s^2]';
+plotTitle       = 'Accelerometer/Tachometer Plot';
+xLabel          = 'Ticks [ti]';
+yLabel          = 'Byte Value [B]';
 legend1         = 'Accelerometer Value (ASM Filtered)';
-yMax            = 255;
+yMax            = 2;
 yMin            = 0;
 plotGrid        = 'on';
 
@@ -26,12 +26,13 @@ broadcastModes  = struct(...
                     'Accelerometer',    40      ...
                   );           
 
-logDuration     = 10;
+logDuration     = 5;
 timerFreq       = 1;
 
 accelerometer   = uint8(0);
 tachometer      = uint16(0);
-count           = 0;
+count           = 1;
+stateEnabled    = false;
 
 % Setup Bluetooth Module
 bmodule = Bluetooth('RNBT-E2A9', 1);
@@ -40,7 +41,7 @@ fopen(bmodule);
 disp('Connection established; starting data logging.');
 
 % Set broadcasting mode
-setBroadcastMode(broadcastModes.Accelerometer);
+setBroadcastMode(broadcastModes.All);
 
 % Start vehicle
 setDutyCycle(90);
@@ -53,14 +54,14 @@ while toc < logDuration
 
    if (bmodule.BytesAvailable >= 4)
    dataBytes = fread(bmodule, 4);
-   accelerometer(count+1) = dataBytes(3);
-   tachometer(count+1) = bitor(bitshift(dataBytes(1), 8), dataBytes(2));
+   accelerometer(count) = dataBytes(3);
+   tachometer(count) = bitor(bitshift(dataBytes(1), 8), dataBytes(2));
    count = count + 1;
    end
    
-   if toc > (logDuration - 0.5)
-       setDutyCycle(0);
-       setBroadcastMode(broadcastModes.Disabled);
+   if (toc > (logDuration - 0.5)) && stateEnabled
+        setDutyCycle(0);
+        setBroadcastMode(broadcastModes.Disabled);
    end
    
    
@@ -76,7 +77,7 @@ ax = gca;
 ax.XAxisLocation = 'origin';
 ax.YAxisLocation = 'origin';
 legend(legend1);
-axis([0 length(tachometer) yMin yMax]);
+axis([0 tachometer(end) yMin yMax]);
 grid(plotGrid);
 
 % Maximize figure window
@@ -99,6 +100,13 @@ end
 
 function setBroadcastMode(mode)
     bmodule = evalin('base', 'bmodule');
+    
+    if (mode == 0)
+        assignin('base', 'stateEnabled', false);
+    else
+        assignin('base', 'stateEnabled', true);
+    end
+    
     fwrite(bmodule, uint8(85));
     fwrite(bmodule, uint8(20));
     fwrite(bmodule, uint8(mode));

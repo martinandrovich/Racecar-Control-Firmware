@@ -1,6 +1,6 @@
 % MatLAB Accelerometer POST Data Analyzer
 disp("MatLAB Accelerometer POST Data Analyzer");
-disp("Version 1.0.4");
+disp("Version 1.0.5");
 
 % Clear everything
 clear;
@@ -11,10 +11,10 @@ close(gcf);
 % Plot configuration
 plotTitle       = 'Accelerometer Plot';
 xLabel          = 'Elapsed Time [s]';
-yLabel          = 'g [m/s^2]';
-legend1         = 'Accelerometer Value (ASM Filtered)';
-yMax            =  2;
-yMin            = -2;
+yLabel          = 'Byte [B]';
+legend1         = 'Accelerometer Byte Value (ASM Filtered)';
+yMax            =  255;
+yMin            =  0;
 plotGrid        = 'on';
 
 % Definitions
@@ -26,7 +26,7 @@ broadcastModes  = struct(...
                     'Accelerometer',    40      ...
                   );           
 
-logDuration     = 10;
+logDuration     = 20;
 timerFreq       = 1;
 
 data            = 0;
@@ -76,9 +76,6 @@ timeWaited = toc;
 timeActual = timeWaited/length(data);
 timeElapsed = 0 + timeActual : timeActual : timeWaited;
 
-% Calculate data & filters
-data = (data / 256) * 4 - 2;
-
 % Plot data
 plotGraph = plot(timeElapsed, data, '-');
 hold on;
@@ -89,7 +86,7 @@ ax = gca;
 ax.XAxisLocation = 'origin';
 ax.YAxisLocation = 'origin';
 legend(legend1);
-axis([0 timeWaited yMin yMax]);
+axis([0 logDuration yMin yMax]);
 grid(plotGrid);
 
 % Maximize figure window

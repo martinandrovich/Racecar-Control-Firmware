@@ -1,6 +1,6 @@
 % MatLAB Tachometer POST Data Analyzer
 disp("MatLAB Tachometer POST Data Analyzer");
-disp("Version 1.0.3");
+disp("Version 1.0.2");
 
 % Clear everything
 clear;
@@ -27,10 +27,10 @@ broadcastModes  = struct(...
                   );           
 
 logDuration     = 10;
-logDistance     = 290;
+logDistance     = 
 data            = 0;
 dataLong        = uint16(0);
-count           = 1;
+count           = 0;
 
 % Setup Bluetooth Module
 bmodule = Bluetooth('RNBT-E2A9', 1);
@@ -42,27 +42,27 @@ disp('Connection established; starting data logging.');
 setBroadcastMode(broadcastModes.Tachometer);
 
 % Start vehicle
-setDutyCycle(120);
+setDutyCycle(60);
 
 % Enable timer
 tic
 
 % Log data
-while dataLong < logDistance
+while toc < logDuration
     
    dataBytes = fread(bmodule, 2);   
    
    dataLong = bitor(bitshift(dataBytes(1), 8), dataBytes(2));
-   %disp(dataLong);
-   data(count) = dataLong;
+   disp(dataLong);
+   data(count+1) = dataLong;
    
    count = count + 1;
-  
+   
+   if toc > (logDuration - 0.5)
+       setDutyCycle(0);
+   end
+   
 end
-
-% Stop vehicle & broadcasting
-setDutyCycle(0);
-setBroadcastMode(broadcastModes.Disabled);
 
 % Calculate elapsed time
 timeWaited = toc;
