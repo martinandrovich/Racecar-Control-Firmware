@@ -292,9 +292,6 @@ LOG_FINISHLINE:
 
 LOG_ACCELEROMETER:
 
-//	SBRS	FNFLG, TMR1															; Check if broadcast is synchronized with frequency (Timer1)
-//	RET																			; ^
-
 	IN		TEMP1, ADCL															; Read LOW of ADC
 	NOP																			; ^
 	STS		ADC_L, TEMP1														; ^
