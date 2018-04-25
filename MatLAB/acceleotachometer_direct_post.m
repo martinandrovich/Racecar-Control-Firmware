@@ -26,13 +26,13 @@ broadcastModes  = struct(...
                     'Accelerometer',    40      ...
                   );           
 
-logDuration     = 5;
+logDuration     = 10;
 timerFreq       = 1;
+stateEnabled    = false;
 
 accelerometer   = uint8(0);
 tachometer      = uint16(0);
 count           = 1;
-stateEnabled    = false;
 
 % Setup Bluetooth Module
 bmodule = Bluetooth('RNBT-E2A9', 1);
@@ -53,17 +53,16 @@ tic
 while toc < logDuration
 
    if (bmodule.BytesAvailable >= 4)
-   dataBytes = fread(bmodule, 4);
-   accelerometer(count) = dataBytes(3);
-   tachometer(count) = bitor(bitshift(dataBytes(1), 8), dataBytes(2));
-   count = count + 1;
+       dataBytes = fread(bmodule, 4);
+       accelerometer(count) = dataBytes(3);
+       tachometer(count) = bitor(bitshift(dataBytes(1), 8), dataBytes(2));
+       count = count + 1;
    end
    
    if (toc > (logDuration - 0.5)) && stateEnabled
         setDutyCycle(0);
         setBroadcastMode(broadcastModes.Disabled);
    end
-   
    
 end
 
@@ -79,43 +78,6 @@ ax.YAxisLocation = 'origin';
 legend(legend1);
 axis([0 tachometer(end) yMin yMax]);
 grid(plotGrid);
-
-peak = 125;
-
-array = [ 73 53 91 53 18 ];
-currentSize = 73;
-setTrue = true;
-kaldmigLort = 0;
-
-j = 2;
-i = 1;
-
-while i < length(accelerometer)
-    if (accelerometer(i) == peak) && ~setTrue
-        
-        text(cast(tachometer(i),'double'),cast(accelerometer(i),'double'),num2str(tachometer(i)-kaldmigLort));
-        
-        setTrue = true;
-    end
-    
-    if (tachometer(i) == currentSize) && setTrue
-        
-        text(cast(tachometer(i),'double'),cast(accelerometer(i),'double'),num2str(tachometer(i)));
-        currentSize = array(j) + currentSize;
-        
-        kaldmigLort = tachometer(i);
-        
-        setTrue = false;
-        
-        j = j + 1;
-        
-        if (j == 6)
-            j = 1;
-        end
-        
-    end
-    i = i + 1;
-end
 
 % test = [73, 126, 217, ];
 % t = unique(tachometer(accelerometer==125));
