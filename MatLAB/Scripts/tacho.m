@@ -32,10 +32,8 @@ while tachoVal < logDistance
     
    dataBytes = fread(bmodule, 2);   
    
-   dataLong = bitor(bitshift(dataBytes(1), 8), dataBytes(2));
-   tachoVal = dataLong;
-   disp(tachoVal);
-   data(count) = dataLong;
+   tachoVal = bitor(bitshift(dataBytes(1), 8), dataBytes(2));
+   data(count) = tachoVal;
    
    count = count + 1;
   

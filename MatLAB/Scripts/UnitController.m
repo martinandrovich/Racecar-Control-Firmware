@@ -2,10 +2,6 @@ classdef UnitController
     
     methods(Static)
         
-        function [] = test1()
-            disp("cake");
-        end
-        
         function [] = setDutyCycle(value)
             bmodule = evalin('base', 'bmodule');
             fwrite(bmodule, uint8(85));
@@ -14,11 +10,6 @@ classdef UnitController
         end
         
         function [] = setBroadcastMode(mode)
-            bmodule = evalin('base', 'bmodule');
-            fwrite(bmodule, uint8(85));
-            fwrite(bmodule, uint8(20));
-            fwrite(bmodule, uint8(mode));
-            
             
             if (mode == 0)
                 assignin('base', 'stateEnabled', false);
@@ -26,6 +17,10 @@ classdef UnitController
                 assignin('base', 'stateEnabled', true);
             end
             
+            bmodule = evalin('base', 'bmodule');
+            fwrite(bmodule, uint8(85));
+            fwrite(bmodule, uint8(20));
+            fwrite(bmodule, uint8(mode)); 
         end
         
     end

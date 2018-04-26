@@ -20,6 +20,7 @@ logDistance     = 290;
 movingAvgSize   = 32;
 dutyCycle       = 90;
 stateEnabled    = false;
+bufferDelay     = 0.5;
 
 data            = 0;
 dataLong        = uint16(0);
@@ -29,3 +30,5 @@ count           = 1;
 tachoVal        = 0;
 
 fprintf('Definitions OK.\n\n');
+
+%

@@ -36,6 +36,8 @@
 .EQU	TACHOMETER_H_SWING				= 0x0074
 .EQU	TACHOMETER_L_SWING				= 0x0075
 
+.EQU	TACHOMETER_L_PREV				= 0x0076
+
 ; ___________________________________________________________________________________________________________________________________________________
 ; >> MOVAVG		:					; 32 values in the moving avg filter
 

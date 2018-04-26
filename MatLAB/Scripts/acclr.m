@@ -3,7 +3,7 @@ run('definitions.m');
 
 % Accelerometer Logging
 disp("Filtered Accelerometer Logging [B/s]");
-disp("Version 1.1.0");
+disp("Version 1.1.1");
 
 % Plot configuration
 plotTitle       = 'Accelerometer Plot';
@@ -33,7 +33,7 @@ tic
 while toc < logDuration
     
    dataBytes = fread(bmodule, 1);   
-   data(1+count*1:1*(count+1)) = dataBytes(1:1);
+   data(count*1:1*(count)) = dataBytes(1:1);
    count = count + 1;
    
    if toc > (logDuration - 0.5)
@@ -42,15 +42,15 @@ while toc < logDuration
    
 end
 
-disp('Stopping data logging.');
+% Stop broadcasting
 UnitController.setBroadcastMode(broadcastModes.Disabled);
+pause(bufferDelay);
 
-pause(0.2);
-
+% Empty buffer
 while (bmodule.BytesAvailable)
    dataBytes = fread(bmodule, 1);   
-   data(1+count*1:1*(count+1)) = dataBytes(1:1);
-   count = count + 1;   
+   data(count*1:1*(count)) = dataBytes(1:1);
+   count = count + 1;
 end
 
 % Calculate elapsed time

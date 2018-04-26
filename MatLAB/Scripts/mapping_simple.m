@@ -3,7 +3,7 @@ run('definitions.m');
 
 % Tachometer & Accelerometer Logging
 disp("Simple Mapping [Acclr/Ticks]");
-disp("Version 1.1.0");
+disp("Version 1.1.1");
 
 % Plot configuration
 plotTitle       = 'Accelerometer/Tachometer Plot';
@@ -32,28 +32,14 @@ tic
 % Log data
 while tachoVal < logDistance
 
-   if (bmodule.BytesAvailable >= 4)
-       
+   if (bmodule.BytesAvailable >= 4)     
        dataBytes = fread(bmodule, 4);
        tachoVal  = bitor(bitshift(dataBytes(1), 8), dataBytes(2));
        
-       if count == 1
-           
-           dataAcclr(count) = dataBytes(3);
-           dataTacho(count) = tachoVal;
+       dataAcclr(count) = dataBytes(3);
+       dataTacho(count) = tachoVal;
 
-           count = count + 1;
-           
-           continue;
-       
-       elseif dataTacho(count) ~= tachoVal
-       
-           dataAcclr(count) = dataBytes(3);
-           dataTacho(count) = tachoVal;
-
-           count = count + 1;
-       
-       end
+       count = count + 1;
    end
    
 end
@@ -61,6 +47,21 @@ end
 % Stop vehicle & broadcasting
 UnitController.setDutyCycle(0);
 UnitController.setBroadcastMode(broadcastModes.Disabled);
+pause(bufferDelay);
+
+% Empty buffer
+while (bmodule.BytesAvailable)
+   if (bmodule.BytesAvailable >= 4)
+       
+       dataBytes = fread(bmodule, 4);
+       tachoVal  = bitor(bitshift(dataBytes(1), 8), dataBytes(2));
+       
+       dataAcclr(count) = dataBytes(3);
+       dataTacho(count) = tachoVal;
+
+       count = count + 1;
+   end   
+end
 
 % Plot data
 plotGraph = plot(dataTacho, dataAcclr, '-');

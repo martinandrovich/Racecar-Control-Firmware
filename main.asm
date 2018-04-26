@@ -53,8 +53,8 @@
 
 	; Moving Average Filter
 	
-	.EQU	MOVAVG_SIZE					= 128									; Size (bytes) of Moving Average Filter
-	.EQU	MOVAVG_DIVS					= 7										; Number of division to perform (2^5 = 32)
+	.EQU	MOVAVG_SIZE					= 32									; Size (bytes) of Moving Average Filter
+	.EQU	MOVAVG_DIVS					= 5										; Number of division to perform (2^5 = 32)
 	.EQU	MOVAVG_TABLE_END			= MOVAVG_TABLE + MOVAVG_SIZE			;
 
 	; Turn Detection Thresholds
@@ -120,6 +120,7 @@ INIT:
 	STS		FUNC_FLG, TEMP1														; ^
 	STS		TACHOMETER_H, TEMP1													; ^
 	STS		TACHOMETER_L, TEMP1													; ^
+	STS		TACHOMETER_L_PREV, TEMP1											; ^
 	STS		ACCELEROMETER, TEMP1												; ^
 	STS		ADC_H, TEMP1														; ^
 	STS		ADC_L, TEMP1														; ^
@@ -292,6 +293,9 @@ LOG_FINISHLINE:
 
 LOG_ACCELEROMETER:
 
+	SBRS	FNFLG, TMR1															; Check if logging is synchronized with CLOCK (Timer1)
+	RET
+
 	IN		TEMP1, ADCL															; Read LOW of ADC
 	NOP																			; ^
 	STS		ADC_L, TEMP1														; ^
@@ -377,9 +381,7 @@ BROADCAST:
 	CPI		TEMP1, (1<<BROD2)													; Accelerometer Mode	= (101)
 	BREQ	BROADCAST_ACCELEROMETER												; ^
 
-	RCALL	BROADCAST_TACHOMETER												; Broadcast All			= (001)
-	RCALL	BROADCAST_ACCELEROMETER												; ^
-	RCALL	BROADCAST_FINISHLINE												; ^
+	RCALL	BROADCAST_ALL														; Broadcast All			= (001)
 
 	RET																			; Return
 
@@ -407,6 +409,26 @@ BROADCAST_FINISHLINE:
 	
 	LDS		TXREG, FINISHLINE
 	CALL	SERIAL_WRITE
+
+	RET																			; Return
+
+BROADCAST_ALL:
+
+	LDS		TEMP1, TACHOMETER_L
+	LDS		TEMP2, TACHOMETER_L_PREV
+
+	CP		TEMP1, TEMP2
+	BRNE	BROADCAST_ALL_SEND
+
+	RET
+
+BROADCAST_ALL_SEND:
+
+	STS		TACHOMETER_L_PREV, TEMP1
+
+	RCALL	BROADCAST_TACHOMETER												; Broadcast All			= (001)
+	RCALL	BROADCAST_ACCELEROMETER												; ^
+	RCALL	BROADCAST_FINISHLINE												; ^
 
 	RET																			; Return
 
@@ -806,7 +828,7 @@ CLOCK:
 	NOP																			; Do Something
 
 	MOV		TEMP1, FNFLG														; Clear Timer1 Flag
-	CBR		TEMP1, TMR1															; ^
+	CBR		TEMP1,  (1<<TMR1)													; ^
 	MOV		FNFLG, TEMP1														; ^
 
 	RET																			; Return
