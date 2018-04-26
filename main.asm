@@ -322,8 +322,8 @@ LOG_ACCELEROMETER:
 	//
 	// FOR MAPPING
 
-	//.EQU	MAPPING_RECENT_XH				= 0x0074
-	//.EQU	MAPPING_RECENT_XL				= 0x0075
+	//.EQU	MAPPING_RECENT_XH				= 0x0076
+	//.EQU	MAPPING_RECENT_XL				= 0x0077
 	
 	//MAPPING_POINTER_RESET:
 	//	LDI		XH, HIGH(MAPP)												; Load reset values into X Pointer
@@ -348,7 +348,7 @@ LOG_ACCELEROMETER:
 	//	BREQ	((DO SOMETHING HAVENT FIGURED OUT WHAT YET))
 	//	LDS		TEMP1,	ACCELEROMETER
 	//	CPI		TEMP1,	0
-	//	BREQ	NOT_ANY_SWINGS
+	//	BREQ	NOSWING_RETURN	//should use pointer here so pointer points to 0 -> 1 -> 0 -> 1 -> 0 -> 1 -> 0 -> 1 ...
 	//	LDS		TEMP1,	TACHOMETER_H
 	//	ST		X+, TEMP1
 	//	LDS		TEMP1,	TACHOMETER_L
@@ -731,7 +731,16 @@ TURN_CHECK:
 	// Tachometer should travel a minimum distance before Accelerometer value may be changed again.
 
 	LDS		TEMP1, ACCELEROMETER
-	
+
+	LDS		TEMPWH, TACHOMETER_H
+	LDS		TEMPWL, TACHOMETER_L
+	LDS		TEMP2, TACHOMETER_H_SWING
+	LDS		TEMP3, TACHOMETER_L_SWING
+
+	CP		TEMP3, TEMPWL
+	CPC		TEMP2, TEMPWH		
+	BRLO	END_CALL
+
 	CPI		TEMP1, TURN_THRESHOLD_RIGHT	
 	BRLO	TURN_CHECK_RIGHT
 
@@ -741,12 +750,15 @@ TURN_CHECK:
 	CLR		TEMP1
 	STS		ACCELEROMETER, TEMP1
 
+END_CALL:
+
 	RET
  
 TURN_CHECK_RIGHT:
 
 	LDI		TEMP1, 2
 	STS		ACCELEROMETER, TEMP1
+	RCALL	TURN_DEBOUNCE_MAKE
 
 	RET
 
@@ -754,8 +766,20 @@ TURN_CHECK_LEFT:
 
 	LDI		TEMP1, 1
 	STS		ACCELEROMETER, TEMP1
+	RCALL	TURN_DEBOUNCE_MAKE:
 
-	RET																			; Return
+	RET																			
+
+TURN_DEBOUNCE_MAKE:
+	LDS		TEMPWH, TACHOMETER_H
+	LDS		TEMPWL, TACHOMETER_L
+
+	ADIW	TEMPWH:TEMPWL, DEBOUNCE_TICKS
+
+	STS		TACHOMETER_H_SWING, TEMPWH
+	STS		TACHOMETER_L_SWING, TEMPWL
+
+	RET
 
 ; ____________________________________________________________________________________________________________________________________________________
 ; >> CONTROL UNIT
