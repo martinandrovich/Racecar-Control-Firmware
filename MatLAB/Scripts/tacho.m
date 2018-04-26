@@ -34,7 +34,7 @@ while tachoVal < logDistance
    
    dataLong = bitor(bitshift(dataBytes(1), 8), dataBytes(2));
    tachoVal = dataLong;
-   %disp(tachoVal);
+   disp(tachoVal);
    data(count) = dataLong;
    
    count = count + 1;

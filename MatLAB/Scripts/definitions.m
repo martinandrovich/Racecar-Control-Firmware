@@ -18,7 +18,7 @@ broadcastModes  = struct(...
 logDuration     = 10;
 logDistance     = 290;
 movingAvgSize   = 32;
-dutyCycle       = 90;
+dutyCycle       = 70;
 stateEnabled    = false;
 
 data            = 0;

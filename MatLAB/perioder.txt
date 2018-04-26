@@ -1,4 +1,4 @@
-Periode for skæring af Y-aksen:
+Periode for skæring af x-aksen:
 
 1,580 - 0,6619 = 0,9181
 3,622 - 2,7210 = 0,901

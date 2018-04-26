@@ -33,13 +33,18 @@ tic
 while tachoVal < logDistance
 
    if (bmodule.BytesAvailable >= 4)
+       
        dataBytes = fread(bmodule, 4);
        tachoVal  = bitor(bitshift(dataBytes(1), 8), dataBytes(2));
        
-       dataAcclr(count) = dataBytes(3);
-       dataTacho(count) = tachoVal;
+       if dataTacho(count) ~= tachoVal
        
-       count = count + 1;
+           dataAcclr(count) = dataBytes(3);
+           dataTacho(count) = tachoVal;
+
+           count = count + 1;
+       
+       end
    end
    
 end
