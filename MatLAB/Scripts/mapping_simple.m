@@ -10,8 +10,8 @@ plotTitle       = 'Accelerometer/Tachometer Plot';
 xLabel          = 'Ticks [ti]';
 yLabel          = 'Byte Value [B]';
 legend1         = 'Accelerometer Value (ASM Filtered)';
-yMax            = 255;
-yMin            = 0;
+yMax            =  255;
+yMin            =  0;
 plotGrid        = 'on';
 
 % Setup Bluetooth Module
