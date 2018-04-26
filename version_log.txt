@@ -26,7 +26,10 @@
 - Added:		Accelerometer Logging (Raw)
 - Addded:		Broadcast Mode
 
-# 1.1.1  <<
+# 1.1.1
 - Modified:		Flag Loading Method (no clearing)
 - Added:		Moving Average Filter
 - Added:		Accelerometer Logging (Filtered)
+
+# 1.1.2  <<
+- Added:		Sving Detection Prototype

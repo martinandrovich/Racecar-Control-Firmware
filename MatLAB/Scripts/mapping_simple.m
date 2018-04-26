@@ -1,7 +1,7 @@
 % Global definitions
 run('definitions.m');
 
-% Tachometer Logging
+% Tachometer & Accelerometer Logging
 disp("Simple Mapping [Acclr/Ticks]");
 disp("Version 1.1.0");
 
@@ -37,7 +37,16 @@ while tachoVal < logDistance
        dataBytes = fread(bmodule, 4);
        tachoVal  = bitor(bitshift(dataBytes(1), 8), dataBytes(2));
        
-       if dataTacho(count) ~= tachoVal
+       if count == 1
+           
+           dataAcclr(count) = dataBytes(3);
+           dataTacho(count) = tachoVal;
+
+           count = count + 1;
+           
+           continue;
+       
+       elseif dataTacho(count) ~= tachoVal
        
            dataAcclr(count) = dataBytes(3);
            dataTacho(count) = tachoVal;

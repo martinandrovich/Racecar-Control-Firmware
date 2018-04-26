@@ -53,8 +53,8 @@
 
 	; Moving Average Filter
 	
-	.EQU	MOVAVG_SIZE					= 64									; Size (bytes) of Moving Average Filter
-	.EQU	MOVAVG_DIVS					= 6										; Number of division to perform (2^5 = 32)
+	.EQU	MOVAVG_SIZE					= 128									; Size (bytes) of Moving Average Filter
+	.EQU	MOVAVG_DIVS					= 7										; Number of division to perform (2^5 = 32)
 	.EQU	MOVAVG_TABLE_END			= MOVAVG_TABLE + MOVAVG_SIZE			;
 
 	; Turn Detection Thresholds
@@ -763,7 +763,7 @@ TURN_CHECK_LEFT:
 
 	LDI		TEMP1, 1
 	STS		ACCELEROMETER, TEMP1
-	RCALL	TURN_DEBOUNCE_MAKE:
+	RCALL	TURN_DEBOUNCE_MAKE
 
 	RET																			
 
@@ -771,7 +771,7 @@ TURN_DEBOUNCE_MAKE:
 	LDS		TEMPWH, TACHOMETER_H
 	LDS		TEMPWL, TACHOMETER_L
 
-	ADIW	TEMPWH:TEMPWL, DEBOUNCE_TICKS
+	;ADIW	TEMPWH:TEMPWL, DEBOUNCE_TICKS
 
 	STS		TACHOMETER_H_SWING, TEMPWH
 	STS		TACHOMETER_L_SWING, TEMPWL

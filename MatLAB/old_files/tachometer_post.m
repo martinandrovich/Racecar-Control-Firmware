@@ -53,7 +53,7 @@ while dataLong < logDistance
    dataBytes = fread(bmodule, 2);   
    
    dataLong = bitor(bitshift(dataBytes(1), 8), dataBytes(2));
-   %disp(dataLong);
+   disp(dataLong);
    data(count) = dataLong;
    
    count = count + 1;

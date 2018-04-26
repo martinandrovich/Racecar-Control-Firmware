@@ -37,7 +37,7 @@ while toc < logDuration
    count = count + 1;
    
    if toc > (logDuration - 0.5)
-       setDutyCycle(0);
+       UnitController.setDutyCycle(0);
    end
    
 end
@@ -49,7 +49,7 @@ pause(0.2);
 
 while (bmodule.BytesAvailable)
    dataBytes = fread(bmodule, 1);   
-   data(1+count*timerFreq:timerFreq*(count+1)) = dataBytes(1:timerFreq);
+   data(1+count*1:1*(count+1)) = dataBytes(1:1);
    count = count + 1;   
 end
 
@@ -76,5 +76,4 @@ drawnow;
 set(get(handle(gcf), 'JavaFrame'), 'Maximized', 1);
 
 % Close connection
-fclose(bmodule);e(bmodule, uint8(mode));
-end
+fclose(bmodule);
