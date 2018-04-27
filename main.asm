@@ -128,6 +128,7 @@ INIT:
 	STS		ACCELEROMETER, TEMP1												; ^
 	STS		ADC_H, TEMP1														; ^
 	STS		ADC_L, TEMP1														; ^
+	STS		FINISHLINE, TEMP1
 
 	CALL	MOVAVG_POINTER_RESET												; Reset Moving Average pointer
 	CALL	MOVAVG_SRAM_SETUP													; Initialize allocated Moving Average SRAM to default
@@ -284,7 +285,11 @@ LOG_TACHOMETER:
 
 LOG_FINISHLINE:
 
-	NOP																			; Do Something
+	LDS		TEMP1, FINISHLINE													; Test purposes, send how many time it detects finishline
+
+	INC		TEMP1																;
+
+	STS		FINISHLINE, TEMP1													;
 
 	MOV		TEMP1, FNFLG														; Clear Finishline Flag
 	CBR		TEMP1, (1<<FNLNE)													; ^
@@ -408,28 +413,28 @@ BROADCAST_ACCELEROMETER:
 
 	RET																			; Return
 
-BROADCAST_FINISHLINE:
+BROADCAST_FINISHLINE:															;
 
 	// A bit retarded.
 	
-	LDS		TXREG, FINISHLINE
-	CALL	SERIAL_WRITE
+	LDS		TXREG, FINISHLINE													;
+	CALL	SERIAL_WRITE														;
 
 	RET																			; Return
 
-BROADCAST_ALL:
+BROADCAST_ALL:																	;
 
-	LDS		TEMP1, TACHOMETER_L
-	LDS		TEMP2, TACHOMETER_L_PREV
+	LDS		TEMP1, TACHOMETER_L													;
+	LDS		TEMP2, TACHOMETER_L_PREV											;
 
-	CP		TEMP1, TEMP2
-	BRNE	BROADCAST_ALL_SEND
+	CP		TEMP1, TEMP2														; makes sure to not send the same TACHOMETER twice
+	BRNE	BROADCAST_ALL_SEND													;
 
-	RET
+	RET																			;
 
-BROADCAST_ALL_SEND:
+BROADCAST_ALL_SEND:																;
 
-	STS		TACHOMETER_L_PREV, TEMP1
+	STS		TACHOMETER_L_PREV, TEMP1											;
 
 	RCALL	BROADCAST_TACHOMETER												; Broadcast All			= (001)
 	RCALL	BROADCAST_ACCELEROMETER												; ^
@@ -693,7 +698,7 @@ MOVAVG_SRAM_SETUP_LOOP:
 
 	CPI		XL, LOW(MOVAVG_TABLE_END)											; Check if reached end of table.
 	BRNE	MOVAVG_SRAM_SETUP_LOOP												; ^
-	//CPI	XH, HIGH(MOVAVG_TABLE_END)											; Check if reached end of table.
+	//CPI	XH, HIGH(MOVAVG_TABLE_END)						16BIT COMPARE!! CPC	; Check if reached end of table.
 	//BRNE	MOVAVG_SRAM_SETUP_LOOP												; ^
 
 	RET																			; Return
@@ -713,15 +718,15 @@ MOVAVG_ADD_LOOP:
 
 	// Can be changed to SBIC, SREG ..
 	
-	//SBIC	SREG, 0
+	//SBRC	SREG, 0
 	BRCC	MOVAVG_ADD_SKIP_CARRY												; Branch if carry is not set - skal slettes
 	INC		TEMP3																; ^
 
 MOVAVG_ADD_SKIP_CARRY:															;skal slettes!
 	
-	CPI		XL, LOW(MOVAVG_TABLE_END)											; Check if reached end of table.
-	BRNE	MOVAVG_ADD_LOOP														; ^
-	//CPI		XH, HIGH(MOVAVG_TABLE_END)
+	CPI		XL, LOW(MOVAVG_TABLE_END)											; Check if reached end of table
+	BRNE	MOVAVG_ADD_LOOP														; 
+	//CPI		XH, HIGH(MOVAVG_TABLE_END) THIS IS WRONG SHOULD BE CPC 16bit if ever moved!
 	//BRNE	MOVAVG_ADD_LOOP
 
 	RET																			; Return
@@ -753,26 +758,26 @@ TURN_CHECK:
 	// !#!#!#!
 	// Tachometer should travel a minimum distance before Accelerometer value may be changed again.
 
-	LDS		TEMPWH, TACHOMETER_H
-	LDS		TEMPWL, TACHOMETER_L
+	LDS		TEMPWH, TACHOMETER_H												;
+	LDS		TEMPWL, TACHOMETER_L												;
 
-	LDS		TEMP2, TACHOMETER_H_SWING
-	LDS		TEMP3, TACHOMETER_L_SWING
+	LDS		TEMP2, TACHOMETER_H_SWING											;
+	LDS		TEMP3, TACHOMETER_L_SWING											;
 
-	CP		TEMPWL, TEMP3
-	CPC		TEMPWH, TEMP2 		
-	BRLO	TURN_CHECK_ZERO
+	CP		TEMPWL, TEMP3														; 16 bit compare, to check if offset is set
+	CPC		TEMPWH, TEMP2 														;
+	BRLO	TURN_CHECK_ZERO														;
 
-	LDS		TEMP1, ACCELEROMETER
+	LDS		TEMP1, ACCELEROMETER												;
 
-	CPI		TEMP1, TURN_THRESHOLD_RIGHT	
+	CPI		TEMP1, TURN_THRESHOLD_RIGHT											; check swing right
 	BRLO	TURN_CHECK_RIGHT
 
-	CPI		TEMP1, TURN_THRESHOLD_LEFT	
-	BRSH	TURN_CHECK_LEFT
+	CPI		TEMP1, TURN_THRESHOLD_LEFT											; check swing left
+	BRSH	TURN_CHECK_LEFT														;
 
-	SBRC	FNFLG, INTURN
-	RCALL	TURN_CHECK_SETCOUNTER
+	SBRC	FNFLG, INTURN														; check if Inturn is set, if set it jumps to offset til next swing
+	RCALL	TURN_CHECK_SETCOUNTER												; inturn is set in swing detection
 
 	MOV		TEMP1, FNFLG														; Load current Flags Register and clear TURNIN bit
 	CBR		TEMP1, (1<<INTURN)													; ^
@@ -780,26 +785,26 @@ TURN_CHECK:
 
 TURN_CHECK_ZERO:
 
-	CLR		TEMP1
-	STS		ACCELEROMETER, TEMP1
+	CLR		TEMP1																;
+	STS		ACCELEROMETER, TEMP1												;
 
 	RET
  
 TURN_CHECK_RIGHT:
 
-	LDI		TEMP1, 2
-	STS		ACCELEROMETER, TEMP1
+	LDI		TEMP1, 2															;
+	STS		ACCELEROMETER, TEMP1												;
 
 	MOV		TEMP1, FNFLG														; Load current Flags Register and clear TURNIN bit
 	SBR		TEMP1, (1<<INTURN)													; ^
 	MOV		FNFLG, TEMP1														; ^
 
-	RET
+	RET																			;
 
 TURN_CHECK_LEFT:
 
-	LDI		TEMP1, 1
-	STS		ACCELEROMETER, TEMP1
+	LDI		TEMP1, 1															;
+	STS		ACCELEROMETER, TEMP1												;
 
 	MOV		TEMP1, FNFLG														; Load current Flags Register and clear TURNIN bit
 	SBR		TEMP1, (1<<INTURN)													; ^
@@ -809,13 +814,13 @@ TURN_CHECK_LEFT:
 
 TURN_CHECK_SETCOUNTER:
 
-	LDS		TEMPWH, TACHOMETER_H
-	LDS		TEMPWL, TACHOMETER_L
+	LDS		TEMPWH, TACHOMETER_H												; Load the OFFSET before swing can be detected again
+	LDS		TEMPWL, TACHOMETER_L												;
 	
-	ADIW	TEMPWH:TEMPWL, TURN_THRESHOLD_DELAY
+	ADIW	TEMPWH:TEMPWL, TURN_THRESHOLD_DELAY									; ADD constant value to Offset
 
-	STS		TACHOMETER_H_SWING, TEMPWH
-	STS		TACHOMETER_L_SWING, TEMPWL
+	STS		TACHOMETER_H_SWING, TEMPWH											; Save values
+	STS		TACHOMETER_L_SWING, TEMPWL											;
 
 	RET
 

@@ -79,7 +79,7 @@ while i < (length(accelerometer) - 1)
         
         disp(i);
         disp(accelerometer(i));
-        disp (accelerometer(i+1));
+        disp(accelerometer(i+1));
         disp(accelerometer(i) ~= accelerometer(i+1));
         
         newPlotAcc(k) = accelerometer(i);
