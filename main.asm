@@ -38,7 +38,7 @@
 
 	.EQU	BAUDRATE	= 0x00CF												; Baudrate configuration (default = 0xCF)
 
-	.EQU	TMR1FREQ	= 976 - 1												; Timer1 configuration
+	.EQU	TMR1FREQ	= 62500 - 1												; Timer1 configuration
 
 																				; 62500 - 1		= 4Hz
 																				; 31250 - 1		= 8Hz
@@ -200,11 +200,11 @@ INIT:
 	OUT		OCR2, TEMP1															; ^
 
 	; External Interrupt Setup
-
-	LDI		TEMP1, (1<<ISC01)|(1<<ISC00)										; Set INT0 to rising edge
+	
+	LDI		TEMP1, (1<<ISC01)|(1<<ISC00) | (1<<ISC10)|(1<<ISC11)				; Set INT0 & INT1 to rising edge
 	OUT		MCUCR, TEMP1														; ^
 
-	LDI 	TEMP1, (1<<INT0)													; Enable external interrupts
+	LDI 	TEMP1, (1<<INT0)|(1<<INT1)											; Enable external interrupts
 	OUT 	GICR, TEMP1															; ^
 
 	SEI																			; Set global interrupt flag
