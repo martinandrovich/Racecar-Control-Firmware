@@ -16,7 +16,7 @@ plotGrid        = 'on';
 
 % Connect to Bluetooth Module
 fopen(bmodule);
-fprintf('Connection established; starting data logging.');
+fprintf('\nConnection established; starting data logging.');
     
 % Set broadcasting mode
 UnitController.setBroadcastMode(broadcastModes.All);
@@ -28,10 +28,10 @@ UnitController.setDutyCycle(dutyCycle);
 tic
 
 % Log data
-while tachoVal < logDistance
+while tachoVal < logDistance*logLaps
 
-   if (bmodule.BytesAvailable >= 4)     
-       dataBytes = fread(bmodule, 4);
+   if (bmodule.BytesAvailable >= 3)     
+       dataBytes = fread(bmodule, 3);
        tachoVal  = bitor(bitshift(dataBytes(1), 8), dataBytes(2));
        
        dataAcclr(count) = dataBytes(3);
@@ -45,20 +45,22 @@ end
 % Stop vehicle & broadcasting
 UnitController.setDutyCycle(0);
 UnitController.setBroadcastMode(broadcastModes.Disabled);
+
+%Empty buffer
 pause(bufferDelay);
 
-% Empty buffer
-while (bmodule.BytesAvailable)
-   if (bmodule.BytesAvailable >= 4)
-       
-       dataBytes = fread(bmodule, 4);
+while bmodule.BytesAvailable
+
+   if (bmodule.BytesAvailable >= 3)     
+       dataBytes = fread(bmodule, 3);
        tachoVal  = bitor(bitshift(dataBytes(1), 8), dataBytes(2));
        
        dataAcclr(count) = dataBytes(3);
        dataTacho(count) = tachoVal;
 
        count = count + 1;
-   end   
+   end
+   
 end
 
 % Plot data

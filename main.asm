@@ -53,14 +53,15 @@
 
 	; Moving Average Filter
 	
-	.EQU	MOVAVG_SIZE					= 128									; Size (bytes) of Moving Average Filter
-	.EQU	MOVAVG_DIVS					= 7										; Number of division to perform (2^5 = 32)
+	.EQU	MOVAVG_SIZE					= 64									; Size (bytes) of Moving Average Filter
+	.EQU	MOVAVG_DIVS					= 6										; Number of division to perform (2^5 = 32)
 	.EQU	MOVAVG_TABLE_END			= MOVAVG_TABLE + MOVAVG_SIZE			;
 
 	; Turn Detection Thresholds
 
 	.EQU	TURN_THRESHOLD_RIGHT		= 115
-	.EQU	TURN_THRESHOLD_LEFT			= 125
+	.EQU	TURN_THRESHOLD_LEFT			= 122
+	.EQU	TURN_THRESHOLD_DELAY		= 10
 	.EQU	TURN_THRESHOLD_OFFSET		= 0
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
@@ -98,6 +99,7 @@
 	.EQU	ACCLR		= 5														; Accelerometer Ready
 	.EQU	TMR1		= 4														; Timer1 Ready
 	.EQU	CMDPD		= 3														; Command Pending
+	.EQU	INTURN		= 2														; Currently in a turn
 
 ; ____________________________________________________________________________________________________________________________________________________
 ; >> INITIALIZATION
@@ -121,6 +123,8 @@ INIT:
 	STS		TACHOMETER_H, TEMP1													; ^
 	STS		TACHOMETER_L, TEMP1													; ^
 	STS		TACHOMETER_L_PREV, TEMP1											; ^
+	STS		TACHOMETER_H_SWING, TEMP1											; ^
+	STS		TACHOMETER_L_SWING, TEMP1											; ^
 	STS		ACCELEROMETER, TEMP1												; ^
 	STS		ADC_H, TEMP1														; ^
 	STS		ADC_L, TEMP1														; ^
@@ -304,10 +308,12 @@ LOG_ACCELEROMETER:
 	NOP																			; ^
 	STS		ADC_H, TEMP1														; ^
 
-	SBI		ADCSR, ADSC															; Start ADC Conversion
+	STS		ACCELEROMETER, TEMP1
 
 	CALL	MOVAVG																; Apply Moving Average Filter
-	;CALL	TURN_CHECK															; Replace ACCLR data with Turn Detection
+	CALL	TURN_CHECK															; Replace ACCLR data with Turn Detection
+
+	SBI		ADCSR, ADSC															; Start ADC Conversion
 
 	MOV		TEMP1, FNFLG														; Clear Accelerometer Flag
 	CBR		TEMP1, (1<<ACCLR)													; ^
@@ -397,7 +403,6 @@ BROADCAST_TACHOMETER:
 
 BROADCAST_ACCELEROMETER:
 
-	;LDS		TXREG, ADC_H														; Load & transmit HIGH byte of ADC (accelerometer) data
 	LDS		TXREG, ACCELEROMETER												; Load & transmit Accelerometer data
 	CALL	SERIAL_WRITE														; ^
 
@@ -428,7 +433,6 @@ BROADCAST_ALL_SEND:
 
 	RCALL	BROADCAST_TACHOMETER												; Broadcast All			= (001)
 	RCALL	BROADCAST_ACCELEROMETER												; ^
-	RCALL	BROADCAST_FINISHLINE												; ^
 
 	RET																			; Return
 
@@ -749,16 +753,17 @@ TURN_CHECK:
 	// !#!#!#!
 	// Tachometer should travel a minimum distance before Accelerometer value may be changed again.
 
-	LDS		TEMP1, ACCELEROMETER
-
 	LDS		TEMPWH, TACHOMETER_H
 	LDS		TEMPWL, TACHOMETER_L
+
 	LDS		TEMP2, TACHOMETER_H_SWING
 	LDS		TEMP3, TACHOMETER_L_SWING
 
-	CP		TEMP3, TEMPWL
-	CPC		TEMP2, TEMPWH		
-	BRLO	END_CALL
+	CP		TEMPWL, TEMP3
+	CPC		TEMPWH, TEMP2 		
+	BRLO	TURN_CHECK_ZERO
+
+	LDS		TEMP1, ACCELEROMETER
 
 	CPI		TEMP1, TURN_THRESHOLD_RIGHT	
 	BRLO	TURN_CHECK_RIGHT
@@ -766,10 +771,17 @@ TURN_CHECK:
 	CPI		TEMP1, TURN_THRESHOLD_LEFT	
 	BRSH	TURN_CHECK_LEFT
 
+	SBRC	FNFLG, INTURN
+	RCALL	TURN_CHECK_SETCOUNTER
+
+	MOV		TEMP1, FNFLG														; Load current Flags Register and clear TURNIN bit
+	CBR		TEMP1, (1<<INTURN)													; ^
+	MOV		FNFLG, TEMP1														; ^
+
+TURN_CHECK_ZERO:
+
 	CLR		TEMP1
 	STS		ACCELEROMETER, TEMP1
-
-END_CALL:
 
 	RET
  
@@ -777,7 +789,10 @@ TURN_CHECK_RIGHT:
 
 	LDI		TEMP1, 2
 	STS		ACCELEROMETER, TEMP1
-	RCALL	TURN_DEBOUNCE_MAKE
+
+	MOV		TEMP1, FNFLG														; Load current Flags Register and clear TURNIN bit
+	SBR		TEMP1, (1<<INTURN)													; ^
+	MOV		FNFLG, TEMP1														; ^
 
 	RET
 
@@ -785,15 +800,19 @@ TURN_CHECK_LEFT:
 
 	LDI		TEMP1, 1
 	STS		ACCELEROMETER, TEMP1
-	RCALL	TURN_DEBOUNCE_MAKE
+
+	MOV		TEMP1, FNFLG														; Load current Flags Register and clear TURNIN bit
+	SBR		TEMP1, (1<<INTURN)													; ^
+	MOV		FNFLG, TEMP1														; ^
 
 	RET																			
 
-TURN_DEBOUNCE_MAKE:
+TURN_CHECK_SETCOUNTER:
+
 	LDS		TEMPWH, TACHOMETER_H
 	LDS		TEMPWL, TACHOMETER_L
-
-	;ADIW	TEMPWH:TEMPWL, DEBOUNCE_TICKS
+	
+	ADIW	TEMPWH:TEMPWL, TURN_THRESHOLD_DELAY
 
 	STS		TACHOMETER_H_SWING, TEMPWH
 	STS		TACHOMETER_L_SWING, TEMPWL

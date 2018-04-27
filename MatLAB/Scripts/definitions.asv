@@ -17,14 +17,13 @@ broadcastModes  = struct(...
 
 logDuration     = 10;
 logDistance     = 290;
-logLaps         = 2;
 movingAvgSize   = 32;
 dutyCycle       = 90;
 stateEnabled    = false;
 bufferDelay     = 0.5;
 
 prealloc        = 4096;
-data            = eye(prealloc, 1);
+%data            = eye(prealloc, 1);
 dataLong        = uint16(0);
 dataAcclr       = uint8(0);
 dataTacho       = uint16(0);

@@ -2,12 +2,12 @@
 run('definitions.m');
 
 % Accelerometer Logging
-disp("Filtered Accelerometer Logging [B/s]");
-disp("Version 1.1.1");
+disp("Filtered Accelerometer Logging [B/count]");
+disp("Version 1.1.2");
 
 % Plot configuration
 plotTitle       = 'Accelerometer Plot';
-xLabel          = 'Elapsed Time [s]';
+xLabel          = 'Elapsed Counts';
 yLabel          = 'Byte [B]';
 legend1         = 'Accelerometer Byte Value (ASM Filtered)';
 yMax            =  255;
@@ -16,7 +16,7 @@ plotGrid        = 'on';
 
 % Connect to Bluetooth Module
 fopen(bmodule);
-fprintf('Connection established; starting data logging.');
+fprintf('\nConnection established; starting data logging.\n');
 
 % Set broadcasting mode
 UnitController.setBroadcastMode(broadcastModes.Accelerometer);
@@ -29,27 +29,22 @@ tic
 
 % Log data
 while toc < logDuration
-    
-   dataBytes = fread(bmodule, 1);   
-   data(count*1:1*(count)) = dataBytes(1:1);
-   count = count + 1;
    
-   if toc > (logDuration - 0.5)
-       UnitController.setDutyCycle(0);
+   if (bmodule.BytesAvailable) 
+       dataBytes = fread(bmodule, 1);   
+       data(count) = dataBytes;
+       count = count + 1;
+   end
+   
+   if (toc > (logDuration - bufferDelay)) && stateEnabled
+        UnitController.setDutyCycle(0);
+        UnitController.setBroadcastMode(broadcastModes.Disabled);
    end
    
 end
 
-% Stop broadcasting
-UnitController.setBroadcastMode(broadcastModes.Disabled);
-pause(bufferDelay);
-
-% Empty buffer
-while (bmodule.BytesAvailable)
-   dataBytes = fread(bmodule, 1);   
-   data(count*1:1*(count)) = dataBytes(1:1);
-   count = count + 1;
-end
+% Trim data
+data(count+1:prealloc) = [];
 
 % Calculate elapsed time
 timeWaited = toc;
@@ -57,7 +52,7 @@ timeActual = timeWaited/length(data);
 timeElapsed = 0 + timeActual : timeActual : timeWaited;
 
 % Plot data
-plotGraph = plot(timeElapsed, data, '-');
+plotGraph = plot(data, '-');
 hold on;
 title(plotTitle, 'FontSize', 15);
 xlabel(xLabel, 'FontSize', 15);
@@ -66,7 +61,7 @@ ax = gca;
 ax.XAxisLocation = 'origin';
 ax.YAxisLocation = 'origin';
 legend(legend1);
-axis([0 logDuration yMin yMax]);
+axis([0 length(data) yMin yMax]);
 grid(plotGrid);
 
 % Maximize figure window

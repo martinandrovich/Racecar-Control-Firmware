@@ -3,7 +3,7 @@ run('definitions.m');
 
 % Tachometer Logging
 disp("Tachometer Logging [Ticks/s]");
-disp("Version 1.1.0");
+disp("Version 1.1.1");
 
 % Plot configuration
 plotTitle       = 'Tachometer Plot';
@@ -42,6 +42,9 @@ end
 % Stop vehicle & broadcasting
 UnitController.setDutyCycle(0);
 UnitController.setBroadcastMode(broadcastModes.Disabled);
+
+% Trim data
+data(count+1:prealloc) = [];
 
 % Calculate elapsed time
 timeWaited = toc;
