@@ -1,9 +1,0 @@
-boolTurn = false;
-offsetVal = 10;
-
-for i = 1:length(dataTacho)
-    
-    if i < length(dataTacho) + 10
-    
-    disp(dataAcclr(i));
-end

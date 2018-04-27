@@ -24,7 +24,9 @@ logDistance     = 290;
 logLaps         = 1;
 movingAvgSize   = 32;
 dutyCycle       = 90;
-stateEnabled    = false;
+speedBrake      = 60;
+speedAccelerate = 120;
+offsetVal       = 10;
 bufferDelay     = 0.5;
 
 prealloc        = 4096;
@@ -34,6 +36,8 @@ dataAcclr       = uint8(0);
 dataTacho       = uint16(0);
 count           = 1;
 tachoVal        = 0;
+stateEnabled    = false;
+boolTurn        = false;
 
 fprintf('Definitions OK.\n\n');
 

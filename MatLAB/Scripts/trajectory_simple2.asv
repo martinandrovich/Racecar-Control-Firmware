@@ -2,9 +2,14 @@
 disp("Simple Trajectory Test");
 disp("Version 1.0.0");
 
+% Variables
+boolTurn        = false;
+offsetVal       = 10;
+speedBrake      = 60;
+speedAccelerate = 101;
+
 % Reset variables
 tachoVal        = 0;
-boolTurn        = false;
 
 % Connect to Bluetooth Module
 fopen(bmodule);
@@ -12,17 +17,17 @@ fprintf('\nConnection established; lets go!\n');
 
 % Set broadcasting mode
 UnitController.setBroadcastMode(broadcastModes.Tachometer);
-pause(bufferDelay);
+pause(1);
 
-UnitController.setDutyCycle(speedAccelerate);
 
 while tachoVal < logDistance*logLaps
+    
+    disp(tachoVal);
     
     dataBytes = fread(bmodule, 2);
     tachoVal = bitor(bitshift(dataBytes(1), 8), dataBytes(2));
     
     if (tachoVal + offsetVal) == length(dataTacho)
-        UnitController.setDutyCycle(0);
         break;
     end
     
@@ -43,7 +48,6 @@ end
 % Stop vehicle & broadcasting
 UnitController.setDutyCycle(0);
 UnitController.setBroadcastMode(broadcastModes.Disabled);
-pause(bufferDelay);
 
 % Close connection
 fclose(bmodule);
