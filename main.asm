@@ -53,8 +53,8 @@
 
 	; Moving Average Filter
 	
-	.EQU	MOVAVG_SIZE					= 32									; Size (bytes) of Moving Average Filter
-	.EQU	MOVAVG_DIVS					= 5										; Number of division to perform (2^5 = 32)
+	.EQU	MOVAVG_SIZE					= 128									; Size (bytes) of Moving Average Filter
+	.EQU	MOVAVG_DIVS					= 7										; Number of division to perform (2^5 = 32)
 	.EQU	MOVAVG_TABLE_END			= MOVAVG_TABLE + MOVAVG_SIZE			;
 
 	; Turn Detection Thresholds

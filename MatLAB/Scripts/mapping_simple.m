@@ -14,11 +14,9 @@ yMax            =  255;
 yMin            =  0;
 plotGrid        = 'on';
 
-% Setup Bluetooth Module
-bmodule = Bluetooth('RNBT-E2A9', 1);
+% Connect to Bluetooth Module
 fopen(bmodule);
-
-disp('Connection established; starting data logging.');
+fprintf('Connection established; starting data logging.');
     
 % Set broadcasting mode
 UnitController.setBroadcastMode(broadcastModes.All);

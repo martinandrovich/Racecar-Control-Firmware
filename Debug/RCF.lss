@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.7  C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm Thu Apr 26 21:36:19 2018
+AVRASM ver. 2.2.7  C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm Fri Apr 27 08:28:03 2018
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.150\avrasm\inc\m32def.inc'
 C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(33): Including file 'C:\Users\Martin\Desktop\Racecar-Control-Firmware\ram_table.inc'
@@ -956,8 +956,8 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(34): Including file 'C
                                  
                                  	; Moving Average Filter
                                  	
-                                 	.EQU	MOVAVG_SIZE					= 32									; Size (bytes) of Moving Average Filter
-                                 	.EQU	MOVAVG_DIVS					= 5										; Number of division to perform (2^5 = 32)
+                                 	.EQU	MOVAVG_SIZE					= 128									; Size (bytes) of Moving Average Filter
+                                 	.EQU	MOVAVG_DIVS					= 7										; Number of division to perform (2^5 = 32)
                                  	.EQU	MOVAVG_TABLE_END			= MOVAVG_TABLE + MOVAVG_SIZE			;
                                  
                                  	; Turn Detection Thresholds
@@ -1555,7 +1555,7 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(34): Including file 'C
 000156 9100 0064                 	LDS		TEMP1, ADC_H														; Insert ADC_val from high because of ADLAR
 000158 930d                      	ST		X+, TEMP1															; Save ADC_H to SRAM pointer X
                                  
-000159 32a0                      	CPI		XL, MOVAVG_SIZE														;
+000159 38a0                      	CPI		XL, MOVAVG_SIZE														;
                                  	//CPI		XL, LOW(MOVAVG_TABLE_END)										; Check if Pointer should be reset
 00015a f409                      	BRNE	MOVAVG_SKIP_RESET													; ^
                                  	//CPI		XH, HIGH(MOVAVG_TABLE_END)										; Check if Pointer should be reset
@@ -1581,7 +1581,7 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(34): Including file 'C
                                  
                                  MOVAVG_SRAM_SETUP:
                                  
-000164 e200                      	LDI		TEMP1, MOVAVG_SIZE													; Load size of Moving Average filter into register
+000164 e800                      	LDI		TEMP1, MOVAVG_SIZE													; Load size of Moving Average filter into register
                                  
 000165 93b0 0071                 	STS		MOVAVG_RECENT_XH, XH												; Store location of X pointer into SRAM
 000167 93a0 0072                 	STS		MOVAVG_RECENT_XL, XL												; ^
@@ -1590,7 +1590,7 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(34): Including file 'C
                                  	
 000169 930d                      	ST		X+, TEMP1															; Set all values of SRAM to default value
                                  
-00016a 32a0                      	CPI		XL, LOW(MOVAVG_TABLE_END)											; Check if reached end of table.
+00016a 38a0                      	CPI		XL, LOW(MOVAVG_TABLE_END)											; Check if reached end of table.
 00016b f7e9                      	BRNE	MOVAVG_SRAM_SETUP_LOOP												; ^
                                  	//CPI	XH, HIGH(MOVAVG_TABLE_END)											; Check if reached end of table.
                                  	//BRNE	MOVAVG_SRAM_SETUP_LOOP												; ^
@@ -1618,7 +1618,7 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(34): Including file 'C
                                  
                                  MOVAVG_ADD_SKIP_CARRY:															;skal slettes!
                                  	
-000175 32a0                      	CPI		XL, LOW(MOVAVG_TABLE_END)											; Check if reached end of table.
+000175 38a0                      	CPI		XL, LOW(MOVAVG_TABLE_END)											; Check if reached end of table.
 000176 f7d1                      	BRNE	MOVAVG_ADD_LOOP														; ^
                                  	//CPI		XH, HIGH(MOVAVG_TABLE_END)
                                  	//BRNE	MOVAVG_ADD_LOOP
@@ -1627,7 +1627,7 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(34): Including file 'C
                                  
                                  MOVAVG_DIVIDE:
                                  
-000178 e005                      	LDI		TEMP1, MOVAVG_DIVS													; Load number of Divisions
+000178 e007                      	LDI		TEMP1, MOVAVG_DIVS													; Load number of Divisions
                                  
                                  MOVAVG_DIVIDE_LOOP:
                                  
