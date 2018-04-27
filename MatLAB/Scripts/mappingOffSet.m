@@ -13,7 +13,7 @@ end
 i = 1;
 j = 1;
 k = 2;
-offSetArray = [ 9 , 17 ];
+offSetArray = [ 9 , 10 ];
 
 newPlotAcc = zeros(1,length(accelerometer));
 newPlotTach = zeros(1,length(tachometer));
@@ -21,11 +21,6 @@ newPlotTach = zeros(1,length(tachometer));
 while i < (length(accelerometer) - 1)
     
     if accelerometer(i) ~= accelerometer(i+1)
-        
-        disp(i);
-        disp(accelerometer(i));
-        disp(accelerometer(i+1));
-        disp(accelerometer(i) ~= accelerometer(i+1));
         
         newPlotAcc(k) = accelerometer(i);
         newPlotTach(k) = tachometer(i) - offSetArray(j);
@@ -46,12 +41,12 @@ while i < (length(accelerometer) - 1)
     end
     i = i + 1;
 end
-
-newPlotAcc(k:length(accelerometer)) = [];
-newPlotTach(k:length(tachometer)) = [];
-clf;
-plot(tachometer,accelerometer);
-hold on;
-plot(newPlotTach,newPlotAcc);
+% 
+% newPlotAcc(k:length(accelerometer)) = [];
+% newPlotTach(k:length(tachometer)) = [];
+% clf;
+% plot(tachometer,accelerometer);
+% hold on;
+% plot(newPlotTach,newPlotAcc);
 
 end
