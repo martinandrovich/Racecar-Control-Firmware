@@ -15,9 +15,13 @@ broadcastModes  = struct(...
                     'Accelerometer',    40      ...
                   );           
 
+
+% Circuit 1 OUT = 290
+% Circuit 1 IN  = 266
+
 logDuration     = 10;
 logDistance     = 290;
-logLaps         = 2;
+logLaps         = 1;
 movingAvgSize   = 32;
 dutyCycle       = 90;
 stateEnabled    = false;
