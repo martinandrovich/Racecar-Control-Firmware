@@ -1,6 +1,6 @@
 ; ###################################################################################################################################################
 ; Racecar Control Firmware
-; Version 1.1.1
+; Version 1.1.2
 ; 
 ; Sequential Flag Architecture
 
@@ -38,14 +38,14 @@
 
 	.EQU	BAUDRATE	= 0x00CF												; Baudrate configuration (default = 0xCF)
 
-	.EQU	TMR1FREQ	= 62500 - 1												; Timer1 configuration
+	.EQU	TMR1FREQ	= 976 - 1												; Timer1 configuration
 
 																				; 62500 - 1		= 4Hz
 																				; 31250 - 1		= 8Hz
 																				; 15625 - 1		= 16Hz
 																				;  7812 - 1		= 32Hz
 																				;  1953 - 1		= 128Hz
-																				;   976 - 1		= 256Hz
+																				;   976 - 1		= 256Hz [DEFAULT]
 																				;   488 - 1		= 512Hz
 																				;	244 - 1		= 1024Hz
 																				;	122 - 1		= 2048Hz
@@ -54,7 +54,7 @@
 	; Moving Average Filter
 	
 	.EQU	MOVAVG_SIZE					= 64									; Size (bytes) of Moving Average Filter
-	.EQU	MOVAVG_DIVS					= 6										; Number of division to perform (2^5 = 32)
+	.EQU	MOVAVG_DIVS					= 6										; Number of division to perform (i.e. 2^5 = 32)
 	.EQU	MOVAVG_TABLE_END			= MOVAVG_TABLE + MOVAVG_SIZE			;
 
 	; Turn Detection Thresholds
@@ -123,8 +123,8 @@ INIT:
 	STS		TACHOMETER_H, TEMP1													; ^
 	STS		TACHOMETER_L, TEMP1													; ^
 	STS		TACHOMETER_L_PREV, TEMP1											; ^
-	STS		TACHOMETER_H_SWING, TEMP1											; ^
-	STS		TACHOMETER_L_SWING, TEMP1											; ^
+	STS		TURN_MIN_TACHOMETER_H, TEMP1										; ^
+	STS		TURN_MIN_TACHOMETER_L, TEMP1										; ^
 	STS		ACCELEROMETER, TEMP1												; ^
 	STS		ADC_H, TEMP1														; ^
 	STS		ADC_L, TEMP1														; ^
@@ -422,7 +422,7 @@ BROADCAST_FINISHLINE:															;
 
 	RET																			; Return
 
-BROADCAST_ALL:																	;
+BROADCAST_ALL:
 
 	LDS		TEMP1, TACHOMETER_L													;
 	LDS		TEMP2, TACHOMETER_L_PREV											;
@@ -432,12 +432,12 @@ BROADCAST_ALL:																	;
 
 	RET																			;
 
-BROADCAST_ALL_SEND:																;
+BROADCAST_ALL_SEND:
 
-	STS		TACHOMETER_L_PREV, TEMP1											;
+	STS		TACHOMETER_L_PREV, TEMP1											; Update recent Tachometer (LOW) value
 
-	RCALL	BROADCAST_TACHOMETER												; Broadcast All			= (001)
-	RCALL	BROADCAST_ACCELEROMETER												; ^
+	RCALL	BROADCAST_TACHOMETER												; Broadcast Tachometer
+	RCALL	BROADCAST_ACCELEROMETER												; Broadcast Accelerometer
 
 	RET																			; Return
 
@@ -587,7 +587,7 @@ TELEGRAM_ERROR:
 
 SET_COMMAND_FLG:
 
-	MOV		TEMP1, FNFLG														; Load current Flags Register and set CMDPD bit
+	MOV		TEMP1, FNFLG														; Set CMDPD bit
 	SBR		TEMP1, (1<<CMDPD)													; ^
 	MOV		FNFLG, TEMP1														; ^
 	
@@ -595,7 +595,7 @@ SET_COMMAND_FLG:
 
 CLR_COMMAND_FLG:
 	
-	MOV		TEMP1, FNFLG														; Load current Flags Register and clear CMDPD bit
+	MOV		TEMP1, FNFLG														; Clear CMDPD bit
 	CBR		TEMP1, (1<<CMDPD)													; ^
 	MOV		FNFLG, TEMP1														; ^
 	
@@ -605,7 +605,7 @@ EXECUTE_COMMAND:
 	
 	RCALL	CLR_COMMAND_FLG														; Clear Command Pending Flag
 
-	ICALL																		; Call function of Z-pointer
+	ICALL																		; Call function (address) of Z-pointer
 
 	RET																			; Return
 
@@ -623,10 +623,10 @@ SET_MOTOR_PWM:
 	LDS		TEMP1, RECENT_DAT													; Load recent recieved telegram data from SRAM
 	STS		DUTY_CYCLE, TEMP1													; Store loaded Duty Cycle in SRAM
 
-	TST		TEMP1																; Check if PWM is Zero
+	TST		TEMP1																; Check if recieved Duty Cycle is 0
 	BREQ	SET_MOTOR_MIN														; Stop vehicle if true (or BRAKE)
 
-	OUT		OCR2, TEMP1															; Set Duty Cycle (0-255) on Timer2
+	OUT		OCR2, TEMP1															; Set Duty Cycle (PWM) (0-255) on Timer2
 
 SET_MOTOR_PWM_ESC:
 
@@ -634,7 +634,7 @@ SET_MOTOR_PWM_ESC:
 
 SET_MOTOR_MIN:
 
-	LDI		TEMP1, 0x00															; Disable Timer2
+	LDI		TEMP1, 0x00															; Disable Timer2 (PWM)
 	OUT		TCCR2, TEMP1														; ^
 
 	CBI 	PORTD, PD7															; Clear BIT on PIN7 of PORTD
@@ -756,73 +756,74 @@ TURN_CHECK:
 	// 1 = LEFT, 0 = STRAIGHT, 2 = RIGHT
 	
 	// !#!#!#!
-	// Tachometer should travel a minimum distance before Accelerometer value may be changed again.
+	// Tachometer should travel a minimum distance (delay) after exiting a turn,
+	// before a turn may be detected and Accelerometer value changed again.
 
-	LDS		TEMPWH, TACHOMETER_H												;
-	LDS		TEMPWL, TACHOMETER_L												;
+	LDS		TEMPWH, TACHOMETER_H												; Load current Tachometer value
+	LDS		TEMPWL, TACHOMETER_L												; ^
 
-	LDS		TEMP2, TACHOMETER_H_SWING											;
-	LDS		TEMP3, TACHOMETER_L_SWING											;
+	LDS		TEMP2, TURN_MIN_TACHOMETER_H										; Load Minumum Tachometer Detection value
+	LDS		TEMP3, TURN_MIN_TACHOMETER_L										; ^
 
-	CP		TEMPWL, TEMP3														; 16 bit compare, to check if offset is set
-	CPC		TEMPWH, TEMP2 														;
-	BRLO	TURN_CHECK_ZERO														;
+	CP		TEMPWL, TEMP3														; Comapre to check if delay is reached
+	CPC		TEMPWH, TEMP2 														; ^
+	BRLO	TURN_CHECK_STRAIGHT													; Branch to STRAIGHT if not
 
-	LDS		TEMP1, ACCELEROMETER												;
+	LDS		TEMP1, ACCELEROMETER												; Load Accelerometer value
 
-	CPI		TEMP1, TURN_THRESHOLD_RIGHT											; check swing right
-	BRLO	TURN_CHECK_RIGHT
+	CPI		TEMP1, TURN_THRESHOLD_RIGHT											; Check Right Turn
+	BRLO	TURN_CHECK_RIGHT													; ^
 
-	CPI		TEMP1, TURN_THRESHOLD_LEFT											; check swing left
-	BRSH	TURN_CHECK_LEFT														;
+	CPI		TEMP1, TURN_THRESHOLD_LEFT											; Check Left Turn
+	BRSH	TURN_CHECK_LEFT														; ^
 
-	SBRC	FNFLG, INTURN														; check if Inturn is set, if set it jumps to offset til next swing
-	RCALL	TURN_CHECK_SETCOUNTER												; inturn is set in swing detection
+	SBRC	FNFLG, INTURN														; If no turns detected, check if INTURN is SET
+	RCALL	TURN_CHECK_SETDELAY													; Update Minumum Tachometer Detection value if turn has recently been exited
 
-	MOV		TEMP1, FNFLG														; Load current Flags Register and clear TURNIN bit
+	MOV		TEMP1, FNFLG														; Clear TURNIN bit
 	CBR		TEMP1, (1<<INTURN)													; ^
 	MOV		FNFLG, TEMP1														; ^
 
-TURN_CHECK_ZERO:
+TURN_CHECK_STRAIGHT:
 
-	CLR		TEMP1																;
-	STS		ACCELEROMETER, TEMP1												;
+	CLR		TEMP1																; Set Accelerometer value to 0 (STRAIGHT)
+	STS		ACCELEROMETER, TEMP1												; ^
 
-	RET
+	RET																			; Return
  
 TURN_CHECK_RIGHT:
 
-	LDI		TEMP1, 2															;
-	STS		ACCELEROMETER, TEMP1												;
+	LDI		TEMP1, 2															; Set Accelerometer value to 2 (RIGHT)
+	STS		ACCELEROMETER, TEMP1												; ^
 
-	MOV		TEMP1, FNFLG														; Load current Flags Register and clear TURNIN bit
+	MOV		TEMP1, FNFLG														; Set TURNIN bit
 	SBR		TEMP1, (1<<INTURN)													; ^
 	MOV		FNFLG, TEMP1														; ^
 
-	RET																			;
+	RET																			; Return
 
 TURN_CHECK_LEFT:
 
-	LDI		TEMP1, 1															;
+	LDI		TEMP1, 1															; Set Accelerometer value to 2 (LEFT)
 	STS		ACCELEROMETER, TEMP1												;
 
-	MOV		TEMP1, FNFLG														; Load current Flags Register and clear TURNIN bit
+	MOV		TEMP1, FNFLG														; Set TURNIN bit
 	SBR		TEMP1, (1<<INTURN)													; ^
 	MOV		FNFLG, TEMP1														; ^
 
-	RET																			
+	RET																			; Return																			
 
-TURN_CHECK_SETCOUNTER:
+TURN_CHECK_SETDELAY:
 
-	LDS		TEMPWH, TACHOMETER_H												; Load the OFFSET before swing can be detected again
-	LDS		TEMPWL, TACHOMETER_L												;
+	LDS		TEMPWH, TACHOMETER_H												; Load current Tachometer value
+	LDS		TEMPWL, TACHOMETER_L												; ^
 	
-	ADIW	TEMPWH:TEMPWL, TURN_THRESHOLD_DELAY									; ADD constant value to Offset
+	ADIW	TEMPWH:TEMPWL, TURN_THRESHOLD_DELAY									; Update Minumum Tachometer Detection value (current Tachometer + constant)
 
-	STS		TACHOMETER_H_SWING, TEMPWH											; Save values
-	STS		TACHOMETER_L_SWING, TEMPWL											;
+	STS		TURN_MIN_TACHOMETER_H, TEMPWH										; Store values to SRAM
+	STS		TURN_MIN_TACHOMETER_L, TEMPWL										; ^
 
-	RET
+	RET																			; Return
 
 ; ____________________________________________________________________________________________________________________________________________________
 ; >> CONTROL UNIT

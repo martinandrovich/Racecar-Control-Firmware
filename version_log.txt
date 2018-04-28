@@ -30,6 +30,13 @@
 - Modified:		Flag Loading Method (no clearing)
 - Added:		Moving Average Filter
 - Added:		Accelerometer Logging (Filtered)
+- Fixed:		TIMER Bug (overloaded loop)
 
-# 1.1.2  <<
-- Added:		Sving Detection Prototype
+# 1.1.2
+- Added:		Sving Detection Prototype + Debounce
+- Modified:		Broadcast ALL (Tacho + Acclr) only transmits new Tachometer values
+- Added:		Finishline Interrupt (INT1, PD3)
+- Added:		Finishline Broadcast Test
+
+# 1.1.3  <<
+

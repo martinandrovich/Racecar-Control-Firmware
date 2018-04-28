@@ -1,12 +1,12 @@
 
-AVRASM ver. 2.2.7  C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm Sat Apr 28 00:11:00 2018
+AVRASM ver. 2.2.7  C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm Sat Apr 28 13:16:12 2018
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.150\avrasm\inc\m32def.inc'
-C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(33): Including file 'C:\Users\Martin\Desktop\Racecar-Control-Firmware\ram_table.inc'
-C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(34): Including file 'C:\Users\Martin\Desktop\Racecar-Control-Firmware\command_table.inc'
+C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm(33): Including file 'C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\ram_table.inc'
+C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm(34): Including file 'C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\command_table.inc'
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.150\avrasm\inc\m32def.inc'
-C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(33): Including file 'C:\Users\Martin\Desktop\Racecar-Control-Firmware\ram_table.inc'
-C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(34): Including file 'C:\Users\Martin\Desktop\Racecar-Control-Firmware\command_table.inc'
+C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm(33): Including file 'C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\ram_table.inc'
+C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main.asm(34): Including file 'C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\command_table.inc'
                                  
                                  ; ###################################################################################################################################################
                                  
@@ -825,7 +825,7 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(34): Including file 'C
                                  
                                  
                                  ; Racecar Control Firmware
-                                 ; Version 1.1.1
+                                 ; Version 1.1.2
                                  ; 
                                  ; Sequential Flag Architecture
                                  
@@ -891,8 +891,8 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(34): Including file 'C
                                  
                                  .EQU	ACCELEROMETER					= 0x0073
                                  
-                                 .EQU	TACHOMETER_H_SWING				= 0x0074
-                                 .EQU	TACHOMETER_L_SWING				= 0x0075
+                                 .EQU	TURN_MIN_TACHOMETER_H			= 0x0074
+                                 .EQU	TURN_MIN_TACHOMETER_L			= 0x0075
                                  
                                  .EQU	TACHOMETER_L_PREV				= 0x0076
                                  
@@ -941,14 +941,14 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(34): Including file 'C
                                  
                                  	.EQU	BAUDRATE	= 0x00CF												; Baudrate configuration (default = 0xCF)
                                  
-                                 	.EQU	TMR1FREQ	= 62500 - 1												; Timer1 configuration
+                                 	.EQU	TMR1FREQ	= 976 - 1												; Timer1 configuration
                                  
                                  																				; 62500 - 1		= 4Hz
                                  																				; 31250 - 1		= 8Hz
                                  																				; 15625 - 1		= 16Hz
                                  																				;  7812 - 1		= 32Hz
                                  																				;  1953 - 1		= 128Hz
-                                 																				;   976 - 1		= 256Hz
+                                 																				;   976 - 1		= 256Hz [DEFAULT]
                                  																				;   488 - 1		= 512Hz
                                  																				;	244 - 1		= 1024Hz
                                  																				;	122 - 1		= 2048Hz
@@ -957,7 +957,7 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(34): Including file 'C
                                  	; Moving Average Filter
                                  	
                                  	.EQU	MOVAVG_SIZE					= 64									; Size (bytes) of Moving Average Filter
-                                 	.EQU	MOVAVG_DIVS					= 6										; Number of division to perform (2^5 = 32)
+                                 	.EQU	MOVAVG_DIVS					= 6										; Number of division to perform (i.e. 2^5 = 32)
                                  	.EQU	MOVAVG_TABLE_END			= MOVAVG_TABLE + MOVAVG_SIZE			;
                                  
                                  	; Turn Detection Thresholds
@@ -1026,8 +1026,8 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(34): Including file 'C
 000049 9300 0060                 	STS		TACHOMETER_H, TEMP1													; ^
 00004b 9300 0061                 	STS		TACHOMETER_L, TEMP1													; ^
 00004d 9300 0076                 	STS		TACHOMETER_L_PREV, TEMP1											; ^
-00004f 9300 0074                 	STS		TACHOMETER_H_SWING, TEMP1											; ^
-000051 9300 0075                 	STS		TACHOMETER_L_SWING, TEMP1											; ^
+00004f 9300 0074                 	STS		TURN_MIN_TACHOMETER_H, TEMP1										; ^
+000051 9300 0075                 	STS		TURN_MIN_TACHOMETER_L, TEMP1										; ^
 000053 9300 0073                 	STS		ACCELEROMETER, TEMP1												; ^
 000055 9300 0064                 	STS		ADC_H, TEMP1														; ^
 000057 9300 0065                 	STS		ADC_L, TEMP1														; ^
@@ -1089,9 +1089,9 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(34): Including file 'C
 00007a e00b                      	LDI		TEMP1, (1<<CS11)|(1<<CS10)|(1<<WGM12)								; Set 64 Prescelar, CTC-MODE
 00007b bd0e                      	OUT		TCCR1B, TEMP1														; ^
                                  
-00007c ef04                      	LDI		TEMP1, HIGH(TMR1FREQ)												; Set timer offset
+00007c e003                      	LDI		TEMP1, HIGH(TMR1FREQ)												; Set timer offset
 00007d bd0b                      	OUT		OCR1AH, TEMP1														; ^
-00007e e203                      	LDI		TEMP1,  LOW(TMR1FREQ)												; ^
+00007e ec0f                      	LDI		TEMP1,  LOW(TMR1FREQ)												; ^
 00007f bd0a                      	OUT		OCR1AL, TEMP1														; ^
                                  
 000080 e004                      	LDI		TEMP1, (1<<TOV1)													; Enable Timer1
@@ -1325,7 +1325,7 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(34): Including file 'C
                                  
 0000ee 9508                      	RET																			; Return
                                  
-                                 BROADCAST_ALL:																	;
+                                 BROADCAST_ALL:
                                  
 0000ef 9100 0061                 	LDS		TEMP1, TACHOMETER_L													;
 0000f1 9110 0076                 	LDS		TEMP2, TACHOMETER_L_PREV											;
@@ -1335,12 +1335,12 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(34): Including file 'C
                                  
 0000f5 9508                      	RET																			;
                                  
-                                 BROADCAST_ALL_SEND:																;
+                                 BROADCAST_ALL_SEND:
                                  
-0000f6 9300 0076                 	STS		TACHOMETER_L_PREV, TEMP1											;
+0000f6 9300 0076                 	STS		TACHOMETER_L_PREV, TEMP1											; Update recent Tachometer (LOW) value
                                  
-0000f8 dfe3                      	RCALL	BROADCAST_TACHOMETER												; Broadcast All			= (001)
-0000f9 dfeb                      	RCALL	BROADCAST_ACCELEROMETER												; ^
+0000f8 dfe3                      	RCALL	BROADCAST_TACHOMETER												; Broadcast Tachometer
+0000f9 dfeb                      	RCALL	BROADCAST_ACCELEROMETER												; Broadcast Accelerometer
                                  
 0000fa 9508                      	RET																			; Return
                                  
@@ -1490,7 +1490,7 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(34): Including file 'C
                                  
                                  SET_COMMAND_FLG:
                                  
-000143 2d01                      	MOV		TEMP1, FNFLG														; Load current Flags Register and set CMDPD bit
+000143 2d01                      	MOV		TEMP1, FNFLG														; Set CMDPD bit
 000144 6008                      	SBR		TEMP1, (1<<CMDPD)													; ^
 000145 2e10                      	MOV		FNFLG, TEMP1														; ^
                                  	
@@ -1498,7 +1498,7 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(34): Including file 'C
                                  
                                  CLR_COMMAND_FLG:
                                  	
-000147 2d01                      	MOV		TEMP1, FNFLG														; Load current Flags Register and clear CMDPD bit
+000147 2d01                      	MOV		TEMP1, FNFLG														; Clear CMDPD bit
 000148 7f07                      	CBR		TEMP1, (1<<CMDPD)													; ^
 000149 2e10                      	MOV		FNFLG, TEMP1														; ^
                                  	
@@ -1508,7 +1508,7 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(34): Including file 'C
                                  	
 00014b dffb                      	RCALL	CLR_COMMAND_FLG														; Clear Command Pending Flag
                                  
-00014c 9509                      	ICALL																		; Call function of Z-pointer
+00014c 9509                      	ICALL																		; Call function (address) of Z-pointer
                                  
 00014d 9508                      	RET																			; Return
                                  
@@ -1526,10 +1526,10 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(34): Including file 'C
 000150 9100 0068                 	LDS		TEMP1, RECENT_DAT													; Load recent recieved telegram data from SRAM
 000152 9300 006d                 	STS		DUTY_CYCLE, TEMP1													; Store loaded Duty Cycle in SRAM
                                  
-000154 2300                      	TST		TEMP1																; Check if PWM is Zero
+000154 2300                      	TST		TEMP1																; Check if recieved Duty Cycle is 0
 000155 f011                      	BREQ	SET_MOTOR_MIN														; Stop vehicle if true (or BRAKE)
                                  
-000156 bd03                      	OUT		OCR2, TEMP1															; Set Duty Cycle (0-255) on Timer2
+000156 bd03                      	OUT		OCR2, TEMP1															; Set Duty Cycle (PWM) (0-255) on Timer2
                                  
                                  SET_MOTOR_PWM_ESC:
                                  
@@ -1537,7 +1537,7 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(34): Including file 'C
                                  
                                  SET_MOTOR_MIN:
                                  
-000158 e000                      	LDI		TEMP1, 0x00															; Disable Timer2
+000158 e000                      	LDI		TEMP1, 0x00															; Disable Timer2 (PWM)
 000159 bd05                      	OUT		TCCR2, TEMP1														; ^
                                  
 00015a 9897                      	CBI 	PORTD, PD7															; Clear BIT on PIN7 of PORTD
@@ -1659,73 +1659,74 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(34): Including file 'C
                                  	// 1 = LEFT, 0 = STRAIGHT, 2 = RIGHT
                                  	
                                  	// !#!#!#!
-                                 	// Tachometer should travel a minimum distance before Accelerometer value may be changed again.
+                                 	// Tachometer should travel a minimum distance (delay) after exiting a turn,
+                                 	// before a turn may be detected and Accelerometer value changed again.
                                  
-00018d 9190 0060                 	LDS		TEMPWH, TACHOMETER_H												;
-00018f 9180 0061                 	LDS		TEMPWL, TACHOMETER_L												;
+00018d 9190 0060                 	LDS		TEMPWH, TACHOMETER_H												; Load current Tachometer value
+00018f 9180 0061                 	LDS		TEMPWL, TACHOMETER_L												; ^
                                  
-000191 9110 0074                 	LDS		TEMP2, TACHOMETER_H_SWING											;
-000193 9120 0075                 	LDS		TEMP3, TACHOMETER_L_SWING											;
+000191 9110 0074                 	LDS		TEMP2, TURN_MIN_TACHOMETER_H										; Load Minumum Tachometer Detection value
+000193 9120 0075                 	LDS		TEMP3, TURN_MIN_TACHOMETER_L										; ^
                                  
-000195 1782                      	CP		TEMPWL, TEMP3														; 16 bit compare, to check if offset is set
-000196 0791                      	CPC		TEMPWH, TEMP2 														;
-000197 f058                      	BRLO	TURN_CHECK_ZERO														;
+000195 1782                      	CP		TEMPWL, TEMP3														; Comapre to check if delay is reached
+000196 0791                      	CPC		TEMPWH, TEMP2 														; ^
+000197 f058                      	BRLO	TURN_CHECK_STRAIGHT													; Branch to STRAIGHT if not
                                  
-000198 9100 0073                 	LDS		TEMP1, ACCELEROMETER												;
+000198 9100 0073                 	LDS		TEMP1, ACCELEROMETER												; Load Accelerometer value
                                  
-00019a 3703                      	CPI		TEMP1, TURN_THRESHOLD_RIGHT											; check swing right
-00019b f058                      	BRLO	TURN_CHECK_RIGHT
+00019a 3703                      	CPI		TEMP1, TURN_THRESHOLD_RIGHT											; Check Right Turn
+00019b f058                      	BRLO	TURN_CHECK_RIGHT													; ^
                                  
-00019c 370a                      	CPI		TEMP1, TURN_THRESHOLD_LEFT											; check swing left
-00019d f480                      	BRSH	TURN_CHECK_LEFT														;
+00019c 370a                      	CPI		TEMP1, TURN_THRESHOLD_LEFT											; Check Left Turn
+00019d f480                      	BRSH	TURN_CHECK_LEFT														; ^
                                  
-00019e fc12                      	SBRC	FNFLG, INTURN														; check if Inturn is set, if set it jumps to offset til next swing
-00019f d015                      	RCALL	TURN_CHECK_SETCOUNTER												; inturn is set in swing detection
+00019e fc12                      	SBRC	FNFLG, INTURN														; If no turns detected, check if INTURN is SET
+00019f d015                      	RCALL	TURN_CHECK_SETDELAY													; Update Minumum Tachometer Detection value if turn has recently been exited
                                  
-0001a0 2d01                      	MOV		TEMP1, FNFLG														; Load current Flags Register and clear TURNIN bit
+0001a0 2d01                      	MOV		TEMP1, FNFLG														; Clear TURNIN bit
 0001a1 7f0b                      	CBR		TEMP1, (1<<INTURN)													; ^
 0001a2 2e10                      	MOV		FNFLG, TEMP1														; ^
                                  
-                                 TURN_CHECK_ZERO:
+                                 TURN_CHECK_STRAIGHT:
                                  
-0001a3 2700                      	CLR		TEMP1																;
-0001a4 9300 0073                 	STS		ACCELEROMETER, TEMP1												;
+0001a3 2700                      	CLR		TEMP1																; Set Accelerometer value to 0 (STRAIGHT)
+0001a4 9300 0073                 	STS		ACCELEROMETER, TEMP1												; ^
                                  
-0001a6 9508                      	RET
+0001a6 9508                      	RET																			; Return
                                   
                                  TURN_CHECK_RIGHT:
                                  
-0001a7 e002                      	LDI		TEMP1, 2															;
-0001a8 9300 0073                 	STS		ACCELEROMETER, TEMP1												;
+0001a7 e002                      	LDI		TEMP1, 2															; Set Accelerometer value to 2 (RIGHT)
+0001a8 9300 0073                 	STS		ACCELEROMETER, TEMP1												; ^
                                  
-0001aa 2d01                      	MOV		TEMP1, FNFLG														; Load current Flags Register and clear TURNIN bit
+0001aa 2d01                      	MOV		TEMP1, FNFLG														; Set TURNIN bit
 0001ab 6004                      	SBR		TEMP1, (1<<INTURN)													; ^
 0001ac 2e10                      	MOV		FNFLG, TEMP1														; ^
                                  
-0001ad 9508                      	RET																			;
+0001ad 9508                      	RET																			; Return
                                  
                                  TURN_CHECK_LEFT:
                                  
-0001ae e001                      	LDI		TEMP1, 1															;
+0001ae e001                      	LDI		TEMP1, 1															; Set Accelerometer value to 2 (LEFT)
 0001af 9300 0073                 	STS		ACCELEROMETER, TEMP1												;
                                  
-0001b1 2d01                      	MOV		TEMP1, FNFLG														; Load current Flags Register and clear TURNIN bit
+0001b1 2d01                      	MOV		TEMP1, FNFLG														; Set TURNIN bit
 0001b2 6004                      	SBR		TEMP1, (1<<INTURN)													; ^
 0001b3 2e10                      	MOV		FNFLG, TEMP1														; ^
                                  
-0001b4 9508                      	RET																			
+0001b4 9508                      	RET																			; Return																			
                                  
-                                 TURN_CHECK_SETCOUNTER:
+                                 TURN_CHECK_SETDELAY:
                                  
-0001b5 9190 0060                 	LDS		TEMPWH, TACHOMETER_H												; Load the OFFSET before swing can be detected again
-0001b7 9180 0061                 	LDS		TEMPWL, TACHOMETER_L												;
+0001b5 9190 0060                 	LDS		TEMPWH, TACHOMETER_H												; Load current Tachometer value
+0001b7 9180 0061                 	LDS		TEMPWL, TACHOMETER_L												; ^
                                  	
-0001b9 960a                      	ADIW	TEMPWH:TEMPWL, TURN_THRESHOLD_DELAY									; ADD constant value to Offset
+0001b9 960a                      	ADIW	TEMPWH:TEMPWL, TURN_THRESHOLD_DELAY									; Update Minumum Tachometer Detection value (current Tachometer + constant)
                                  
-0001ba 9390 0074                 	STS		TACHOMETER_H_SWING, TEMPWH											; Save values
-0001bc 9380 0075                 	STS		TACHOMETER_L_SWING, TEMPWL											;
+0001ba 9390 0074                 	STS		TURN_MIN_TACHOMETER_H, TEMPWH										; Store values to SRAM
+0001bc 9380 0075                 	STS		TURN_MIN_TACHOMETER_L, TEMPWL										; ^
                                  
-0001be 9508                      	RET
+0001be 9508                      	RET																			; Return
                                  
                                  ; ____________________________________________________________________________________________________________________________________________________
                                  ; >> CONTROL UNIT
