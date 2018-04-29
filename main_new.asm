@@ -249,19 +249,19 @@ MAIN:
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > FUNCTIONS
 	
-	SBRC	FNFLG, TACHO														; Tachometer Ready
-	CALL	LOG_TACHOMETER														; ^
-
-	SBRC	FNFLG, FNLNE														; Finishline Ready
-	CALL	LOG_FINISHLINE														; ^
-
-	SBRC	FNFLG, ACCLR														; Accelerometer Ready
-	CALL	LOG_ACCELEROMETER													; ^
-
 	CALL	TELEGRAM_CHECK														; Check for Telegrams
 
 	SBRC	FNFLG, CMDPD														; Command Pending
 	CALL	EXECUTE_COMMAND														; ^
+	
+	SBRC	FNFLG, TACHO														; Tachometer Ready
+	CALL	LOG_TACHOMETER														; ^
+
+	;SBRC	FNFLG, FNLNE														; Finishline Ready
+	;CALL	LOG_FINISHLINE														; ^
+
+	SBRC	FNFLG, ACCLR														; Accelerometer Ready
+	CALL	LOG_ACCELEROMETER													; ^
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > MODES
@@ -312,7 +312,7 @@ LOG_TACHOMETER:
 ;  > FINISH LINE
 
 LOG_FINISHLINE:
-
+	
 	LDS		TEMP1, FINISHLINE													; Test purposes, send how many time it detects finishline
 
 	INC		TEMP1																;
@@ -364,6 +364,8 @@ MAPPING:
 	SBRC	FNFLG, FNLNE														; Check FNLNE flag
 	RJMP	MAPPING_ISMAP_CHECK													; If SET then check ISMAP
 
+	// CURRENT FUCK UP FLACE
+
 	SBRC	MTFLG, ISMAP														; Check ISMAP flag
 	RJMP	MAPPING_CHECK_DEBOUNCE												; If SET then continue mapping
 
@@ -381,12 +383,11 @@ MAPPING_ISMAP_CHECK:
 	MOV		FNFLG, TEMP1														; ^
 	
 	SBRC	MTFLG, ISMAP														; Check ISMAP flag
-	RCALL	MAPPING_END															; If SET then end mapping
+	RJMP	MAPPING_END															; If SET then end mapping
 
 	SBRS	MTFLG, ISMAP														; Check ISMAP flag
-	RCALL	MAPPING_BEGIN														; If CLR then begin mapping
+	RJMP	MAPPING_BEGIN														; If CLR then begin mapping
 
-	RET																			; Return
 	
 MAPPING_BEGIN:
 	
@@ -413,9 +414,11 @@ MAPPING_END:
 
 	CALL	TEST45
 	
-	MOV		TEMP1, MDFLG														; CLR MAP Flag
+	MOV		TEMP1, MDFLG														; Clear MAP flag in MDFLG
 	CBR		TEMP1, (1<<MAP)														; ^
 	MOV		MDFLG, TEMP1														; ^
+
+	STS		MODE_FLG, MDFLG														; Store new mode flags to SRAM
 
 	MOV		TEMP1, MTFLG														; CLR ISMAP Flag
 	CBR		TEMP1, (1<<ISMAP)													; ^
@@ -770,7 +773,7 @@ BROADCAST_SET:
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 MAPPING_SET:
-
+	
 	MOV		TEMP1, MDFLG														; Set MAP flag in MDFLG
 	SBR		TEMP1, (1<<MAP)														; ^
 	MOV		MDFLG, TEMP1														; ^
