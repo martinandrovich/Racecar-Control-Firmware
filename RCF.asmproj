@@ -15,7 +15,7 @@
     <Name>RCF</Name>
     <RootNamespace>RCF</RootNamespace>
     <ToolchainFlavour>Native</ToolchainFlavour>
-    <EntryFile>$(MSBuildProjectDirectory)\main.asm</EntryFile>
+    <EntryFile>$(MSBuildProjectDirectory)\main_new.asm</EntryFile>
     <KeepTimersRunning>true</KeepTimersRunning>
     <OverrideVtor>false</OverrideVtor>
     <CacheFlash>true</CacheFlash>
@@ -105,6 +105,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="main.asm">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="main_new.asm">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="ram_table.inc">

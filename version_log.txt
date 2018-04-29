@@ -39,4 +39,6 @@
 - Added:		Finishline Broadcast Test
 
 # 1.1.3  <<
+- Removed:		Sving Detection Prototype
+- Added:		Mapping
 
