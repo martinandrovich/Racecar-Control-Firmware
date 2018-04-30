@@ -38,7 +38,7 @@
 
 	.EQU	BAUDRATE	= 0x00CF												; Baudrate configuration (default = 0xCF)
 
-	.EQU	TMR1FREQ	= 62500 - 1												; Timer1 configuration
+	.EQU	TMR1FREQ	= 976 - 1												; Timer1 configuration
 
 																				; 62500 - 1		= 4Hz
 																				; 31250 - 1		= 8Hz
@@ -149,17 +149,6 @@ INIT:
 	CALL	MOVAVG_POINTER_RESET												; Reset Moving Average pointer
 	CALL	MOVAVG_SRAM_SETUP													; Initialize allocated Moving Average SRAM to default
 
-	; Mapping SRAM Initialization TEST
-
-	LDI		TEMP1, 0x01
-	STS		MAPP, TEMP1
-
-	LDI		TEMP1, 0x02
-	STS		MAPP+1, TEMP1
-
-	LDI		TEMP1, 0xFF
-	STS		MAPP+2, TEMP1
-
 	; Flags Initialization
 
 	CLR		MDFLG																; Clear Flag Registers
@@ -257,8 +246,8 @@ MAIN:
 	SBRC	FNFLG, TACHO														; Tachometer Ready
 	CALL	LOG_TACHOMETER														; ^
 
-	;SBRC	FNFLG, FNLNE														; Finishline Ready
-	;CALL	LOG_FINISHLINE														; ^
+	SBRC	FNFLG, FNLNE														; Finishline Ready
+	CALL	LOG_FINISHLINE														; ^
 
 	SBRC	FNFLG, ACCLR														; Accelerometer Ready
 	CALL	LOG_ACCELEROMETER													; ^
@@ -364,8 +353,6 @@ MAPPING:
 	SBRC	FNFLG, FNLNE														; Check FNLNE flag
 	RJMP	MAPPING_ISMAP_CHECK													; If SET then check ISMAP
 
-	// CURRENT FUCK UP FLACE
-
 	SBRC	MTFLG, ISMAP														; Check ISMAP flag
 	RJMP	MAPPING_CHECK_DEBOUNCE												; If SET then continue mapping
 
@@ -375,8 +362,6 @@ MAPPING_ISMAP_CHECK:
 
 	// If  ISMAP -> CLR ISMAP(MTFLG) && CLR MAP(MDFLG)							= End Mapping
 	// If ~ISMAP -> SET ISMAP													= Begin Mapping
-	
-	CALL	TEST35
 	
 	MOV		TEMP1, FNFLG														; Clear Finishline Flag
 	CBR		TEMP1, (1<<FNLNE)													; ^
@@ -390,8 +375,6 @@ MAPPING_ISMAP_CHECK:
 
 	
 MAPPING_BEGIN:
-	
-	CALL	TEST40
 	
 	MOV		TEMP1, MTFLG														; SET ISMAP Flag
 	SBR		TEMP1, (1<<ISMAP)													; ^
@@ -411,8 +394,6 @@ MAPPING_BEGIN:
 	RET																			; Return
 
 MAPPING_END:
-
-	CALL	TEST45
 	
 	MOV		TEMP1, MDFLG														; Clear MAP flag in MDFLG
 	CBR		TEMP1, (1<<MAP)														; ^
@@ -459,7 +440,7 @@ MAPPING_RESET_DEBOUNCE:
 
 MAPPING_CHECK_TURN:
 
-	LDS		TEMP1, ACCELEROMETER												; Load Accelerometer value
+	LDS		TEMP2, ACCELEROMETER												; Load Accelerometer value
 
 	SBRC	MTFLG, INTURN														; Check INTURN flag
 	RJMP	MAPPING_CHECK_TURN_OUT												; If SET then check if a turn has been exited
@@ -473,7 +454,7 @@ MAPPING_CHECK_TURN_IN:
 	SBR		TEMP1, (1<<TURNDIR)													; ^
 	MOV		MTFLG, TEMP1														; ^
 
-	CPI		TEMP1, TURN_TH_IN_RIGHT												; Check Right Turn In
+	CPI		TEMP2, TURN_TH_IN_RIGHT												; Check Right Turn In
 	BRLO	MAPPING_ADD															; Create mapping entry if true
 
 	; Check Left Turn
@@ -482,7 +463,7 @@ MAPPING_CHECK_TURN_IN:
 	CBR		TEMP1, (1<<TURNDIR)													; ^
 	MOV		MTFLG, TEMP1														; ^
 
-	CPI		TEMP1, TURN_TH_IN_LEFT												; Check Left Turn In
+	CPI		TEMP2, TURN_TH_IN_LEFT												; Check Left Turn In
 	BRSH	MAPPING_ADD															; Create mapping entry if true
 
 	RJMP	MAPPING_ESC															; Return
@@ -490,21 +471,19 @@ MAPPING_CHECK_TURN_IN:
 MAPPING_CHECK_TURN_OUT:
 
 	SBRC	MTFLG, TURNDIR														; Check TURNDIR flag
-	RCALL	MAPPING_CHECK_TURN_OUT_RIGHT										; If SET then check RIGHT turn out
-	RCALL	MAPPING_CHECK_TURN_OUT_LEFT											; If CLR then check LEFT turn out
-
-	RJMP	MAPPING_ESC															; Return
+	RJMP	MAPPING_CHECK_TURN_OUT_RIGHT										; If SET then check RIGHT turn out
+	RJMP	MAPPING_CHECK_TURN_OUT_LEFT											; If CLR then check LEFT turn out
 
 MAPPING_CHECK_TURN_OUT_RIGHT:
 
-	CPI		TEMP1, TURN_TH_OUT_RIGHT											; Check Right Turn Out
+	CPI		TEMP2, TURN_TH_OUT_RIGHT											; Check Right Turn Out
 	BRSH	MAPPING_ADD															; Create mapping entry if true
 
 	RET
 
 MAPPING_CHECK_TURN_OUT_LEFT:
 
-	CPI		TEMP1, TURN_TH_OUT_LEFT												; Check Left Turn Out
+	CPI		TEMP2, TURN_TH_OUT_LEFT												; Check Left Turn Out
 	BRLO	MAPPING_ADD															; Create mapping entry if true
 
 	RET																			; Return
@@ -514,7 +493,7 @@ MAPPING_ADD:
 	MOV		TEMP1, MTFLG														; Toggle INTURN flag
 	LDI		TEMP2, (1<<INTURN)													; ^
 	EOR		TEMP1, TEMP2														; ^
-	MOV		FNFLG, TEMP1														; ^
+	MOV		MTFLG, TEMP1														; ^
 
 	LDS		TEMP2, TACHOMETER_H													; Load current Tachometer values
 	LDS		TEMP3, TACHOMETER_L													; ^

@@ -24,7 +24,7 @@
 - Added:		Communication Protocol
 - Added:		Tachometer Logging
 - Added:		Accelerometer Logging (Raw)
-- Addded:		Broadcast Mode
+- Added:		Broadcast Mode
 
 # 1.1.1
 - Modified:		Flag Loading Method (no clearing)
@@ -40,5 +40,5 @@
 
 # 1.1.3  <<
 - Removed:		Sving Detection Prototype
-- Added:		Mapping
+- Added:		Mapping + enableMapping() command
 
