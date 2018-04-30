@@ -57,10 +57,7 @@
 	.EQU	MOVAVG_DIVS					= 6										; Number of division to perform (i.e. 2^5 = 32)
 	.EQU	MOVAVG_TABLE_END			= MOVAVG_TABLE + MOVAVG_SIZE			;
 
-	; Turn Detection Thresholds
-
-	.EQU	TURN_THRESHOLD_RIGHT		= 115
-	.EQU	TURN_THRESHOLD_LEFT			= 122
+	; Mapping & Turn Detection Thresholds
 
 	.EQU	TURN_TH_IN_LEFT				= 122
 	.EQU	TURN_TH_IN_RIGHT			= 122
@@ -124,10 +121,10 @@ INIT:
 
 	; Stack Pointer
 
-	LDI 	TEMP1, HIGH(RAMEND)
-	OUT 	SPH, TEMP1
-	LDI 	TEMP1,  LOW(RAMEND)
-	OUT 	SPL, TEMP1
+	LDI 	TEMP1, HIGH(RAMEND)													; Initialize Stack Pointer
+	OUT 	SPH, TEMP1															; ^
+	LDI 	TEMP1,  LOW(RAMEND)													; ^
+	OUT 	SPL, TEMP1															; ^
 
 	; SRAM Initialization
 
@@ -551,12 +548,10 @@ BROADCAST_ACCELEROMETER:
 
 	RET																			; Return
 
-BROADCAST_FINISHLINE:															;
-
-	// A bit retarded.
+BROADCAST_FINISHLINE:
 	
-	LDS		TXREG, FINISHLINE													;
-	CALL	SERIAL_WRITE														;
+	LDS		TXREG, FINISHLINE													; Load & transmit Finishline data
+	CALL	SERIAL_WRITE														; ^
 
 	RET																			; Return
 
@@ -678,7 +673,9 @@ TELEGRAM_EXECUTE:
 
 	STS		RECENT_DAT, RXREG													; Store recieved data in SRAM
 
-	RCALL	SET_COMMAND_FLG														; Set command pending flag
+	MOV		TEMP1, FNFLG														; Set CMDPD flag
+	SBR		TEMP1, (1<<CMDPD)													; ^
+	MOV		FNFLG, TEMP1														; ^
 
 TELEGRAM_RESET:
 	
@@ -699,7 +696,10 @@ TELEGRAM_ERROR:
 
 	CLR		RXREG																; Clear reception register
 
-	RCALL	CLR_COMMAND_FLG														; Clear command pending flag
+	MOV		TEMP1, FNFLG														; Clear CMDPD flag
+	CBR		TEMP1, (1<<CMDPD)													; ^
+	MOV		FNFLG, TEMP1														; ^
+
 	RCALL	TELEGRAM_RESET														; Reset parse step counter
 	RCALL	TELEGRAM_CLRBUFFER													; Clear reception buffer
 	
@@ -708,25 +708,11 @@ TELEGRAM_ERROR:
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > COMMANDS
 
-SET_COMMAND_FLG:
-
-	MOV		TEMP1, FNFLG														; Set CMDPD flag
-	SBR		TEMP1, (1<<CMDPD)													; ^
-	MOV		FNFLG, TEMP1														; ^
-	
-	RET
-
-CLR_COMMAND_FLG:
+EXECUTE_COMMAND:
 	
 	MOV		TEMP1, FNFLG														; Clear CMDPD flag
 	CBR		TEMP1, (1<<CMDPD)													; ^
 	MOV		FNFLG, TEMP1														; ^
-	
-	RET
-
-EXECUTE_COMMAND:
-	
-	RCALL	CLR_COMMAND_FLG														; Clear CMDPD flag
 
 	ICALL																		; Call function (address) of Z-pointer
 
@@ -958,7 +944,7 @@ CLOCK:
 
 	NOP																			; Do Something
 
-	MOV		TEMP1, FNFLG														; Clear Timer1 Flag
+	MOV		TEMP1, FNFLG														; Clear TMR1 flag
 	CBR		TEMP1,  (1<<TMR1)													; ^
 	MOV		FNFLG, TEMP1														; ^
 
