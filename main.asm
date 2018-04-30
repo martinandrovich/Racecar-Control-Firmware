@@ -1,6 +1,6 @@
 ; ###################################################################################################################################################
 ; Racecar Control Firmware
-; Version 1.1.2
+; Version 1.1.3
 ; 
 ; Sequential Flag Architecture
 
@@ -61,14 +61,24 @@
 
 	.EQU	TURN_THRESHOLD_RIGHT		= 115
 	.EQU	TURN_THRESHOLD_LEFT			= 122
-	.EQU	TURN_THRESHOLD_DELAY		= 10
-	.EQU	TURN_THRESHOLD_OFFSET		= 0
+
+	.EQU	TURN_TH_IN_LEFT				= 122
+	.EQU	TURN_TH_IN_RIGHT			= 122
+	.EQU	TURN_TH_OUT_LEFT			= 115
+	.EQU	TURN_TH_OUT_RIGHT			= 115
+
+	.EQU	MAPPING_SEEK_PWM			= 56									; Mapping Seek PWM in BYTES (0-255)
+	.EQU	MAPPING_PWM					= 90									; Mapping PWM in BYTES (0-255)
+	.EQU	MAPPING_DEBOUNCE_VAL		= 10									; Mapping Debounce in TICKS
+	.EQU	MAPPING_OFFSET_IN			= 8										; Mapping Offset In in TICKS
+	.EQU	MAPPING_OFFSET_OUT			= 11									; Mapping Offset Out in TICKS
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > REGISTERS
 
-	.DEF	MDFLG		= R0													; Mode Flags for Interrupts
+	.DEF	MDFLG		= R0													; Mode Flags
 	.DEF	FNFLG		= R1													; Function Flags for Interrupts
+	.DEF	MTFLG		= R2													; Mapping & Trajectory Flags
 	
 	.DEF	TEMP1		= R16													; Temporary Register #1
 	.DEF	TEMP2		= R17													; Temporary Register #2
@@ -84,7 +94,7 @@
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > FLAGS
 
-	; Mode Flags
+	; MDFLG | Mode Flags 
 
 	.EQU	AUTO		= 7														; Autonomous Mode
 	.EQU	MAP			= 6														; Mapping Mode
@@ -92,14 +102,20 @@
 	.EQU	BROD1		= 4														; ^
 	.EQU	BROD0		= 3														; ^
 
-	; Function Flags
+	; FNFLG | Function Flags
 
 	.EQU	TACHO		= 7														; Tachometer Ready
 	.EQU	FNLNE		= 6														; Finishline Ready
 	.EQU	ACCLR		= 5														; Accelerometer Ready
 	.EQU	TMR1		= 4														; Timer1 Ready
 	.EQU	CMDPD		= 3														; Command Pending
-	.EQU	INTURN		= 2														; Currently in a turn
+
+	; MTFLG | Mapping & Trajectory Flags
+
+	.EQU	ISMAP		= 7														; Program currently mapping
+	.EQU	INTURN		= 6														; In turn
+	.EQU	TURNDIR		= 5														; Direction of turn (0 = L & 1 = R)
+
 
 ; ____________________________________________________________________________________________________________________________________________________
 ; >> INITIALIZATION
@@ -135,14 +151,15 @@ INIT:
 
 	; Flags Initialization
 
-	CLR		MDFLG																; Clear Flags
+	CLR		MDFLG																; Clear Flag Registers
 	CLR		FNFLG																; ^
+	CLR		MTFLG																; ^
 
 	; USART Config
 
 	LDI		TEMP1, HIGH(BAUDRATE)												; Set Transmission Rate
 	OUT		UBRRH, TEMP1														; ^
-	LDI		TEMP1, LOW(BAUDRATE)												; ^
+	LDI		TEMP1,  LOW(BAUDRATE)												; ^
 	OUT		UBRRL, TEMP1														; ^
 
 	LDI		TEMP1, 0x02															; Clear all Error Flags + Enable DoubleMode
@@ -207,7 +224,7 @@ INIT:
 	LDI 	TEMP1, (1<<INT0)|(1<<INT1)											; Enable external interrupts
 	OUT 	GICR, TEMP1															; ^
 
-	SEI																			; Set global interrupt flag
+	SEI																			; Set Global Interrupt Flag
 
 	RJMP	MAIN																; Start MAIN Program
 
@@ -221,6 +238,11 @@ MAIN:
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > FUNCTIONS
 	
+	CALL	TELEGRAM_CHECK														; Check for Telegrams
+
+	SBRC	FNFLG, CMDPD														; Command Pending
+	CALL	EXECUTE_COMMAND														; ^
+	
 	SBRC	FNFLG, TACHO														; Tachometer Ready
 	CALL	LOG_TACHOMETER														; ^
 
@@ -230,11 +252,6 @@ MAIN:
 	SBRC	FNFLG, ACCLR														; Accelerometer Ready
 	CALL	LOG_ACCELEROMETER													; ^
 
-	CALL	TELEGRAM_CHECK														; Check for Telegrams
-
-	SBRC	FNFLG, CMDPD														; Command Pending
-	CALL	EXECUTE_COMMAND														; ^
-
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > MODES
 
@@ -242,7 +259,7 @@ MAIN:
 	NOP																			; ^
 
 	SBRC	MDFLG, MAP															; Mapping Mode
-	NOP																			; ^
+	CALL	MAPPING																; ^
 
 	SBRC	MDFLG, BROD0														; Broadcast Mode
 	CALL	BROADCAST															; ^
@@ -265,7 +282,7 @@ MAIN:
 ;  > TACHOMETER
 
 LOG_TACHOMETER:
-
+	
 	LDS		TEMPWH, TACHOMETER_H												; Load previous values from SRAM
 	LDS		TEMPWL, TACHOMETER_L												; into WORD registers
 
@@ -274,7 +291,7 @@ LOG_TACHOMETER:
 	STS		TACHOMETER_H, TEMPWH												; Store new values into SRAM
 	STS		TACHOMETER_L, TEMPWL												; ^
 
-	MOV		TEMP1, FNFLG														; Clear Tachometer Flag
+	MOV		TEMP1, FNFLG														; Clear TACHO Flag
 	CBR		TEMP1, (1<<TACHO)													; ^
 	MOV		FNFLG, TEMP1														; ^
 
@@ -284,14 +301,15 @@ LOG_TACHOMETER:
 ;  > FINISH LINE
 
 LOG_FINISHLINE:
+	
+	LDS		TEMP1, FINISHLINE													; Load, increment & store Finishline value
+	INC		TEMP1																; ^
+	STS		FINISHLINE, TEMP1													; ^
 
-	LDS		TEMP1, FINISHLINE													; Test purposes, send how many time it detects finishline
+	SBRC	MDFLG, MAP	 														; Skip clearing flag if mapping mode enabled
+	RET																			; ^
 
-	INC		TEMP1																;
-
-	STS		FINISHLINE, TEMP1													;
-
-	MOV		TEMP1, FNFLG														; Clear Finishline Flag
+	MOV		TEMP1, FNFLG														; Clear FNLNE Flag
 	CBR		TEMP1, (1<<FNLNE)													; ^
 	MOV		FNFLG, TEMP1														; ^
 
@@ -316,11 +334,10 @@ LOG_ACCELEROMETER:
 	STS		ACCELEROMETER, TEMP1
 
 	CALL	MOVAVG																; Apply Moving Average Filter
-	CALL	TURN_CHECK															; Replace ACCLR data with Turn Detection
 
 	SBI		ADCSR, ADSC															; Start ADC Conversion
 
-	MOV		TEMP1, FNFLG														; Clear Accelerometer Flag
+	MOV		TEMP1, FNFLG														; Clear ACCLR Flag
 	CBR		TEMP1, (1<<ACCLR)													; ^
 	MOV		FNFLG, TEMP1														; ^
 
@@ -329,48 +346,169 @@ LOG_ACCELEROMETER:
 ; ____________________________________________________________________________________________________________________________________________________
 ; >> MAPPING
 
-	// PLACEHOLDER
-	// ...
-	//
-	// FOR MAPPING
+MAPPING:
+	
+	SBRC	FNFLG, FNLNE														; Check FNLNE flag
+	RJMP	MAPPING_ISMAP_CHECK													; If SET then check ISMAP
 
-	//.EQU	MAPPING_RECENT_XH				= 0x0076
-	//.EQU	MAPPING_RECENT_XL				= 0x0077
-	
-	//MAPPING_POINTER_RESET:
-	//	LDI		XH, HIGH(MAPP)												; Load reset values into X Pointer
-	//	LDI		XL,  LOW(MAPP)												; ^
-	//	STS		MAPPING_RECENT_XH, XH
-	//	STS		MAPPING_RECENT_XL, XL
-	//	RET																	; Return
-	
-	//MAPPING_SAVE_VALUE_X:
-	//	STS		MAPPING_RECENT_XH, XH
-	//	STS		MAPPING_RECENT_XL, XL
-	//	RET
-	
-	//MAPPING_LOAD_VALUE_X:
-	//	LDS		XH, MAPPING_RECENT_XH
-	//	LDS		XL, MAPPING_RECENT_XL
-	//	RET
-	
-	//	CHECKIFSWING:
-	//	LDS		TEMP1,	FINISHLINE
-	//	CPI		TEMP1,	1
-	//	BREQ	((DO SOMETHING HAVENT FIGURED OUT WHAT YET))
-	//	LDS		TEMP1,	ACCELEROMETER
-	//	CPI		TEMP1,	0
-	//	BREQ	NOSWING_RETURN	//should use pointer here so pointer points to 0 -> 1 -> 0 -> 1 -> 0 -> 1 -> 0 -> 1 ...
-	//	LDS		TEMP1,	TACHOMETER_H
-	//	ST		X+, TEMP1
-	//	LDS		TEMP1,	TACHOMETER_L
-	//	ST		X+, TEMP1
+	SBRC	MTFLG, ISMAP														; Check ISMAP flag
+	RJMP	MAPPING_CHECK_DEBOUNCE												; If SET then continue mapping
 
-	//	RET
+	RJMP	MAPPING_ESC															; Return
+
+MAPPING_ISMAP_CHECK:
+
+	// If  ISMAP -> CLR ISMAP(MTFLG) && CLR MAP(MDFLG)							= End Mapping
+	// If ~ISMAP -> SET ISMAP													= Begin Mapping
 	
-	// 1. Compare previous Tachometer value with new -> add entry if necessary
-	// 2. Check for swings
-	// 3. Check for finishline
+	MOV		TEMP1, FNFLG														; Clear Finishline Flag
+	CBR		TEMP1, (1<<FNLNE)													; ^
+	MOV		FNFLG, TEMP1														; ^
+	
+	SBRC	MTFLG, ISMAP														; Check ISMAP flag
+	RJMP	MAPPING_END															; If SET then end mapping
+
+	SBRS	MTFLG, ISMAP														; Check ISMAP flag
+	RJMP	MAPPING_BEGIN														; If CLR then begin mapping
+
+	
+MAPPING_BEGIN:
+	
+	MOV		TEMP1, MTFLG														; Set ISMAP Flag
+	SBR		TEMP1, (1<<ISMAP)													; ^
+	MOV		MTFLG, TEMP1														; ^
+
+	LDI		TEMP1, MAPPING_PWM													; Start vehicle with mapping PWM
+	STS		RECENT_DAT, TEMP1													; ^	
+	CALL	SET_MOTOR_PWM														; ^
+
+	LDI		YH, HIGH(MAPP)														; Initialize Y Pointer
+	LDI		YL,  LOW(MAPP)														; ^
+
+	CLR		TEMP1																; Store 0x0000 into mapping in SRAM
+	ST		Y+, TEMP1															; ^
+	ST		Y+, TEMP1															; ^
+
+	RJMP	MAPPING_ESC															; Return
+
+MAPPING_END:
+	
+	MOV		TEMP1, MDFLG														; Clear MAP flag
+	CBR		TEMP1, (1<<MAP)														; ^
+	MOV		MDFLG, TEMP1														; ^
+
+	STS		MODE_FLG, MDFLG														; Store new mode flags to SRAM
+
+	MOV		TEMP1, MTFLG														; Clear ISMAP Flag
+	CBR		TEMP1, (1<<ISMAP)													; ^
+	MOV		MTFLG, TEMP1														; ^
+
+	SER		TEMP1																; Store 0xFFFF into mapping in SRAM
+	ST		Y+, TEMP1															; ^
+	ST		Y, TEMP1															; ^
+
+	CALL	SET_MOTOR_MIN														; Break vehicle
+
+	RJMP	MAPPING_ESC															; Return
+
+MAPPING_CHECK_DEBOUNCE:
+	
+	LDS		TEMPWH, TACHOMETER_H												; Load current Tachometer value
+	LDS		TEMPWL, TACHOMETER_L												; ^
+
+	LDS		TEMP2, MAPPING_DEBOUNCE_H											; Load Debounce Tachometer value
+	LDS		TEMP3, MAPPING_DEBOUNCE_L											; ^
+
+	CP		TEMPWL, TEMP3														; Check if debounce is reached
+	CPC		TEMPWH, TEMP2 														; ^
+	BRLO	MAPPING_ESC															; Escape if FALSE
+	RJMP	MAPPING_CHECK_TURN													; Continue if TRUE
+
+MAPPING_RESET_DEBOUNCE:
+
+	LDS		TEMPWH, TACHOMETER_H												; Load current Tachometer value
+	LDS		TEMPWL, TACHOMETER_L												; ^
+	
+	ADIW	TEMPWH:TEMPWL, MAPPING_DEBOUNCE_VAL									; Update Minumum Tachometer Detection value (current Tachometer + Constant)
+
+	STS		MAPPING_DEBOUNCE_H, TEMPWH											; Store values to SRAM
+	STS		MAPPING_DEBOUNCE_L, TEMPWL											; ^
+
+	RET																			; Return
+
+MAPPING_CHECK_TURN:
+
+	LDS		TEMP2, ACCELEROMETER												; Load Accelerometer value
+
+	SBRC	MTFLG, INTURN														; Check INTURN flag
+	RJMP	MAPPING_CHECK_TURN_OUT												; If SET then check if a turn has been exited
+	RJMP	MAPPING_CHECK_TURN_IN												; If CLR then check if a turn has been detected
+
+MAPPING_CHECK_TURN_IN:
+
+	; Check Right Turn
+	
+	MOV		TEMP1, MTFLG														; Set TURNDIR Flag (checking right turn)
+	SBR		TEMP1, (1<<TURNDIR)													; ^
+	MOV		MTFLG, TEMP1														; ^
+
+	CPI		TEMP2, TURN_TH_IN_RIGHT												; Check Right Turn In
+	BRLO	MAPPING_ADD															; Create mapping entry if true
+
+	; Check Left Turn
+
+	MOV		TEMP1, MTFLG														; Clear TURNDIR Flag (checking left turn)
+	CBR		TEMP1, (1<<TURNDIR)													; ^
+	MOV		MTFLG, TEMP1														; ^
+
+	CPI		TEMP2, TURN_TH_IN_LEFT												; Check Left Turn In
+	BRSH	MAPPING_ADD															; Create mapping entry if true
+
+	RJMP	MAPPING_ESC															; Return
+
+MAPPING_CHECK_TURN_OUT:
+
+	SBRC	MTFLG, TURNDIR														; Check TURNDIR flag
+	RJMP	MAPPING_CHECK_TURN_OUT_RIGHT										; If SET then check RIGHT turn out
+	RJMP	MAPPING_CHECK_TURN_OUT_LEFT											; If CLR then check LEFT turn out
+
+MAPPING_CHECK_TURN_OUT_RIGHT:
+
+	CPI		TEMP2, TURN_TH_OUT_RIGHT											; Check Right Turn Out
+	BRSH	MAPPING_ADD															; Create mapping entry if true
+
+	RJMP	MAPPING_ESC															; Return
+
+MAPPING_CHECK_TURN_OUT_LEFT:
+
+	CPI		TEMP2, TURN_TH_OUT_LEFT												; Check Left Turn Out
+	BRLO	MAPPING_ADD															; Create mapping entry if true
+
+	RJMP	MAPPING_ESC															; Return
+
+MAPPING_ADD:
+
+	MOV		TEMP1, MTFLG														; Toggle INTURN flag
+	LDI		TEMP2, (1<<INTURN)													; ^
+	EOR		TEMP1, TEMP2														; ^
+	MOV		MTFLG, TEMP1														; ^
+
+	LDS		TEMP2, TACHOMETER_H													; Load current Tachometer values
+	LDS		TEMP3, TACHOMETER_L													; ^
+
+	SBRC	TEMP1, INTURN														; Set MSB of Tachometer (HIGH) to value of INTURN bit
+	ORI		TEMP2, (1<<7)														; ^
+
+	RCALL	MAPPING_RESET_DEBOUNCE												; Reset Tachometer Debounce
+
+	// Store pointers?
+	
+	ST		Y+, TEMP2															; Store mapping into SRAM
+	ST		Y+, TEMP3															; ^
+
+MAPPING_ESC:
+
+	RET																			; Return
 
 ; ____________________________________________________________________________________________________________________________________________________
 ; >> BROADCAST
@@ -424,13 +562,13 @@ BROADCAST_FINISHLINE:															;
 
 BROADCAST_ALL:
 
-	LDS		TEMP1, TACHOMETER_L													;
+	LDS		TEMP1, TACHOMETER_L													; Load current & recent Tachometer (LOW) value
 	LDS		TEMP2, TACHOMETER_L_PREV											;
 
-	CP		TEMP1, TEMP2														; makes sure to not send the same TACHOMETER twice
-	BRNE	BROADCAST_ALL_SEND													;
+	CP		TEMP1, TEMP2														; Compare and only transmit if value has changed
+	BRNE	BROADCAST_ALL_SEND													; ^
 
-	RET																			;
+	RET																			; Return
 
 BROADCAST_ALL_SEND:
 
@@ -438,21 +576,6 @@ BROADCAST_ALL_SEND:
 
 	RCALL	BROADCAST_TACHOMETER												; Broadcast Tachometer
 	RCALL	BROADCAST_ACCELEROMETER												; Broadcast Accelerometer
-
-	RET																			; Return
-
-;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-BROADCAST_SET:
-
-	MOV		TEMP1, MDFLG														; Load & reset current Broadcast Flags in Mode Register
-	ANDI	TEMP1, 0b11000111													; ^
-
-	LDS		TEMP2, RECENT_DAT													; Load & apply recieved Broadcast Flags
-	OR		TEMP1, TEMP2														; ^
-
-	MOV		MDFLG, TEMP1														; Save new mode flags
-	STS		MODE_FLG, MDFLG														; Store new mode flags to SRAM
 
 	RET																			; Return
 
@@ -587,7 +710,7 @@ TELEGRAM_ERROR:
 
 SET_COMMAND_FLG:
 
-	MOV		TEMP1, FNFLG														; Set CMDPD bit
+	MOV		TEMP1, FNFLG														; Set CMDPD flag
 	SBR		TEMP1, (1<<CMDPD)													; ^
 	MOV		FNFLG, TEMP1														; ^
 	
@@ -595,7 +718,7 @@ SET_COMMAND_FLG:
 
 CLR_COMMAND_FLG:
 	
-	MOV		TEMP1, FNFLG														; Clear CMDPD bit
+	MOV		TEMP1, FNFLG														; Clear CMDPD flag
 	CBR		TEMP1, (1<<CMDPD)													; ^
 	MOV		FNFLG, TEMP1														; ^
 	
@@ -603,11 +726,73 @@ CLR_COMMAND_FLG:
 
 EXECUTE_COMMAND:
 	
-	RCALL	CLR_COMMAND_FLG														; Clear Command Pending Flag
+	RCALL	CLR_COMMAND_FLG														; Clear CMDPD flag
 
 	ICALL																		; Call function (address) of Z-pointer
 
 	RET																			; Return
+
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+BROADCAST_SET:
+
+	MOV		TEMP1, MDFLG														; Load & reset current Broadcast Flags in Mode Register
+	ANDI	TEMP1, 0b11000111													; ^
+
+	LDS		TEMP2, RECENT_DAT													; Load & apply recieved Broadcast Flags
+	OR		TEMP1, TEMP2														; ^
+
+	MOV		MDFLG, TEMP1														; Save new mode flags
+	STS		MODE_FLG, MDFLG														; Store new mode flags to SRAM
+
+	RET																			; Return
+
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+MAPPING_SET:
+	
+	MOV		TEMP1, MDFLG														; Set MAP flag
+	SBR		TEMP1, (1<<MAP)														; ^
+	MOV		MDFLG, TEMP1														; ^
+
+	STS		MODE_FLG, MDFLG														; Store new mode flags to SRAM
+
+	LDI		TEMP1, MAPPING_SEEK_PWM												; Start vehicle with mapping seek PWM
+	STS		RECENT_DAT, TEMP1													; ^	
+	CALL	SET_MOTOR_PWM														; ^
+
+	RET																			; Return
+
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+MAPPING_GET:
+
+	// If MAPP > 512 bytes, then buffer will overflow in MatLab
+	
+	LDI		YH, HIGH(MAPP)														; Initialize Y Pointer
+	LDI		YL,  LOW(MAPP)														; ^
+
+MAPPING_GET_LOOP:
+
+	LD		TEMP1, Y+															; Load mapping values (HIGH & LOW)
+	LD		TEMP2, Y+															; ^
+
+	CPI		TEMP1, 0xFF															; Escape if EoT has been reached
+	BREQ	MAPPING_GET_ESC														; ^
+
+	MOV		TXREG, TEMP1														; Transmit HIGH byte of mapping
+	CALL	SERIAL_WRITE														; ^
+
+	MOV		TXREG, TEMP2														; Transmit LOW byte of mapping
+	CALL	SERIAL_WRITE														; ^
+
+	RJMP	MAPPING_GET_LOOP													; Loop
+
+MAPPING_GET_ESC:
+
+	RET																			; Return
+
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 ; ____________________________________________________________________________________________________________________________________________________
 ; >> DEVICE (RACECAR) CONTROL
@@ -637,14 +822,13 @@ SET_MOTOR_MIN:
 	LDI		TEMP1, 0x00															; Disable Timer2 (PWM)
 	OUT		TCCR2, TEMP1														; ^
 
-	CBI 	PORTD, PD7															; Clear BIT on PIN7 of PORTD
-	RJMP	SET_MOTOR_PWM_ESC													; Return
-
+	CBI 	PORTD, PD7															; Clear PD7 of PORTD
+	
 	RJMP	SET_MOTOR_PWM_ESC													; Return
 
 SET_MOTOR_MAX:
 
-	SBI 	PORTD, PD7															; Set BIT on PIN7 of PORTD
+	SBI 	PORTD, PD7															; Set PD7 of PORTD
 	RJMP	SET_MOTOR_PWM_ESC													; Return
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
@@ -745,85 +929,7 @@ MOVAVG_DIVIDE_LOOP:
 
 	STS		ACCELEROMETER, TEMP2												; Save value of division into SRAM
 
-	RET	
-
-;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-;  > TURN DETECTION (ACCELEROMETER THRESHOLD)
-
-TURN_CHECK:
-
-	// Replaces accelerometer data with value of swing direction
-	// 1 = LEFT, 0 = STRAIGHT, 2 = RIGHT
-	
-	// !#!#!#!
-	// Tachometer should travel a minimum distance (delay) after exiting a turn,
-	// before a turn may be detected and Accelerometer value changed again.
-
-	LDS		TEMPWH, TACHOMETER_H												; Load current Tachometer value
-	LDS		TEMPWL, TACHOMETER_L												; ^
-
-	LDS		TEMP2, TURN_MIN_TACHOMETER_H										; Load Minumum Tachometer Detection value
-	LDS		TEMP3, TURN_MIN_TACHOMETER_L										; ^
-
-	CP		TEMPWL, TEMP3														; Comapre to check if delay is reached
-	CPC		TEMPWH, TEMP2 														; ^
-	BRLO	TURN_CHECK_STRAIGHT													; Branch to STRAIGHT if not
-
-	LDS		TEMP1, ACCELEROMETER												; Load Accelerometer value
-
-	CPI		TEMP1, TURN_THRESHOLD_RIGHT											; Check Right Turn
-	BRLO	TURN_CHECK_RIGHT													; ^
-
-	CPI		TEMP1, TURN_THRESHOLD_LEFT											; Check Left Turn
-	BRSH	TURN_CHECK_LEFT														; ^
-
-	SBRC	FNFLG, INTURN														; If no turns detected, check if INTURN is SET
-	RCALL	TURN_CHECK_SETDELAY													; Update Minumum Tachometer Detection value if turn has recently been exited
-
-	MOV		TEMP1, FNFLG														; Clear TURNIN bit
-	CBR		TEMP1, (1<<INTURN)													; ^
-	MOV		FNFLG, TEMP1														; ^
-
-TURN_CHECK_STRAIGHT:
-
-	CLR		TEMP1																; Set Accelerometer value to 0 (STRAIGHT)
-	STS		ACCELEROMETER, TEMP1												; ^
-
-	RET																			; Return
- 
-TURN_CHECK_RIGHT:
-
-	LDI		TEMP1, 2															; Set Accelerometer value to 2 (RIGHT)
-	STS		ACCELEROMETER, TEMP1												; ^
-
-	MOV		TEMP1, FNFLG														; Set TURNIN bit
-	SBR		TEMP1, (1<<INTURN)													; ^
-	MOV		FNFLG, TEMP1														; ^
-
-	RET																			; Return
-
-TURN_CHECK_LEFT:
-
-	LDI		TEMP1, 1															; Set Accelerometer value to 2 (LEFT)
-	STS		ACCELEROMETER, TEMP1												;
-
-	MOV		TEMP1, FNFLG														; Set TURNIN bit
-	SBR		TEMP1, (1<<INTURN)													; ^
-	MOV		FNFLG, TEMP1														; ^
-
-	RET																			; Return																			
-
-TURN_CHECK_SETDELAY:
-
-	LDS		TEMPWH, TACHOMETER_H												; Load current Tachometer value
-	LDS		TEMPWL, TACHOMETER_L												; ^
-	
-	ADIW	TEMPWH:TEMPWL, TURN_THRESHOLD_DELAY									; Update Minumum Tachometer Detection value (current Tachometer + constant)
-
-	STS		TURN_MIN_TACHOMETER_H, TEMPWH										; Store values to SRAM
-	STS		TURN_MIN_TACHOMETER_L, TEMPWL										; ^
-
-	RET																			; Return
+	RET
 
 ; ____________________________________________________________________________________________________________________________________________________
 ; >> CONTROL UNIT
@@ -859,7 +965,7 @@ CLOCK:
 	RET																			; Return
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-;  > PURE TESTING
+;  > DEBUGGING
 
 EMPTY:
 	NOP
@@ -875,6 +981,27 @@ TEST:
 	CALL	SET_MOTOR_MIN
 	CALL	DELAY
 
+	RET
+
+TEST35:
+	
+	LDI		TXREG, 0x35
+	CALL	SERIAL_WRITE
+	
+	RET
+
+TEST40:
+	
+	LDI		TXREG, 0x40
+	CALL	SERIAL_WRITE
+	
+	RET
+
+TEST45:
+	
+	LDI		TXREG, 0x45
+	CALL	SERIAL_WRITE
+	
 	RET
 
 DELAY:

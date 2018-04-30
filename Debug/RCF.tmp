@@ -1,20 +1,20 @@
 <ASSEMBLER_INFO>
  <VERSION>2.2.7</VERSION>
  <DEVICE>"ATmega32"</DEVICE>
- <WORKING_DIR>C:\Users\Martin\Desktop\Racecar-Control-Firmware\Debug</WORKING_DIR>
+ <WORKING_DIR>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\Debug</WORKING_DIR>
  <INCLUDE_PATH>
   <DIR>C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.150\avrasm\inc</DIR>
   <DIR>C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avrassembler\Include</DIR>
   <DIR></DIR>
  </INCLUDE_PATH>
- <SOURCE_FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</SOURCE_FILE>
+ <SOURCE_FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</SOURCE_FILE>
  <INCLUDED_FILES>
   <FILE>C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.150\avrasm\inc\m32def.inc</FILE>
-  <FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\ram_table.inc</FILE>
-  <FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\command_table.inc</FILE>
+  <FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\ram_table.inc</FILE>
+  <FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\command_table.inc</FILE>
  </INCLUDED_FILES>
  <OBJECT_FILES>
-  <FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\Debug\RCF.obj</FILE>
+  <FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\Debug\RCF.obj</FILE>
  </OBJECT_FILES>
  <HEX_FILES>
   <FILE>RCF.hex</FILE>
@@ -24,78 +24,78 @@
   <FILE>RCF.lss</FILE>
  </OUTPUT_FILES>
  <LABELS>
-  <INIT><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>123</LINE></INIT>
-  <INT0_HANDLER><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>1024</LINE></INT0_HANDLER>
-  <INT1_HANDLER><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>1033</LINE></INT1_HANDLER>
-  <TMR1_HANDLER><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>1042</LINE></TMR1_HANDLER>
-  <ADC_HANDLER><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>1051</LINE></ADC_HANDLER>
-  <COMMANDS><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\command_table.inc</FILE><LINE>1</LINE></COMMANDS>
-  <EMPTY><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>968</LINE></EMPTY>
-  <MAPPING_GET><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>770</LINE></MAPPING_GET>
-  <SET_MOTOR_PWM><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>801</LINE></SET_MOTOR_PWM>
-  <MAPPING_SET><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>754</LINE></MAPPING_SET>
-  <BROADCAST_SET><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>739</LINE></BROADCAST_SET>
-  <MOVAVG_POINTER_RESET><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>863</LINE></MOVAVG_POINTER_RESET>
-  <MOVAVG_SRAM_SETUP><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>870</LINE></MOVAVG_SRAM_SETUP>
-  <MAIN><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>234</LINE></MAIN>
-  <LOAD_FLAGS><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>938</LINE></LOAD_FLAGS>
-  <TELEGRAM_CHECK><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>615</LINE></TELEGRAM_CHECK>
-  <EXECUTE_COMMAND><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>729</LINE></EXECUTE_COMMAND>
-  <LOG_TACHOMETER><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>284</LINE></LOG_TACHOMETER>
-  <LOG_FINISHLINE><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>303</LINE></LOG_FINISHLINE>
-  <LOG_ACCELEROMETER><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>323</LINE></LOG_ACCELEROMETER>
-  <MAPPING><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>351</LINE></MAPPING>
-  <BROADCAST><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>518</LINE></BROADCAST>
-  <CLOCK><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>955</LINE></CLOCK>
-  <MOVAVG><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>838</LINE></MOVAVG>
-  <MAPPING_ISMAP_CHECK><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>361</LINE></MAPPING_ISMAP_CHECK>
-  <MAPPING_CHECK_DEBOUNCE><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>416</LINE></MAPPING_CHECK_DEBOUNCE>
-  <MAPPING_END><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>396</LINE></MAPPING_END>
-  <MAPPING_BEGIN><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>377</LINE></MAPPING_BEGIN>
-  <SET_MOTOR_MIN><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>818</LINE></SET_MOTOR_MIN>
-  <MAPPING_ESC><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>511</LINE></MAPPING_ESC>
-  <MAPPING_CHECK_TURN><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>441</LINE></MAPPING_CHECK_TURN>
-  <MAPPING_RESET_DEBOUNCE><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>429</LINE></MAPPING_RESET_DEBOUNCE>
-  <MAPPING_CHECK_TURN_OUT><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>471</LINE></MAPPING_CHECK_TURN_OUT>
-  <MAPPING_CHECK_TURN_IN><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>449</LINE></MAPPING_CHECK_TURN_IN>
-  <MAPPING_ADD><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>491</LINE></MAPPING_ADD>
-  <MAPPING_CHECK_TURN_OUT_RIGHT><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>477</LINE></MAPPING_CHECK_TURN_OUT_RIGHT>
-  <MAPPING_CHECK_TURN_OUT_LEFT><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>484</LINE></MAPPING_CHECK_TURN_OUT_LEFT>
-  <BROADCAST_TACHOMETER><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>539</LINE></BROADCAST_TACHOMETER>
-  <BROADCAST_FINISHLINE><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>556</LINE></BROADCAST_FINISHLINE>
-  <BROADCAST_ACCELEROMETER><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>549</LINE></BROADCAST_ACCELEROMETER>
-  <BROADCAST_ALL><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>565</LINE></BROADCAST_ALL>
-  <SERIAL_WRITE><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>600</LINE></SERIAL_WRITE>
-  <BROADCAST_ALL_SEND><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>575</LINE></BROADCAST_ALL_SEND>
-  <SERIAL_READ><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>590</LINE></SERIAL_READ>
-  <TELEGRAM_PARSER><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>623</LINE></TELEGRAM_PARSER>
-  <TELEGRAM_PARSE_SETUP><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>647</LINE></TELEGRAM_PARSE_SETUP>
-  <TELEGRAM_EXECUTE><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>670</LINE></TELEGRAM_EXECUTE>
-  <TELEGRAM_JUMP><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>656</LINE></TELEGRAM_JUMP>
-  <TELEGRAM_PARSER_ESC><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>643</LINE></TELEGRAM_PARSER_ESC>
-  <TELEGRAM_ERROR><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>700</LINE></TELEGRAM_ERROR>
-  <SET_COMMAND_FLG><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>713</LINE></SET_COMMAND_FLG>
-  <TELEGRAM_RESET><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>685</LINE></TELEGRAM_RESET>
-  <TELEGRAM_CLRBUFFER><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>692</LINE></TELEGRAM_CLRBUFFER>
-  <CLR_COMMAND_FLG><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>721</LINE></CLR_COMMAND_FLG>
-  <MAPPING_GET_LOOP><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>777</LINE></MAPPING_GET_LOOP>
-  <MAPPING_GET_ESC><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>789</LINE></MAPPING_GET_ESC>
-  <SET_MOTOR_PWM_ESC><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>814</LINE></SET_MOTOR_PWM_ESC>
-  <SET_MOTOR_MAX><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>827</LINE></SET_MOTOR_MAX>
-  <MOVAVG_SKIP_RESET><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>853</LINE></MOVAVG_SKIP_RESET>
-  <MOVAVG_ADD><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>888</LINE></MOVAVG_ADD>
-  <MOVAVG_DIVIDE><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>916</LINE></MOVAVG_DIVIDE>
-  <MOVAVG_SRAM_SETUP_LOOP><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>877</LINE></MOVAVG_SRAM_SETUP_LOOP>
-  <MOVAVG_ADD_LOOP><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>896</LINE></MOVAVG_ADD_LOOP>
-  <MOVAVG_ADD_SKIP_CARRY><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>907</LINE></MOVAVG_ADD_SKIP_CARRY>
-  <MOVAVG_DIVIDE_LOOP><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>920</LINE></MOVAVG_DIVIDE_LOOP>
-  <TEST><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>972</LINE></TEST>
-  <DELAY><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>1005</LINE></DELAY>
-  <TEST35><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>984</LINE></TEST35>
-  <TEST40><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>991</LINE></TEST40>
-  <TEST45><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>998</LINE></TEST45>
-  <LOOP3><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>1007</LINE></LOOP3>
-  <LOOP2><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>1009</LINE></LOOP2>
-  <LOOP1><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm</FILE><LINE>1011</LINE></LOOP1>
+  <INIT><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>123</LINE></INIT>
+  <INT0_HANDLER><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>1022</LINE></INT0_HANDLER>
+  <INT1_HANDLER><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>1031</LINE></INT1_HANDLER>
+  <TMR1_HANDLER><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>1040</LINE></TMR1_HANDLER>
+  <ADC_HANDLER><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>1049</LINE></ADC_HANDLER>
+  <COMMANDS><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\command_table.inc</FILE><LINE>1</LINE></COMMANDS>
+  <EMPTY><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>966</LINE></EMPTY>
+  <MAPPING_GET><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>768</LINE></MAPPING_GET>
+  <SET_MOTOR_PWM><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>799</LINE></SET_MOTOR_PWM>
+  <MAPPING_SET><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>752</LINE></MAPPING_SET>
+  <BROADCAST_SET><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>737</LINE></BROADCAST_SET>
+  <MOVAVG_POINTER_RESET><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>861</LINE></MOVAVG_POINTER_RESET>
+  <MOVAVG_SRAM_SETUP><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>868</LINE></MOVAVG_SRAM_SETUP>
+  <MAIN><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>234</LINE></MAIN>
+  <LOAD_FLAGS><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>936</LINE></LOAD_FLAGS>
+  <TELEGRAM_CHECK><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>613</LINE></TELEGRAM_CHECK>
+  <EXECUTE_COMMAND><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>727</LINE></EXECUTE_COMMAND>
+  <LOG_TACHOMETER><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>284</LINE></LOG_TACHOMETER>
+  <LOG_FINISHLINE><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>303</LINE></LOG_FINISHLINE>
+  <LOG_ACCELEROMETER><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>321</LINE></LOG_ACCELEROMETER>
+  <MAPPING><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>349</LINE></MAPPING>
+  <BROADCAST><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>516</LINE></BROADCAST>
+  <CLOCK><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>953</LINE></CLOCK>
+  <MOVAVG><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>836</LINE></MOVAVG>
+  <MAPPING_ISMAP_CHECK><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>359</LINE></MAPPING_ISMAP_CHECK>
+  <MAPPING_CHECK_DEBOUNCE><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>414</LINE></MAPPING_CHECK_DEBOUNCE>
+  <MAPPING_ESC><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>509</LINE></MAPPING_ESC>
+  <MAPPING_END><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>394</LINE></MAPPING_END>
+  <MAPPING_BEGIN><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>375</LINE></MAPPING_BEGIN>
+  <SET_MOTOR_MIN><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>816</LINE></SET_MOTOR_MIN>
+  <MAPPING_CHECK_TURN><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>439</LINE></MAPPING_CHECK_TURN>
+  <MAPPING_RESET_DEBOUNCE><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>427</LINE></MAPPING_RESET_DEBOUNCE>
+  <MAPPING_CHECK_TURN_OUT><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>469</LINE></MAPPING_CHECK_TURN_OUT>
+  <MAPPING_CHECK_TURN_IN><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>447</LINE></MAPPING_CHECK_TURN_IN>
+  <MAPPING_ADD><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>489</LINE></MAPPING_ADD>
+  <MAPPING_CHECK_TURN_OUT_RIGHT><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>475</LINE></MAPPING_CHECK_TURN_OUT_RIGHT>
+  <MAPPING_CHECK_TURN_OUT_LEFT><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>482</LINE></MAPPING_CHECK_TURN_OUT_LEFT>
+  <BROADCAST_TACHOMETER><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>537</LINE></BROADCAST_TACHOMETER>
+  <BROADCAST_FINISHLINE><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>554</LINE></BROADCAST_FINISHLINE>
+  <BROADCAST_ACCELEROMETER><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>547</LINE></BROADCAST_ACCELEROMETER>
+  <BROADCAST_ALL><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>563</LINE></BROADCAST_ALL>
+  <SERIAL_WRITE><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>598</LINE></SERIAL_WRITE>
+  <BROADCAST_ALL_SEND><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>573</LINE></BROADCAST_ALL_SEND>
+  <SERIAL_READ><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>588</LINE></SERIAL_READ>
+  <TELEGRAM_PARSER><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>621</LINE></TELEGRAM_PARSER>
+  <TELEGRAM_PARSE_SETUP><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>645</LINE></TELEGRAM_PARSE_SETUP>
+  <TELEGRAM_EXECUTE><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>668</LINE></TELEGRAM_EXECUTE>
+  <TELEGRAM_JUMP><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>654</LINE></TELEGRAM_JUMP>
+  <TELEGRAM_PARSER_ESC><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>641</LINE></TELEGRAM_PARSER_ESC>
+  <TELEGRAM_ERROR><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>698</LINE></TELEGRAM_ERROR>
+  <SET_COMMAND_FLG><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>711</LINE></SET_COMMAND_FLG>
+  <TELEGRAM_RESET><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>683</LINE></TELEGRAM_RESET>
+  <TELEGRAM_CLRBUFFER><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>690</LINE></TELEGRAM_CLRBUFFER>
+  <CLR_COMMAND_FLG><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>719</LINE></CLR_COMMAND_FLG>
+  <MAPPING_GET_LOOP><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>775</LINE></MAPPING_GET_LOOP>
+  <MAPPING_GET_ESC><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>787</LINE></MAPPING_GET_ESC>
+  <SET_MOTOR_PWM_ESC><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>812</LINE></SET_MOTOR_PWM_ESC>
+  <SET_MOTOR_MAX><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>825</LINE></SET_MOTOR_MAX>
+  <MOVAVG_SKIP_RESET><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>851</LINE></MOVAVG_SKIP_RESET>
+  <MOVAVG_ADD><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>886</LINE></MOVAVG_ADD>
+  <MOVAVG_DIVIDE><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>914</LINE></MOVAVG_DIVIDE>
+  <MOVAVG_SRAM_SETUP_LOOP><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>875</LINE></MOVAVG_SRAM_SETUP_LOOP>
+  <MOVAVG_ADD_LOOP><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>894</LINE></MOVAVG_ADD_LOOP>
+  <MOVAVG_ADD_SKIP_CARRY><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>905</LINE></MOVAVG_ADD_SKIP_CARRY>
+  <MOVAVG_DIVIDE_LOOP><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>918</LINE></MOVAVG_DIVIDE_LOOP>
+  <TEST><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>970</LINE></TEST>
+  <DELAY><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>1003</LINE></DELAY>
+  <TEST35><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>982</LINE></TEST35>
+  <TEST40><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>989</LINE></TEST40>
+  <TEST45><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>996</LINE></TEST45>
+  <LOOP3><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>1005</LINE></LOOP3>
+  <LOOP2><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>1007</LINE></LOOP2>
+  <LOOP1><FILE>C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm</FILE><LINE>1009</LINE></LOOP1>
  </LABELS>
 </ASSEMBLER_INFO>

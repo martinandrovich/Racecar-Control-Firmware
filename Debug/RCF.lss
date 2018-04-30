@@ -1,12 +1,12 @@
 
-AVRASM ver. 2.2.7  C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm Mon Apr 30 02:17:11 2018
+AVRASM ver. 2.2.7  C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm Mon Apr 30 15:45:36 2018
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.150\avrasm\inc\m32def.inc'
-C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm(33): Including file 'C:\Users\Martin\Desktop\Racecar-Control-Firmware\ram_table.inc'
-C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm(34): Including file 'C:\Users\Martin\Desktop\Racecar-Control-Firmware\command_table.inc'
+C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm(33): Including file 'C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\ram_table.inc'
+C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm(34): Including file 'C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\command_table.inc'
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.150\avrasm\inc\m32def.inc'
-C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm(33): Including file 'C:\Users\Martin\Desktop\Racecar-Control-Firmware\ram_table.inc'
-C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm(34): Including file 'C:\Users\Martin\Desktop\Racecar-Control-Firmware\command_table.inc'
+C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm(33): Including file 'C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\ram_table.inc'
+C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\main_new.asm(34): Including file 'C:\Users\Martin Androvich\Desktop\Personal Files\Education\Robotics [SDU]\Courses\2. Semester\RB-PRO2\RCF\Racecar-Control-Firmware\command_table.inc'
                                  
                                  ; ###################################################################################################################################################
                                  
@@ -1070,7 +1070,7 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm(34): Including fil
                                  
 000066 e000                      	LDI		TEMP1, HIGH(BAUDRATE)												; Set Transmission Rate
 000067 bd00                      	OUT		UBRRH, TEMP1														; ^
-000068 ec0f                      	LDI		TEMP1, LOW(BAUDRATE)												; ^
+000068 ec0f                      	LDI		TEMP1,  LOW(BAUDRATE)												; ^
 000069 b909                      	OUT		UBRRL, TEMP1														; ^
                                  
 00006a e002                      	LDI		TEMP1, 0x02															; Clear all Error Flags + Enable DoubleMode
@@ -1135,7 +1135,7 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm(34): Including fil
 00008b ec00                      	LDI 	TEMP1, (1<<INT0)|(1<<INT1)											; Enable external interrupts
 00008c bf0b                      	OUT 	GICR, TEMP1															; ^
                                  
-00008d 9478                      	SEI																			; Set global interrupt flag
+00008d 9478                      	SEI																			; Set Global Interrupt Flag
                                  
 00008e c000                      	RJMP	MAIN																; Start MAIN Program
                                  
@@ -1202,7 +1202,7 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm(34): Including fil
 0000b0 9390 0060                 	STS		TACHOMETER_H, TEMPWH												; Store new values into SRAM
 0000b2 9380 0061                 	STS		TACHOMETER_L, TEMPWL												; ^
                                  
-0000b4 2d01                      	MOV		TEMP1, FNFLG														; Clear Tachometer Flag
+0000b4 2d01                      	MOV		TEMP1, FNFLG														; Clear TACHO Flag
 0000b5 770f                      	CBR		TEMP1, (1<<TACHO)													; ^
 0000b6 2e10                      	MOV		FNFLG, TEMP1														; ^
                                  
@@ -1213,16 +1213,14 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm(34): Including fil
                                  
                                  LOG_FINISHLINE:
                                  	
-0000b8 9100 0070                 	LDS		TEMP1, FINISHLINE													; Test purposes, send how many time it detects finishline
-                                 
-0000ba 9503                      	INC		TEMP1																;
-                                 
-0000bb 9300 0070                 	STS		FINISHLINE, TEMP1													;
+0000b8 9100 0070                 	LDS		TEMP1, FINISHLINE													; Load, increment & store Finishline value
+0000ba 9503                      	INC		TEMP1																; ^
+0000bb 9300 0070                 	STS		FINISHLINE, TEMP1													; ^
                                  
 0000bd fc06                      	SBRC	MDFLG, MAP	 														; Skip clearing flag if mapping mode enabled
 0000be 9508                      	RET																			; ^
                                  
-0000bf 2d01                      	MOV		TEMP1, FNFLG														; Clear Finishline Flag
+0000bf 2d01                      	MOV		TEMP1, FNFLG														; Clear FNLNE Flag
 0000c0 7b0f                      	CBR		TEMP1, (1<<FNLNE)													; ^
 0000c1 2e10                      	MOV		FNFLG, TEMP1														; ^
                                  
@@ -1250,7 +1248,7 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm(34): Including fil
                                  
 0000d1 9a36                      	SBI		ADCSR, ADSC															; Start ADC Conversion
                                  
-0000d2 2d01                      	MOV		TEMP1, FNFLG														; Clear Accelerometer Flag
+0000d2 2d01                      	MOV		TEMP1, FNFLG														; Clear ACCLR Flag
 0000d3 7d0f                      	CBR		TEMP1, (1<<ACCLR)													; ^
 0000d4 2e10                      	MOV		FNFLG, TEMP1														; ^
                                  
@@ -1267,7 +1265,7 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm(34): Including fil
 0000d8 fc27                      	SBRC	MTFLG, ISMAP														; Check ISMAP flag
 0000d9 c024                      	RJMP	MAPPING_CHECK_DEBOUNCE												; If SET then continue mapping
                                  
-0000da 9508                      	RET
+0000da c05f                      	RJMP	MAPPING_ESC															; Return
                                  
                                  MAPPING_ISMAP_CHECK:
                                  
@@ -1287,7 +1285,7 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm(34): Including fil
                                  	
                                  MAPPING_BEGIN:
                                  	
-0000e2 2d02                      	MOV		TEMP1, MTFLG														; SET ISMAP Flag
+0000e2 2d02                      	MOV		TEMP1, MTFLG														; Set ISMAP Flag
 0000e3 6800                      	SBR		TEMP1, (1<<ISMAP)													; ^
 0000e4 2e20                      	MOV		MTFLG, TEMP1														; ^
                                  
@@ -1302,17 +1300,17 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm(34): Including fil
 0000ed 9309                      	ST		Y+, TEMP1															; ^
 0000ee 9309                      	ST		Y+, TEMP1															; ^
                                  
-0000ef 9508                      	RET																			; Return
+0000ef c04a                      	RJMP	MAPPING_ESC															; Return
                                  
                                  MAPPING_END:
                                  	
-0000f0 2d00                      	MOV		TEMP1, MDFLG														; Clear MAP flag in MDFLG
+0000f0 2d00                      	MOV		TEMP1, MDFLG														; Clear MAP flag
 0000f1 7b0f                      	CBR		TEMP1, (1<<MAP)														; ^
 0000f2 2e00                      	MOV		MDFLG, TEMP1														; ^
                                  
 0000f3 9200 006f                 	STS		MODE_FLG, MDFLG														; Store new mode flags to SRAM
                                  
-0000f5 2d02                      	MOV		TEMP1, MTFLG														; CLR ISMAP Flag
+0000f5 2d02                      	MOV		TEMP1, MTFLG														; Clear ISMAP Flag
 0000f6 770f                      	CBR		TEMP1, (1<<ISMAP)													; ^
 0000f7 2e20                      	MOV		MTFLG, TEMP1														; ^
                                  
@@ -1322,7 +1320,7 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm(34): Including fil
                                  
 0000fb 940e 01d8                 	CALL	SET_MOTOR_MIN														; Break vehicle
                                  
-0000fd 9508                      	RET																			; Return
+0000fd c03c                      	RJMP	MAPPING_ESC															; Return
                                  
                                  MAPPING_CHECK_DEBOUNCE:
                                  	
@@ -1342,7 +1340,7 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm(34): Including fil
 00010a 9190 0060                 	LDS		TEMPWH, TACHOMETER_H												; Load current Tachometer value
 00010c 9180 0061                 	LDS		TEMPWL, TACHOMETER_L												; ^
                                  	
-00010e 960a                      	ADIW	TEMPWH:TEMPWL, MAPPING_DEBOUNCE_VAL									; Update Minumum Tachometer Detection value (current Tachometer + constant)
+00010e 960a                      	ADIW	TEMPWH:TEMPWL, MAPPING_DEBOUNCE_VAL									; Update Minumum Tachometer Detection value (current Tachometer + Constant)
                                  
 00010f 9390 0074                 	STS		MAPPING_DEBOUNCE_H, TEMPWH											; Store values to SRAM
 000111 9380 0075                 	STS		MAPPING_DEBOUNCE_L, TEMPWL											; ^
@@ -1361,7 +1359,7 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm(34): Including fil
                                  
                                  	; Check Right Turn
                                  	
-000119 2d02                      	MOV		TEMP1, MTFLG														; SET TURNDIR Flag (checking right turn)
+000119 2d02                      	MOV		TEMP1, MTFLG														; Set TURNDIR Flag (checking right turn)
 00011a 6200                      	SBR		TEMP1, (1<<TURNDIR)													; ^
 00011b 2e20                      	MOV		MTFLG, TEMP1														; ^
                                  
@@ -1370,7 +1368,7 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm(34): Including fil
                                  
                                  	; Check Left Turn
                                  
-00011e 2d02                      	MOV		TEMP1, MTFLG														; CLR TURNDIR Flag (checking left turn)
+00011e 2d02                      	MOV		TEMP1, MTFLG														; Clear TURNDIR Flag (checking left turn)
 00011f 7d0f                      	CBR		TEMP1, (1<<TURNDIR)													; ^
 000120 2e20                      	MOV		MTFLG, TEMP1														; ^
                                  
@@ -1390,14 +1388,14 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm(34): Including fil
 000127 3713                      	CPI		TEMP2, TURN_TH_OUT_RIGHT											; Check Right Turn Out
 000128 f420                      	BRSH	MAPPING_ADD															; Create mapping entry if true
                                  
-000129 9508                      	RET
+000129 c010                      	RJMP	MAPPING_ESC															; Return
                                  
                                  MAPPING_CHECK_TURN_OUT_LEFT:
                                  
 00012a 3713                      	CPI		TEMP2, TURN_TH_OUT_LEFT												; Check Left Turn Out
 00012b f008                      	BRLO	MAPPING_ADD															; Create mapping entry if true
                                  
-00012c 9508                      	RET																			; Return
+00012c c00d                      	RJMP	MAPPING_ESC															; Return
                                  
                                  MAPPING_ADD:
                                  
@@ -1416,7 +1414,7 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm(34): Including fil
                                  
                                  	// Store pointers?
                                  	
-000138 9319                      	ST		Y+, TEMP2															; Store Mapping into SRAM
+000138 9319                      	ST		Y+, TEMP2															; Store mapping into SRAM
 000139 9329                      	ST		Y+, TEMP3															; ^
                                  
                                  MAPPING_ESC:
@@ -1475,13 +1473,13 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm(34): Including fil
                                  
                                  BROADCAST_ALL:
                                  
-00015a 9100 0061                 	LDS		TEMP1, TACHOMETER_L													;
+00015a 9100 0061                 	LDS		TEMP1, TACHOMETER_L													; Load current & recent Tachometer (LOW) value
 00015c 9110 0076                 	LDS		TEMP2, TACHOMETER_L_PREV											;
                                  
-00015e 1701                      	CP		TEMP1, TEMP2														; makes sure to not send the same TACHOMETER twice
-00015f f409                      	BRNE	BROADCAST_ALL_SEND													;
+00015e 1701                      	CP		TEMP1, TEMP2														; Compare and only transmit if value has changed
+00015f f409                      	BRNE	BROADCAST_ALL_SEND													; ^
                                  
-000160 9508                      	RET																			;
+000160 9508                      	RET																			; Return
                                  
                                  BROADCAST_ALL_SEND:
                                  
@@ -1731,13 +1729,13 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm(34): Including fil
 0001d8 e000                      	LDI		TEMP1, 0x00															; Disable Timer2 (PWM)
 0001d9 bd05                      	OUT		TCCR2, TEMP1														; ^
                                  
-0001da 9897                      	CBI 	PORTD, PD7															; Clear BIT on PIN7 of PORTD
+0001da 9897                      	CBI 	PORTD, PD7															; Clear PD7 of PORTD
                                  	
 0001db cffb                      	RJMP	SET_MOTOR_PWM_ESC													; Return
                                  
                                  SET_MOTOR_MAX:
                                  
-0001dc 9a97                      	SBI 	PORTD, PD7															; Set BIT on PIN7 of PORTD
+0001dc 9a97                      	SBI 	PORTD, PD7															; Set PD7 of PORTD
 0001dd cff9                      	RJMP	SET_MOTOR_PWM_ESC													; Return
                                  
                                  ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
@@ -1874,7 +1872,7 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main_new.asm(34): Including fil
 000219 9508                      	RET																			; Return
                                  
                                  ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-                                 ;  > PURE TESTING
+                                 ;  > DEBUGGING
                                  
                                  EMPTY:
 00021a 0000                      	NOP
@@ -2004,7 +2002,7 @@ fmulsu:   0 icall :   1 ijmp  :   0 in    :   5 inc   :   4 jmp   :   5
 ld    :   2 ldd   :   0 ldi   :  42 lds   :  29 lpm   :   6 lsl   :   0 
 lsr   :   0 mov   :  33 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
 neg   :   0 nop   :   5 or    :   2 ori   :   1 out   :  23 pop   :   0 
-push  :   0 rcall :  13 ret   :  46 reti  :   4 rjmp  :  20 rol   :   0 
+push  :   0 rcall :  13 ret   :  41 reti  :   4 rjmp  :  25 rol   :   0 
 ror   :   1 sbc   :   0 sbci  :   0 sbi   :   5 sbic  :   1 sbis  :   3 
 sbiw  :   0 sbr   :   4 sbrc  :  15 sbrs  :   3 sec   :   0 seh   :   0 
 sei   :   2 sen   :   0 ser   :   1 ses   :   0 set   :   4 sev   :   0 
