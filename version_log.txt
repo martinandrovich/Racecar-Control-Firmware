@@ -11,7 +11,7 @@
 # 1.0.2
 - Added:		Interrupts Tests
 - Fixed:		Motor Control
-- Fixed:		Code Layout	
+- Modified:		Code Layout	
 
 # 1.0.3
 - Added:		Variable Flags
@@ -38,7 +38,7 @@
 - Added:		Finishline Interrupt (INT1, PD3)
 - Added:		Finishline Broadcast Test
 
-# 1.1.3  <<
-- Removed:		Sving Detection Prototype
-- Added:		Mapping + enableMapping() command
+# 1.2.0  <<
+- Added:		Internal Mapping
+- Added:		Mapping SET & GET Commands
 

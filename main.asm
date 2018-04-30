@@ -1,6 +1,6 @@
 ; ###################################################################################################################################################
 ; Racecar Control Firmware
-; Version 1.1.3
+; Version 1.2.0
 ; 
 ; Sequential Flag Architecture
 
@@ -280,6 +280,8 @@ MAIN:
 
 LOG_TACHOMETER:
 	
+	// Tachometer value is not allowed to exceed 32.768
+	
 	LDS		TEMPWH, TACHOMETER_H												; Load previous values from SRAM
 	LDS		TEMPWL, TACHOMETER_L												; into WORD registers
 
@@ -379,8 +381,8 @@ MAPPING_BEGIN:
 	STS		RECENT_DAT, TEMP1													; ^	
 	CALL	SET_MOTOR_PWM														; ^
 
-	LDI		YH, HIGH(MAPP)														; Initialize Y Pointer
-	LDI		YL,  LOW(MAPP)														; ^
+	LDI		YH, HIGH(MAPP_TABLE)												; Initialize Y Pointer
+	LDI		YL,  LOW(MAPP_TABLE)												; ^
 
 	CLR		TEMP1																; Store 0x0000 into mapping in SRAM
 	ST		Y+, TEMP1															; ^
@@ -492,6 +494,8 @@ MAPPING_ADD:
 
 	LDS		TEMP2, TACHOMETER_H													; Load current Tachometer values
 	LDS		TEMP3, TACHOMETER_L													; ^
+
+	// Tachometer value is not allowed to exceed 32.768
 
 	SBRC	TEMP1, INTURN														; Set MSB of Tachometer (HIGH) to value of INTURN bit
 	ORI		TEMP2, (1<<7)														; ^
@@ -755,8 +759,8 @@ MAPPING_GET:
 
 	// If MAPP > 512 bytes, then buffer will overflow in MatLab
 	
-	LDI		YH, HIGH(MAPP)														; Initialize Y Pointer
-	LDI		YL,  LOW(MAPP)														; ^
+	LDI		YH, HIGH(MAPP_TABLE)												; Initialize Y Pointer
+	LDI		YL,  LOW(MAPP_TABLE)												; ^
 
 MAPPING_GET_LOOP:
 
@@ -777,8 +781,6 @@ MAPPING_GET_LOOP:
 MAPPING_GET_ESC:
 
 	RET																			; Return
-
-;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 ; ____________________________________________________________________________________________________________________________________________________
 ; >> DEVICE (RACECAR) CONTROL
