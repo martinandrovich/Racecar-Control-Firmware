@@ -34,6 +34,7 @@ data            = eye(prealloc, 1);
 dataLong        = uint16(0);
 dataAcclr       = uint8(0);
 dataTacho       = uint16(0);
+dataMapping     = 0;
 count           = 1;
 tachoVal        = 0;
 stateEnabled    = false;

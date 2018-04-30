@@ -1,4 +1,4 @@
-function [newPlotTach,newPlotAcc] = mappingOffSet(tachometer,accelerometer)
+function [newPlotTach, newPlotAcc] = mappingOffSet(tachometer,accelerometer)
 
 if ~isvector(tachometer) || ~isvector(accelerometer)
     disp('Error = is not a vector')

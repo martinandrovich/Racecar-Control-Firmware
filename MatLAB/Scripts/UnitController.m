@@ -23,5 +23,19 @@ classdef UnitController
             fwrite(bmodule, uint8(mode)); 
         end
         
+        function [] = enableMapping()
+            bmodule = evalin('base', 'bmodule');
+            fwrite(bmodule, uint8(85));
+            fwrite(bmodule, uint8(19));
+            fwrite(bmodule, uint8(0));
+        end
+        
+        function [] = getMapping()
+            bmodule = evalin('base', 'bmodule');
+            fwrite(bmodule, uint8(170));
+            fwrite(bmodule, uint8(19));
+            fwrite(bmodule, uint8(0));
+        end
+        
     end
  end
