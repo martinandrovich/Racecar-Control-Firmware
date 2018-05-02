@@ -19,7 +19,7 @@
 .ORG	0x14																	; TIMER1 Compare Match Interrupt
 	JMP		TMR1_HANDLER														; ^
 
-.ORG	0x20																	; ADC Conversion Complete Interrupt
+.ORG	0x20																	; ADC Conversion Complete Interrupt (PAO)
 	JMP		ADC_HANDLER															; ^
 
 ; ____________________________________________________________________________________________________________________________________________________
@@ -60,11 +60,11 @@
 	; Mapping & Turn Detection Thresholds
 
 	.EQU	TURN_TH_IN_LEFT				= 122
-	.EQU	TURN_TH_IN_RIGHT			= 122
-	.EQU	TURN_TH_OUT_LEFT			= 115
+	.EQU	TURN_TH_IN_RIGHT			= 115
+	.EQU	TURN_TH_OUT_LEFT			= 122
 	.EQU	TURN_TH_OUT_RIGHT			= 115
 
-	.EQU	MAPPING_SEEK_PWM			= 56									; Mapping Seek PWM in BYTES (0-255)
+	.EQU	MAPPING_SEEK_PWM			= 58									; Mapping Seek PWM in BYTES (0-255)
 	.EQU	MAPPING_PWM					= 90									; Mapping PWM in BYTES (0-255)
 	.EQU	MAPPING_DEBOUNCE_VAL		= 10									; Mapping Debounce in TICKS
 	.EQU	MAPPING_OFFSET_IN			= 8										; Mapping Offset In in TICKS
@@ -183,11 +183,11 @@ INIT:
 
 	; I/O (Port) Setup
 
+	SBI		DDRD, PD4															; Set PD4 on PORTD as Output
 	SBI		DDRD, PD7															; Set PD7 on PORTD as Output
 	SBI		PORTD, PD2															; Set PD2 on PORTD as Pullup Input
 
-	LDI		TEMP1, 0x00															; Set Port A as Input (is this needed?)
-	OUT		DDRA, TEMP1															; ^
+	CBI		PORTD, PD4															; Disable MOSFET Brake
 
 	; Timer1 Setup
 
@@ -372,10 +372,16 @@ MAPPING_ISMAP_CHECK:
 
 	
 MAPPING_BEGIN:
-	
+
 	MOV		TEMP1, MTFLG														; Set ISMAP Flag
 	SBR		TEMP1, (1<<ISMAP)													; ^
 	MOV		MTFLG, TEMP1														; ^
+
+	CLR		TEMP1																; Reset Tachometer
+	STS		TACHOMETER_H, TEMP1													; ^
+	STS		TACHOMETER_L, TEMP1													; ^
+
+	RCALL	MAPPING_RESET_DEBOUNCE												; Reset Tachometer Debounce											
 
 	LDI		TEMP1, MAPPING_PWM													; Start vehicle with mapping PWM
 	STS		RECENT_DAT, TEMP1													; ^	
@@ -402,11 +408,17 @@ MAPPING_END:
 	CBR		TEMP1, (1<<ISMAP)													; ^
 	MOV		MTFLG, TEMP1														; ^
 
+	LDS		TEMP2, TACHOMETER_H													; Load current Tachometer values
+	LDS		TEMP3, TACHOMETER_L													; ^
+
+	ST		Y+, TEMP2															; Save finishline tachometer data
+	ST		Y+, TEMP3															;
+
 	SER		TEMP1																; Store 0xFFFF into mapping in SRAM
 	ST		Y+, TEMP1															; ^
 	ST		Y, TEMP1															; ^
 
-	CALL	SET_MOTOR_MIN														; Break vehicle
+	CALL	SET_MOTOR_BREAK														; Break vehicle
 
 	RJMP	MAPPING_ESC															; Return
 
@@ -492,20 +504,26 @@ MAPPING_ADD:
 	EOR		TEMP1, TEMP2														; ^
 	MOV		MTFLG, TEMP1														; ^
 
-	LDS		TEMP2, TACHOMETER_H													; Load current Tachometer values
-	LDS		TEMP3, TACHOMETER_L													; ^
+	RCALL	MAPPING_RESET_DEBOUNCE												; Reset Tachometer Debounce
+
+	LDS		TEMPWH, TACHOMETER_H												; Load current Tachometer values
+	LDS		TEMPWL, TACHOMETER_L												; ^
+
+	SBRC	MTFLG, INTURN														; 
+	SBIW	TEMPWH:TEMPWL, MAPPING_OFFSET_IN									;
+	SBRS	MTFLG, INTURN														;
+	SBIW	TEMPWH:TEMPWL, MAPPING_OFFSET_OUT									;
 
 	// Tachometer value is not allowed to exceed 32.768
 
-	SBRC	TEMP1, INTURN														; Set MSB of Tachometer (HIGH) to value of INTURN bit
-	ORI		TEMP2, (1<<7)														; ^
 
-	RCALL	MAPPING_RESET_DEBOUNCE												; Reset Tachometer Debounce
+	SBRC	TEMP1, INTURN														; Set MSB of Tachometer (HIGH) to value of INTURN bit
+	ORI		TEMPWH, (1<<7)														; ^
 
 	// Store pointers?
 	
-	ST		Y+, TEMP2															; Store mapping into SRAM
-	ST		Y+, TEMP3															; ^
+	ST		Y+, TEMPWH															; Store mapping into SRAM
+	ST		Y+, TEMPWL															; ^
 
 MAPPING_ESC:
 
@@ -767,14 +785,14 @@ MAPPING_GET_LOOP:
 	LD		TEMP1, Y+															; Load mapping values (HIGH & LOW)
 	LD		TEMP2, Y+															; ^
 
-	CPI		TEMP1, 0xFF															; Escape if EoT has been reached
-	BREQ	MAPPING_GET_ESC														; ^
-
 	MOV		TXREG, TEMP1														; Transmit HIGH byte of mapping
 	CALL	SERIAL_WRITE														; ^
 
 	MOV		TXREG, TEMP2														; Transmit LOW byte of mapping
 	CALL	SERIAL_WRITE														; ^
+
+	CPI		TEMP1, 0xFF															; Escape if EoT has been reached
+	BREQ	MAPPING_GET_ESC														; ^
 
 	RJMP	MAPPING_GET_LOOP													; Loop
 
@@ -793,25 +811,33 @@ SET_MOTOR_PWM:
 	LDI		TEMP1, 0x6A															; Initialize Waveform Generator (Timer2) (0110_1010)
 	OUT		TCCR2, TEMP1														; ^
 
-	LDS		TEMP1, RECENT_DAT													; Load recent recieved telegram data from SRAM
-	STS		DUTY_CYCLE, TEMP1													; Store loaded Duty Cycle in SRAM
+	LDS		TEMP3, RECENT_DAT													; Load recent recieved telegram data from SRAM
+	STS		DUTY_CYCLE, TEMP3													; Store loaded Duty Cycle in SRAM
+	
+	TST		TEMP3																; Check if recieved Duty Cycle is 0
+	BREQ	SET_MOTOR_BREAK														; Break vehicle if true
 
-	TST		TEMP1																; Check if recieved Duty Cycle is 0
-	BREQ	SET_MOTOR_MIN														; Stop vehicle if true (or BRAKE)
+	CBI		PORTD, PD4															; Disable MOSFET Brake
 
-	OUT		OCR2, TEMP1															; Set Duty Cycle (PWM) (0-255) on Timer2
+	CALL	DELAY_100uS															; Wait for 100 ?s
+
+	OUT		OCR2, TEMP3															; Set Duty Cycle (PWM) (0-255) on Timer2
 
 SET_MOTOR_PWM_ESC:
 
 	RET																			; Return
 
-SET_MOTOR_MIN:
+SET_MOTOR_BREAK:
 
 	LDI		TEMP1, 0x00															; Disable Timer2 (PWM)
 	OUT		TCCR2, TEMP1														; ^
 
 	CBI 	PORTD, PD7															; Clear PD7 of PORTD
-	
+		
+	CALL	DELAY_100uS															; Wait for 100 ?s
+
+	SBI		PORTD, PD4															; Enable MOSFET Brake
+
 	RJMP	SET_MOTOR_PWM_ESC													; Return
 
 SET_MOTOR_MAX:
@@ -966,7 +992,7 @@ TEST:
 
 	CALL	SET_MOTOR_PWM
 	CALL	DELAY
-	CALL	SET_MOTOR_MIN
+	CALL	SET_MOTOR_BREAK
 	CALL	DELAY
 
 	RET
@@ -1007,6 +1033,38 @@ LOOP1:
     BRNE	LOOP3
 
     RET
+
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+;  > 10ms / 16MHz DELAY
+
+DELAY_10MS:
+
+    LDI		TEMP1, 208
+    LDI		TEMP2, 202
+
+DELAY_10MS_LOOP:
+
+	DEC		TEMP2
+    BRNE	DELAY_10MS_LOOP
+    DEC		TEMP1
+    BRNE	DELAY_10MS_LOOP
+    NOP
+
+	RET
+
+DELAY_100uS:
+
+    LDI  TEMP1, 3
+    LDI  TEMP2, 19
+
+DELAY_100uS_LOOP:
+	
+	DEC  TEMP2
+    BRNE DELAY_100US_LOOP
+    DEC  TEMP1
+    BRNE DELAY_100US_LOOP
+
+	RET
 
 ; ____________________________________________________________________________________________________________________________________________________
 ; >> INTERRUPT HANDLERS

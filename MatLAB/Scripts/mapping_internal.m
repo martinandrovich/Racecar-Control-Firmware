@@ -1,5 +1,5 @@
 % Global definitions
-%run('definitions.m');
+run('definitions.m');
 
 % Tachometer & Accelerometer Logging
 disp("Internal Mapping [Turn/Ticks]");
@@ -59,6 +59,14 @@ xlabel(xLabel, 'FontSize', 15);
 ylabel(yLabel, 'FontSize', 15);
 axis([0 inf yMin yMax]);
 grid(plotGrid);
+
+% Create & Plot square mapping
+x=dataMapping(:,1);
+y=dataMapping(:,2);
+a=x([2:end,end]);
+a=reshape([x,a]',[],1);
+b=reshape([y,y]',[],1);
+plot(a,b,'r-');
 
 % Maximize figure window
 drawnow;
