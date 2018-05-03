@@ -341,6 +341,102 @@ LOG_ACCELEROMETER:
 	MOV		FNFLG, TEMP1														; ^
 
 	RET																			; Return
+; ____________________________________________________________________________________________________________________________________________________
+; >> TRAJECTORY GENERATOR
+	;;BEFORE
+	;;SBRS	TRAJECTORY_GEN, FLAG
+	;;RET
+	;;MOV.......
+
+TRAJECTORY GENERATOR:
+	
+	RJMP TRAJECTORYSETUP:
+
+GENERATOR_II:
+	
+	START THE ALGORITHM HERE!!!!!
+	THERE SHOULD BE A BREAK SYSTEM HERE!!
+
+	;;IF FLAG IS SET, SHOULD START GENERATING POINTS, REMEMBER TO DISABLE FLAG WHEN GENERATING POINTS IS DONE, AFTER FLAG IS DONE 
+	
+	;;TRACJECTORY GENERATOR
+	;;
+; ____________________________________________________________________________________________________________________________________________________
+; >> TRAJECTORY PERFORMER
+
+	;;TRAJECTORY SPEED 
+
+	;;IF FLAG IS SET, SHOULD START 'READING POINTS'
+
+; ____________________________________________________________________________________________________________________________________________________
+; >> TRAJECTORYSETUP
+
+TRAJECTORYSETUP:
+
+	/*
+
+	.EQU	LASTEST_STRAIGHT_H = 0x098 ;; EXAMPLE PROGRAM
+	.EQU	LASTEST_STRAIGHT_L = 0x099 ;; EXAMPLE PROGRAM
+
+	LDI		XH, HIGH(TRAJ_TABLE)												;
+	LDI		XL, LOW(TRAJ_TABLE)													;
+
+	LDI		YH, HIGH(MAPP_TABLE)												; Check FNLNE flag
+	LDI		YL, LOW(MAPP_TABLE)													; Check FNLNE flag
+	
+	LDI		TEMP3, 0															; Check FNLNE flag
+
+	LD		TEMP1, Y+															; Check FNLNE flag
+	LD		TEMP2, Y+															; Check FNLNE flag
+
+	CP		TEMP1, TEMP3														; Check FNLNE flag
+	CPC		TEMP2, TEMP3														; Check FNLNE flag
+
+	BREQ	SETUP_FIRST_POINT_SEARCH_ALGO										; Check FNLNE flag
+
+	RET		; END this shit should handle error!!!
+
+; ____________________________________________________________________________________________________________________________________________________
+; >> TRAJECTORY SETUP_FIRST_POINT
+	
+SETUP_FIRST_POINT_SEARCH_ALGO:
+
+	LDI		TEMP3, 0xFF															; Check FNLNE flag
+
+RESTART_LOOP:
+
+	LD		TEMP1, Y+															; Check FNLNE flag
+	LD		TEMP2, Y+															; Check FNLNE flag
+
+	CP		TEMP1, TEMP3														; Check FNLNE flag
+	BRNE	RESTART_LOOP														; Check FNLNE flag
+	CPC		TEMP2, TEMP3														; Check FNLNE flag
+	BRNE	RESTART_LOOP														; Check FNLNE flag
+
+	SBIW	Y, 4																; Check FNLNE flag
+
+	LD		TEMP1, Y+															; LOAD LAST SWING
+	LD		TEMP2, Y+															; 
+
+	ST		X+, TEMP1															; SAVE SWING TO TRAJECTORY , IT IS ALREADY 0, SO SHOULD NOT ORI
+	ST		X+, TEMP2															;
+
+	LDS		TEMPWH, CIRCUIT_LENGTH_H 											; LOAD CIRCUIT_LENGTH_H
+	LDS		TEMPWL, CIRCUIT_LENGTH_L											;
+
+	SUB		TEMPWL, TEMP2														; SUBTRACT TACHOMETER
+	SUBC	TEMPWH, TEMP1														; ORDER IS IMPORTANT!! 
+
+	STS		LASTEST_STRAIGHT_H, TEMPWH											; NOW IT IS LOADED GO BACK TO GENERATOR!!!
+	STS		LASTEST_STRAIGHT_L, TEMPWL											;
+
+	RJMP	GENERATOR_II
+	*/
+	;;TRAJECTORY SPEED 
+
+	;;IF FLAG IS SET, SHOULD START 'READING POINTS'
+
+
 
 ; ____________________________________________________________________________________________________________________________________________________
 ; >> MAPPING
