@@ -516,7 +516,6 @@ MAPPING_ADD:
 
 	// Tachometer value is not allowed to exceed 32.768
 
-
 	SBRC	TEMP1, INTURN														; Set MSB of Tachometer (HIGH) to value of INTURN bit
 	ORI		TEMPWH, (1<<7)														; ^
 
