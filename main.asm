@@ -539,6 +539,7 @@ MAPPING_ESC:
 TRAJECTORY:
 	
 	// BRANCH ACCORDING TO TJRDY FLAG
+	//dANIEL
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > COMPILER
