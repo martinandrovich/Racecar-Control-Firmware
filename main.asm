@@ -552,8 +552,6 @@ TRAJECTORY_COMPILER_SETUP:
 
 	LDI		YH, HIGH(MAPP_TABLE)												; Load Mapping Table
 	LDI		YL, LOW(MAPP_TABLE)													; 
-
-<<<<<<< HEAD
 	
 	LDI		TEMP3, 0															; Check for FinishLine
 
@@ -565,12 +563,10 @@ TRAJECTORY_COMPILER_SETUP:
 
 	SER		TEMP3
 
-	BREQ	CONTINUE_COMPILER_SETUP												; Branch if FinishLine 00_00
+	BREQ	TRAJECTORY_COMPILER_RUNUP											; Branch if FinishLine 00_00
 
 	RET
 
-=======
->>>>>>> b5fb1f4b9648d0b9a04c082116c743e88d06eaa6
 TRAJECTORY_COMPILER_LOOP:
 
 	LD		TEMP1, Y+															;
@@ -581,7 +577,9 @@ TRAJECTORY_COMPILER_LOOP:
 	CP		TEMP1, TEMP3														; Check EOT
 	BRNE	NOT_EOT																; 
 	CPC		TEMP2, TEMP3														; 
-	BRNE	NOT_EOT																; 
+	BRNE	NOT_EOT																;
+	
+	DO SOMETHING HERE!!!!!!! 
 
 NOT_EOT:
 	
@@ -590,14 +588,11 @@ NOT_EOT:
 	RJMP	TRAJECTORY_COMPILER_BREAK
 
 
-
-
-
 TRAJECTORY_COMPILER_BREAK:
 
 
-
 TRAJECTORY_COMPILER_ACCELERATE:
+
 
 
 TRAJECTORY_COMPILER_RUNUP:
