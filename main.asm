@@ -70,6 +70,7 @@
 	.EQU	MAPPING_DEBOUNCE_VAL		= 10									; Mapping Debounce in TICKS
 	.EQU	MAPPING_OFFSET_IN			= 8										; Mapping Offset In in TICKS
 	.EQU	MAPPING_OFFSET_OUT			= 11									; Mapping Offset Out in TICKS
+	.EQU	ACCLR_OFF					= 0										;
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > REGISTERS
@@ -582,30 +583,9 @@ TRAJECTORY_COMPILER_SETUP:
 
 	BREQ	TRAJECTORY_COMPILER_RUNUP											; Branch if FinishLine 00_00
 
+	//SHOULD START MAPPING ERROR OCCURED
+
 	RET																			;
-
-TRAJECTORY_COMPILER_LOOP:
-
-	LD		TEMP1, Y+															;
-	LD		TEMP2, Y+															;
-
-	RJMP	TRAJECTORY_COMPILER_FIND_END
-
-TRAJECTORY_COMPILER_BREAK:
-
-
-TRAJECTORY_COMPILER_ACCELERATE:
-
-	LDS		TEMPWH, LATEST_STRAIGHT_H
-	LDS		TEMPWL, LATEST_STRAIGHT_L
-
-	SUB		TEMP2, TEMPWL
-	SBC		TEMP1, TEMPWH
-
-
-
-
-
 
 TRAJECTORY_COMPILER_RUNUP:
 
@@ -631,8 +611,37 @@ TRAJECTORY_COMPILER_RUNUP:
 	SUB		TEMPWL, TEMP2														; Subtract Total circuit length with Last Swing value
 	SBC		TEMPWH, TEMP1														; 
 
-	STS		LATEST_STRAIGHT_H, TEMPWH											; NOW IT IS LOADED GO BACK TO GENERATOR!!!
+	STS		LATEST_STRAIGHT_H, TEMPWH											; Save latest Straight
 	STS		LATEST_STRAIGHT_L, TEMPWL											;
+
+	RJMP	TRAJECTORY_COMPILER_LOOP											;
+
+TRAJECTORY_COMPILER_LOOP:
+
+	LD		TEMP2, Y+															; TEMP2 first because MOVW is used, remember this!
+	LD		TEMP1, Y+															;
+
+	RJMP	TRAJECTORY_COMPILER_FIND_END
+
+TRAJECTORY_COMPILER_BREAK:
+	
+
+TRAJECTORY_COMPILER_ACCELERATE:
+	
+	MOVW	TEMPWH:TEMPWL, TEMP2:TEMP1											;
+	SBIW	TEMPWH:TEMPWL, ACCLR_OFF											;
+
+	ST		X+, TEMPWH															;
+	ST		X+, TEMPWL															;
+
+	LDS		TEMPWH, LATEST_STRAIGHT_H											;
+	LDS		TEMPWL, LATEST_STRAIGHT_L											;
+
+	SUB		TEMP1, TEMPWL														;
+	SBC		TEMP2, TEMPWH														;
+
+	STS		LATEST_STRAIGHT_H, TEMP2											;
+	STS		LATEST_STRAIGHT_L, TEMP1											;
 
 	RJMP	TRAJECTORY_COMPILER_LOOP
 
@@ -646,7 +655,9 @@ TRAJECTORY_COMPILER_FIND_END:
 	CPC		TEMP2, TEMP3														; 
 	BRNE	NOT_EOT																;
 
-	//END COMPILER -> PERFORMER START
+	SFLG	MTFLG, TJRDY
+
+	RET
 
 NOT_EOT:
 	
