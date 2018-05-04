@@ -600,15 +600,13 @@ TRAJECTORY_COMPILER_RUNUP:
 	LD		TEMP1, Y+															; Load Mapping Table TachoH & L
 	LD		TEMP2, Y+															; ^
 
-	CP		TEMP1, TEMP3														; Check for 0xFF_FF
-	BRNE	TRAJECTORY_COMPILER_RUNUP											; ^
-	CPC		TEMP2, TEMP3														; ^
+	CPI		TEMP1, 0xFF															; Check for 0xFF_FF
 	BRNE	TRAJECTORY_COMPILER_RUNUP											; ^
 
 	SBIW	Y, 4																; Offset the mapping with 4, must be last OutSwing
 
 	LD		TEMP1, Y+															; Load Last Swing
-	LD		TEMP2, Y+															; 	
+	LD		TEMP2, Y															; 	
 
 	ST		X+, TEMP1															; Save Last Swing for Run_Up
 	ST		X+, TEMP2															;
@@ -619,21 +617,47 @@ TRAJECTORY_COMPILER_RUNUP:
 	SUB		TEMPWL, TEMP2														; Subtract Total circuit length with Last Swing value
 	SBC		TEMPWH, TEMP1														; 
 
-	STS		LATEST_STRAIGHT_H, TEMPWH											; Save latest Straight
-	STS		LATEST_STRAIGHT_L, TEMPWL											;
+	STS		LATEST_STRAIGHT, TEMPWL												; Save latest Straight
 
-	RJMP	TRAJECTORY_COMPILER_LOOP											;
+	LDI		YH, HIGH(MAPP_TABLE+2)												; Load Y Pointer to (offset) Mapping Table
+	LDI		YL,  LOW(MAPP_TABLE+2)												; 
 
 TRAJECTORY_COMPILER_LOOP:
 
 	LD		TEMP2, Y+															; TEMP2 first because MOVW is used, remember this!
 	LD		TEMP1, Y+															;
 
-	RJMP	TRAJECTORY_COMPILER_FIND_END
+	CPI		TEMP2, 0xFF															; Check EoT
+	BREQ	TRAJECTORY_COMPILER_END												; 
+
+	SBRC	TEMP1, 7															; CHECK HIGHBIT TACHO FOR BREAK OR ACCELEROMETER
+	RJMP	TRAJECTORY_COMPILER_BREAK											;
+	RJMP	TRAJECTORY_COMPILER_ACCELERATE										; 
+	
+TRAJECTORY_COMPILER_ACCELERATE:
+	
+	MOVW	TEMPWH:TEMPWL, TEMP2:TEMP1											;
+	SBIW	TEMPWH:TEMPWL, TRAJECTORY_ACCLR_OFFSET								;
+
+	ST		X+, TEMPWH															;
+	ST		X+, TEMPWL															;
+
+	LDS		TEMPWH, 0															;
+	LDS		TEMPWL, LATEST_STRAIGHT												;
+
+	SUB		TEMP1, TEMPWL														;
+	SBC		TEMP2, TEMPWH														;
+
+	STS		LATEST_STRAIGHT_H, TEMP2											;
+	STS		LATEST_STRAIGHT_L, TEMP1											;
+
+	RJMP	TRAJECTORY_COMPILER_LOOP											; Loop
 
 TRAJECTORY_COMPILER_BREAK:
 
 	NOP
+
+	RJMP	TRAJECTORY_COMPILER_LOOP											; Loop
 
 TRAJECTORY_COMPILER_BREAK_OFFSET:
 	
@@ -659,47 +683,11 @@ TRAJECTORY_COMPILER_BREAK_OFFSET_END:
 
 	RET																			; Return
 
-	
-
-TRAJECTORY_COMPILER_ACCELERATE:
-	
-	MOVW	TEMPWH:TEMPWL, TEMP2:TEMP1											;
-	SBIW	TEMPWH:TEMPWL, TRAJECTORY_ACCLR_OFFSET								;
-
-	ST		X+, TEMPWH															;
-	ST		X+, TEMPWL															;
-
-	LDS		TEMPWH, LATEST_STRAIGHT_H											;
-	LDS		TEMPWL, LATEST_STRAIGHT_L											;
-
-	SUB		TEMP1, TEMPWL														;
-	SBC		TEMP2, TEMPWH														;
-
-	STS		LATEST_STRAIGHT_H, TEMP2											;
-	STS		LATEST_STRAIGHT_L, TEMP1											;
-
-	RJMP	TRAJECTORY_COMPILER_LOOP
-
-
-TRAJECTORY_COMPILER_FIND_END:
-
-	LDI		TEMP3, 0xFF															;
-
-	CP		TEMP1, TEMP3														; Check EOT
-	BRNE	NOT_EOT																; 
-	CPC		TEMP2, TEMP3														; 
-	BRNE	NOT_EOT																;
+TRAJECTORY_COMPILER_END:
 
 	SFLG	MTFLG, TJRDY
 
-	RET
-
-NOT_EOT:
-	
-	SBRS	TEMP1, 7															; CHECK HIGHBIT TACHO FOR BREAK OR ACCELEROMETER
-	RJMP	TRAJECTORY_COMPILER_ACCELERATE										; 
-	RJMP	TRAJECTORY_COMPILER_BREAK											;
-
+	RJMP	TRAJECTORY_ESC	
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > RUN
@@ -710,6 +698,8 @@ NOT_EOT:
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 TRAJECTORY_ESC:
+
+	
 
 	RET																			; Return
 
