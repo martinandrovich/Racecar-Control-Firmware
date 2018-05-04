@@ -413,8 +413,8 @@ MAPPING_END:
 	LDS		TEMP2, TACHOMETER_H													; Load current Tachometer values
 	LDS		TEMP3, TACHOMETER_L													; ^
 
-	STS		TEMP2, TRACK_LENGTH_H												; Store Track Length (Finishline Tachometer value) into SRAM
-	STS		TEMP3, TRACK_LENGTH_L												; ^
+	STS		TRACK_LENGTH_H, TEMP2 												; Store Track Length (Finishline Tachometer value) into SRAM
+	STS		TRACK_LENGTH_L, TEMP3 												; ^
 
 	;ST		Y+, TEMP2															; Save finishline tachometer data
 	;ST		Y+, TEMP3															;
