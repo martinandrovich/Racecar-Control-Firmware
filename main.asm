@@ -411,8 +411,15 @@ MAPPING_END:
 	LDS		TEMP2, TACHOMETER_H													; Load current Tachometer values
 	LDS		TEMP3, TACHOMETER_L													; ^
 
-	ST		Y+, TEMP2															; Save finishline tachometer data
-	ST		Y+, TEMP3															;
+	STS		TEMP2, TRACK_LENGTH_H												; Store Track Length (Finishline Tachometer value) into SRAM
+	STS		TEMP3, TRACK_LENGTH_L												; ^
+
+	;ST		Y+, TEMP2															; Save finishline tachometer data
+	;ST		Y+, TEMP3															;
+
+	CLR		TEMP1																; Reset Tachometer
+	STS		TACHOMETER_H, TEMP1													; ^
+	STS		TACHOMETER_L, TEMP1													; ^
 
 	SER		TEMP1																; Store 0xFFFF into mapping in SRAM
 	ST		Y+, TEMP1															; ^
@@ -516,11 +523,8 @@ MAPPING_ADD:
 
 	// Tachometer value is not allowed to exceed 32.768
 
-
 	SBRC	TEMP1, INTURN														; Set MSB of Tachometer (HIGH) to value of INTURN bit
 	ORI		TEMPWH, (1<<7)														; ^
-
-	// Store pointers?
 	
 	ST		Y+, TEMPWH															; Store mapping into SRAM
 	ST		Y+, TEMPWL															; ^

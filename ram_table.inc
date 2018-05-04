@@ -44,6 +44,9 @@
 
 .EQU	TACHOMETER_L_PREV				= 0x0076
 
+.EQU	TRACK_LENGTH_H					= 0x0078
+.EQU	TRACK_LENGTH_L					= 0x0079
+
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > Moving Average Filter [MOVAVG | 128B]
 
