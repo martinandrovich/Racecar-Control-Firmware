@@ -36,6 +36,13 @@ classdef UnitController
             fwrite(bmodule, uint8(19));
             fwrite(bmodule, uint8(0));
         end
+
+        function [] = getTrajectory()
+            bmodule = evalin('base', 'bmodule');
+            fwrite(bmodule, uint8(170));
+            fwrite(bmodule, uint8(22));
+            fwrite(bmodule, uint8(0));
+        end
         
     end
  end

@@ -578,16 +578,13 @@ TRAJECTORY_COMPILER_SETUP:
 
 	LDI		YH, HIGH(MAPP_TABLE)												; Load Y Pointer to Mapping Table
 	LDI		YL,  LOW(MAPP_TABLE)												; 
-	
-	LDI		TEMP3, 0															; Check for FinishLine
+
+	CFLG	MTFLG, TJRDY
 
 	LD		TEMP1, Y+															; ^
 	LD		TEMP2, Y+															; 
 
-	CP		TEMP1, TEMP3														; ^
-	CPC		TEMP2, TEMP3														; 
-
-	SER		TEMP3
+	CPI		TEMP1, 0															; ^
 
 	BREQ	TRAJECTORY_COMPILER_RUNUP											; Branch if FinishLine 00_00
 
@@ -654,19 +651,28 @@ TRAJECTORY_COMPILER_BREAK:
 	LDS		TEMPWH, LATEST_STRAIGHT_H											;
 	LDS		TEMPWL,	LATEST_STRAIGHT_L											;
 
+	CBR		TEMP2, (1<<7)
+	
 	SUB		TEMPWL, TEMP1														; Calculate latest straight
 	SBC		TEMPWH, TEMP2														;
 
+	SBR		TEMP2, (1<<7)
+
 	STS		LATEST_STRAIGHT, TEMPWL												;
+
+	MOV		TXREG, TEMPWL
+	CALL	SERIAL_WRITE
 
 	RCALL	TRAJECTORY_COMPILER_BREAK_OFFSET									;
 
-	SBIW	Y, 2																; Offset back
+	SBIW	YH:YL, 2															; Offset back
 
 	LD		TEMP2, Y+															; Read values again
 	LD		TEMP1, Y+															;
 
 	CBR		TEMP2, (1<<7)														; Clear MSB for sub
+
+	LDI		TEMP3, 12
 
 	SUB		TEMP1, TEMP3														;
 	SBCI	TEMP2, 0															;
@@ -680,8 +686,8 @@ TRAJECTORY_COMPILER_BREAK:
 
 TRAJECTORY_COMPILER_BREAK_OFFSET:
 	
-	LDI		ZH, HIGH(BREAK_OFFSET_TABLE)										; Load Z Pointer to Break Offset Table
-	LDI		ZL,  LOW(BREAK_OFFSET_TABLE)										; ^
+	LDI		ZH, HIGH(BREAK_OFFSET_TABLE*2)										; Load Z Pointer to Break Offset Table
+	LDI		ZL,  LOW(BREAK_OFFSET_TABLE*2)										; ^
 
 	LDS		TEMP1, LATEST_STRAIGHT												; Load value of Latest Straight Distance
 
@@ -705,6 +711,10 @@ TRAJECTORY_COMPILER_BREAK_OFFSET_END:
 
 TRAJECTORY_COMPILER_END:
 
+	SER		TEMP1																; Store 0xFFFF into trajectory in SRAM
+	ST		X+, TEMP1															; ^
+	ST		X, TEMP1															; ^
+	
 	SFLG	MTFLG, TJRDY
 
 	RJMP	TRAJECTORY_ESC	
@@ -715,7 +725,6 @@ TRAJECTORY_COMPILER_END:
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 TRAJECTORY_ESC:
-
 
 	RET																			; Return
 
@@ -973,6 +982,14 @@ MAPPING_SET:
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
+TRAJECTORY_SET:
+
+	CALL	TRAJECTORY_COMPILER_SETUP											; Compile Trajectory
+
+	RET
+
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
 MAPPING_GET:
 
 	// If MAPP > 512 bytes, then buffer will overflow in MatLab
@@ -997,6 +1014,37 @@ MAPPING_GET_LOOP:
 	RJMP	MAPPING_GET_LOOP													; Loop
 
 MAPPING_GET_ESC:
+
+	RET																			; Return
+
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+TRAJECTORY_GET:
+
+	// If TRAJS > 512 bytes, then buffer will overflow in MatLab
+	
+	CALL	TRAJECTORY_COMPILER_SETUP											; Compile Trajectory
+	
+	LDI		YH, HIGH(TRAJ_TABLE)												; Initialize Y Pointer
+	LDI		YL,  LOW(TRAJ_TABLE)												; ^
+
+TRAJECTORY_GET_LOOP:
+
+	LD		TEMP1, Y+															; Load mapping values (HIGH & LOW)
+	LD		TEMP2, Y+															; ^
+
+	MOV		TXREG, TEMP1														; Transmit HIGH byte of mapping
+	CALL	SERIAL_WRITE														; ^
+
+	MOV		TXREG, TEMP2														; Transmit LOW byte of mapping
+	CALL	SERIAL_WRITE														; ^
+
+	CPI		TEMP1, 0xFF															; Escape if EoT has been reached
+	BREQ	TRAJECTORY_GET_ESC													; ^
+
+	RJMP	TRAJECTORY_GET_LOOP													; Loop
+
+TRAJECTORY_GET_ESC:
 
 	RET																			; Return
 

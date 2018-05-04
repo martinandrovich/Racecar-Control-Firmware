@@ -11,6 +11,7 @@ COMMANDS:
 	  .DW	  0x00_03, EMPTY									; DATA3
 	  .DW	  0x00_12, EMPTY									; VAR1
 	  .DW	  0x00_13, MAPPING_GET								; MAPP
+	  .DW	  0x00_16, TRAJECTORY_GET							; TRAJ
 
 	.DW		0x55_00, 0										; >> SET
 	  .DW	  0x00_10, SET_MOTOR_PWM							; START
@@ -18,5 +19,6 @@ COMMANDS:
 	  .DW	  0x00_12, EMPTY									; AUTO
 	  .DW	  0x00_13, MAPPING_SET								; MAPP
 	  .DW	  0x00_14, BROADCAST_SET							; BROD
+	  .DW	  0x00_16, TRAJECTORY_SET							; TRAJ
 
 	.DW		0xEE_EE, 0										; EoT
