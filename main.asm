@@ -536,20 +536,53 @@ MAPPING_ESC:
 ; ____________________________________________________________________________________________________________________________________________________
 ; >> TRAJECTORY
 
-	// Placeholder
-	// ...
+TRAJECTORY:
+	
+	// BRANCH ACCORDING TO TJRDY FLAG
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > COMPILER
 
-	// Placeholder
-	// ...
+TRAJECTORY_COMPILER_SETUP:
+
+	// CHECK
+
+	// SETUP POINTER 
+
+TRAJECTORY_COMPILER_LOOP:
+
+	// CHECK EoT
+
+	// UPDATE POINTER / LOAD MAPPING VALUE
+
+	// CHECK MSB OF MAPPING VAL -> BRANCH
+
+TRAJECTORY_COMPILER_BREAK:
+
+TRAJECTORY_COMPILER_ACCELERATE:
+
+TRAJECTORY_COMPILER_RUNUP:
+
+	// FIND END
+
+	// SET LATEST STRAIGHT 
+
+	// SETUP POINTER
+
+TRAJECTORY_COMPILER_FIND_END:
+
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > RUN
 
 	// Placeholder
 	// ...
+
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+TRAJECTORY_ESC:
+
+	RET																			; Return
 
 ; ____________________________________________________________________________________________________________________________________________________
 ; >> AUTONOMOUS MODE
