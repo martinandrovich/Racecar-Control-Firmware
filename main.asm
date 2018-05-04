@@ -112,6 +112,7 @@
 	.EQU	ISMAP		= 7														; Program currently mapping
 	.EQU	INTURN		= 6														; In turn
 	.EQU	TURNDIR		= 5														; Direction of turn (0 = L & 1 = R)
+	.EQU	TJRDY		= 4														; Trajectory ready
 
 
 ; ____________________________________________________________________________________________________________________________________________________
@@ -558,6 +559,8 @@ TRAJECTORY_COMPILER_LOOP:
 	// CHECK MSB OF MAPPING VAL -> BRANCH
 
 TRAJECTORY_COMPILER_BREAK:
+
+
 
 TRAJECTORY_COMPILER_ACCELERATE:
 
