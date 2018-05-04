@@ -565,33 +565,28 @@ TRAJECTORY_COMPILER_SETUP:
 
 	BREQ	TRAJECTORY_COMPILER_RUNUP											; Branch if FinishLine 00_00
 
-	RET
+	RET																			;
 
 TRAJECTORY_COMPILER_LOOP:
 
 	LD		TEMP1, Y+															;
 	LD		TEMP2, Y+															;
 
-	LDI		TEMP3, 0xFF															;
-
-	CP		TEMP1, TEMP3														; Check EOT
-	BRNE	NOT_EOT																; 
-	CPC		TEMP2, TEMP3														; 
-	BRNE	NOT_EOT																;
-	
-	//DO SOMETHING HERE!!!!!!! 
-
-NOT_EOT:
-	
-	SBRS	TEMP1, 7															; CHECK HIGHBIT TACHO FOR BREAK OR ACCELEROMETER
-	RJMP	TRAJECTORY_COMPILER_ACCELERATE
-	RJMP	TRAJECTORY_COMPILER_BREAK
-
+	RJMP	TRAJECTORY_COMPILER_FIND_END
 
 TRAJECTORY_COMPILER_BREAK:
 
 
 TRAJECTORY_COMPILER_ACCELERATE:
+
+	LDS		TEMPWH, LATEST_STRAIGHT_H
+	LDS		TEMPWL, LATEST_STRAIGHT_L
+
+	SUB		TEMP2, TEMPWL
+	SBC		TEMP1, TEMPWH
+
+
+
 
 
 
@@ -626,6 +621,21 @@ TRAJECTORY_COMPILER_RUNUP:
 
 
 TRAJECTORY_COMPILER_FIND_END:
+
+	LDI		TEMP3, 0xFF															;
+
+	CP		TEMP1, TEMP3														; Check EOT
+	BRNE	NOT_EOT																; 
+	CPC		TEMP2, TEMP3														; 
+	BRNE	NOT_EOT																;
+
+	//END COMPILER -> PERFORMER START
+
+NOT_EOT:
+	
+	SBRS	TEMP1, 7															; CHECK HIGHBIT TACHO FOR BREAK OR ACCELEROMETER
+	RJMP	TRAJECTORY_COMPILER_ACCELERATE										; 
+	RJMP	TRAJECTORY_COMPILER_BREAK											;
 
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
