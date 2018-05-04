@@ -579,7 +579,7 @@ TRAJECTORY_COMPILER_LOOP:
 	CPC		TEMP2, TEMP3														; 
 	BRNE	NOT_EOT																;
 	
-	DO SOMETHING HERE!!!!!!! 
+	//DO SOMETHING HERE!!!!!!! 
 
 NOT_EOT:
 	
