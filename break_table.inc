@@ -2,7 +2,6 @@
 ; >> BREAK OFFSET TABLE
 
 BREAK_OFFSET_TABLE:
-
 	.DB		18, 10
 	.DB		36, 10
 	.DB		55, 10
@@ -16,3 +15,4 @@ BREAK_OFFSET_TABLE:
 	.DB		201, 10
 	.DB		219, 10
 	.DB		237, 10
+	.DB		0, 0

@@ -611,11 +611,13 @@ TRAJECTORY_COMPILER_RUNUP:
 	LDS		TEMPWH, TRACK_LENGTH_H 												; Load_Circuit_Length
 	LDS		TEMPWL, TRACK_LENGTH_L												;
 
-	SUB		TEMPWL, TEMP2														; Subtract Total circuit length with Last Swing value
-	SBC		TEMPWH, TEMP1														; 
+	SUB		TEMP2, TEMPWL														; Subtract Total circuit length with Last Swing value
+	SBC		TEMP1, TEMPWH														; 
 
-	STS		LATEST_STRAIGHT_L, TEMPWL											; Save latest Straight
-	STS		LATEST_STRAIGHT_H, TEMPWH											;
+	STS		LATEST_STRAIGHT_L, TEMP2											; Save latest Straight
+	STS		LATEST_STRAIGHT_H, TEMP1											;
+
+	;STS		LATEST_STRAIGHT, TEMP2
 
 	LDI		YH, HIGH(MAPP_TABLE+2)												; Load Y Pointer to (offset) Mapping Table
 	LDI		YL,  LOW(MAPP_TABLE+2)												; 
@@ -653,15 +655,15 @@ TRAJECTORY_COMPILER_BREAK:
 
 	CBR		TEMP2, (1<<7)
 	
-	SUB		TEMPWL, TEMP1														; Calculate latest straight
-	SBC		TEMPWH, TEMP2														;
+	SUB		TEMP1, TEMPWL														; Calculate latest straight
+	SBC		TEMP2, TEMPWH														;
 
 	SBR		TEMP2, (1<<7)
 
-	STS		LATEST_STRAIGHT, TEMPWL												;
+	STS		LATEST_STRAIGHT, TEMP1												;
 
-	MOV		TXREG, TEMPWL
-	CALL	SERIAL_WRITE
+	;MOV		TXREG, TEMP1
+	;CALL	SERIAL_WRITE
 
 	RCALL	TRAJECTORY_COMPILER_BREAK_OFFSET									;
 
@@ -671,8 +673,6 @@ TRAJECTORY_COMPILER_BREAK:
 	LD		TEMP1, Y+															;
 
 	CBR		TEMP2, (1<<7)														; Clear MSB for sub
-
-	LDI		TEMP3, 12
 
 	SUB		TEMP1, TEMP3														;
 	SBCI	TEMP2, 0															;
@@ -693,12 +693,13 @@ TRAJECTORY_COMPILER_BREAK_OFFSET:
 
 TRAJECTORY_COMPILER_BREAK_OFFSET_LOOP:
 
-	LPM		TEMP2, Z+2															; Load value of Z Pointer from Table and increment by 2
+	LPM		TEMP2, Z															; Load value of Z Pointer from Table and increment by 2
+	ADIW	ZH:ZL, 2
 
-	CP		TEMP1, TEMP2														; Find matching Table value
+	CP		TEMP2, TEMP1														; Find matching Table value
+	BRSH	TRAJECTORY_COMPILER_BREAK_OFFSET_END								; ^
 
-	BREQ	TRAJECTORY_COMPILER_BREAK_OFFSET_END								; ^
-	BRLO	TRAJECTORY_COMPILER_BREAK_OFFSET_LOOP								; ^
+	RJMP	TRAJECTORY_COMPILER_BREAK_OFFSET_LOOP
 
 TRAJECTORY_COMPILER_BREAK_OFFSET_END:
 
