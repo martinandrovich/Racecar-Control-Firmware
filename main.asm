@@ -539,7 +539,6 @@ MAPPING_ESC:
 TRAJECTORY:
 	
 	// BRANCH ACCORDING TO TJRDY FLAG
-	//dANIEL
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > COMPILER
@@ -549,8 +548,6 @@ TRAJECTORY_COMPILER_SETUP:
 	// CHECK
 
 	// SETUP POINTER 
-
-	// MARTIN
 
 TRAJECTORY_COMPILER_LOOP:
 
