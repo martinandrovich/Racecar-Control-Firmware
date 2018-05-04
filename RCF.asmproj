@@ -80,6 +80,9 @@
     </ToolchainSettings>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="break_table.inc">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="command_table.inc">
       <SubType>Code</SubType>
     </Compile>

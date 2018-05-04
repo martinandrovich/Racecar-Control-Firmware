@@ -30,9 +30,10 @@
 
 .ORG	0x28
 
+	.INCLUDE	"macros.inc"													; Include Macros
 	.INCLUDE	"ram_table.inc"													; Include RAM Table
 	.INCLUDE	"command_table.inc"												; Include Command Table
-	.INCLUDE	"macros.inc"													; Include Macros
+	.INCLUDE	"break_table.inc"												; Include Brake Offset Table
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > CONSTANTS
@@ -58,7 +59,7 @@
 	.EQU	MOVAVG_DIVS					= 6										; Number of division to perform (i.e. 2^5 = 32)
 	.EQU	MOVAVG_TABLE_END			= MOVAVG_TABLE + MOVAVG_SIZE			;
 
-	; Mapping & Turn Detection Thresholds
+	; Mapping & Turn Detection Constants
 
 	.EQU	TURN_TH_IN_LEFT				= 122
 	.EQU	TURN_TH_IN_RIGHT			= 115
@@ -70,7 +71,14 @@
 	.EQU	MAPPING_DEBOUNCE_VAL		= 10									; Mapping Debounce in TICKS
 	.EQU	MAPPING_OFFSET_IN			= 8										; Mapping Offset In in TICKS
 	.EQU	MAPPING_OFFSET_OUT			= 11									; Mapping Offset Out in TICKS
-	.EQU	ACCLR_OFF					= 0										;
+
+	; Trajectory Constants
+	
+	.EQU	TRAJECTORY_ACCLR_OFFSET		= 0										;
+	.EQU	TRAJECTORY_BRAKE_OFFSET		= 0										;
+
+	.EQU	TRAJECTORY_ACCLR_PWM		= 255									;
+	.EQU	TRAJECTORY_TURN_PWM			= 101									;
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > REGISTERS
@@ -565,11 +573,11 @@ TRAJECTORY:
 
 TRAJECTORY_COMPILER_SETUP:
 
-	LDI		XH, HIGH(TRAJ_TABLE)												; Load Trajectory Table
-	LDI		XL, LOW(TRAJ_TABLE)													;
+	LDI		XH, HIGH(TRAJ_TABLE)												; Load X Pointer to Trajectory Table
+	LDI		XL,  LOW(TRAJ_TABLE)												;
 
-	LDI		YH, HIGH(MAPP_TABLE)												; Load Mapping Table
-	LDI		YL, LOW(MAPP_TABLE)													; 
+	LDI		YH, HIGH(MAPP_TABLE)												; Load Y Pointer to Mapping Table
+	LDI		YL,  LOW(MAPP_TABLE)												; 
 	
 	LDI		TEMP3, 0															; Check for FinishLine
 
@@ -624,12 +632,39 @@ TRAJECTORY_COMPILER_LOOP:
 	RJMP	TRAJECTORY_COMPILER_FIND_END
 
 TRAJECTORY_COMPILER_BREAK:
+
+	NOP
+
+TRAJECTORY_COMPILER_BREAK_OFFSET:
+	
+	LDI		ZH, HIGH(BREAK_OFFSET_TABLE)										; Load Z Pointer to Break Offset Table
+	LDI		ZL,  LOW(BREAK_OFFSET_TABLE)										; ^
+
+	LDS		TEMP1, LATEST_STRAIGHT												; Load value of Latest Straight Distance
+
+TRAJECTORY_COMPILER_BREAK_OFFSET_LOOP:
+
+	LPM		TEMP2, Z+2															; Load value of Z Pointer from Table and increment by 2
+
+	CP		TEMP1, TEMP2														; Find matching Table value
+	BREQ	TRAJECTORY_COMPILER_BREAK_OFFSET_END								; ^
+	BRLO	TRAJECTORY_COMPILER_BREAK_OFFSET_LOOP								; ^
+
+TRAJECTORY_COMPILER_BREAK_OFFSET_END:
+
+	SBIW	ZH:ZL, 1															; Decrement Z Pointer
+	LPM		TEMP3, Z															; Load value of Z Pointer															
+
+	CALL	TELEGRAM_RESET														; Reset Telegram due to Z Pointer
+
+	RET																			; Return
+
 	
 
 TRAJECTORY_COMPILER_ACCELERATE:
 	
 	MOVW	TEMPWH:TEMPWL, TEMP2:TEMP1											;
-	SBIW	TEMPWH:TEMPWL, ACCLR_OFF											;
+	SBIW	TEMPWH:TEMPWL, TRAJECTORY_ACCLR_OFFSET								;
 
 	ST		X+, TEMPWH															;
 	ST		X+, TEMPWL															;
