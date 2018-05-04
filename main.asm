@@ -539,38 +539,89 @@ MAPPING_ESC:
 TRAJECTORY:
 	
 	// BRANCH ACCORDING TO TJRDY FLAG
-	//dANIEL
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > COMPILER
 
 TRAJECTORY_COMPILER_SETUP:
 
-	// CHECK
+	LDI		XH, HIGH(TRAJ_TABLE)												; Load Trajectory Table
+	LDI		XL, LOW(TRAJ_TABLE)													;
 
-	// SETUP POINTER 
+	LDI		YH, HIGH(MAPP_TABLE)												; Load Mapping Table
+	LDI		YL, LOW(MAPP_TABLE)													; 
 
-	// MARTIN
+	
+	LDI		TEMP3, 0															; Check for FinishLine
+
+	LD		TEMP1, Y+															; ^
+	LD		TEMP2, Y+															; 
+
+	CP		TEMP1, TEMP3														; ^
+	CPC		TEMP2, TEMP3														; 
+
+	SER		TEMP3
+
+	BREQ	CONTINUE_COMPILER_SETUP												; Branch if FinishLine 00_00
+
+	RET
 
 TRAJECTORY_COMPILER_LOOP:
 
-	// CHECK EoT
+	LD		TEMP1, Y+															;
+	LD		TEMP2, Y+															;
 
-	// UPDATE POINTER / LOAD MAPPING VALUE
+	LDI		TEMP3, 0xFF															;
 
-	// CHECK MSB OF MAPPING VAL -> BRANCH
+	CP		TEMP1, TEMP3														; Check EOT
+	BRNE	NOT_EOT																; 
+	CPC		TEMP2, TEMP3														; 
+	BRNE	NOT_EOT																; 
+
+NOT_EOT:
+	
+	SBRS	TEMP1, 7															; CHECK HIGHBIT TACHO FOR BREAK OR ACCELEROMETER
+	RJMP	TRAJECTORY_COMPILER_ACCELERATE
+	RJMP	TRAJECTORY_COMPILER_BREAK
+
+
+
+
 
 TRAJECTORY_COMPILER_BREAK:
 
 TRAJECTORY_COMPILER_ACCELERATE:
 
+
 TRAJECTORY_COMPILER_RUNUP:
 
-	// FIND END
+	LD		TEMP1, Y+															; Load Mapping Table TachoH & L
+	LD		TEMP2, Y+															; ^
 
-	// SET LATEST STRAIGHT 
+	CP		TEMP1, TEMP3														; Check for 0xFF_FF
+	BRNE	CONTINUE_COMPILER_SETUP												; ^
+	CPC		TEMP2, TEMP3														; ^
+	BRNE	CONTINUE_COMPILER_SETUP												; ^
 
-	// SETUP POINTER
+	SBIW	Y, 4																; Offset the mapping with 4, must be last OutSwing
+
+	LD		TEMP1, Y+															; Load Last Swing
+	LD		TEMP2, Y+															; 	
+
+	ST		X+, TEMP1															; Save Last Swing for Run_Up
+	ST		X+, TEMP2															;
+
+	LDS		TEMPWH, CIRCUIT_LENGTH_H 											; Load_Circuit_Length
+	LDS		TEMPWL, CIRCUIT_LENGTH_L											;
+
+	SUB		TEMPWL, TEMP2														; Subtract Total circuit length with Last Swing value
+	SBC		TEMPWH, TEMP1														; 
+
+	STS		LAST_STRAIGHT_H, TEMPWH												; NOW IT IS LOADED GO BACK TO GENERATOR!!!
+	STS		LAST_STRAIGHT_L, TEMPWL												;
+
+	RJMP	TRAJECTORY_COMPILER_LOOP
+
 
 TRAJECTORY_COMPILER_FIND_END:
 
