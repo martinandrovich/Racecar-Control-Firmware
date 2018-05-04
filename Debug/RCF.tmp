@@ -1,21 +1,21 @@
 <ASSEMBLER_INFO>
  <VERSION>2.2.7</VERSION>
  <DEVICE>"ATmega32"</DEVICE>
- <WORKING_DIR>C:\Users\Martin\Desktop\Racecar-Control-Firmware\Debug</WORKING_DIR>
+ <WORKING_DIR>C:\Users\Danie\Desktop\Racecar-Control-Firmware\Debug</WORKING_DIR>
  <INCLUDE_PATH>
   <DIR>C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.150\avrasm\inc</DIR>
   <DIR>C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avrassembler\Include</DIR>
   <DIR></DIR>
  </INCLUDE_PATH>
- <SOURCE_FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</SOURCE_FILE>
+ <SOURCE_FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</SOURCE_FILE>
  <INCLUDED_FILES>
   <FILE>C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.150\avrasm\inc\m32def.inc</FILE>
-  <FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\ram_table.inc</FILE>
-  <FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\command_table.inc</FILE>
-  <FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\macros.inc</FILE>
+  <FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\ram_table.inc</FILE>
+  <FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\command_table.inc</FILE>
+  <FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\macros.inc</FILE>
  </INCLUDED_FILES>
  <OBJECT_FILES>
-  <FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\Debug\RCF.obj</FILE>
+  <FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\Debug\RCF.obj</FILE>
  </OBJECT_FILES>
  <HEX_FILES>
   <FILE>RCF.hex</FILE>
@@ -25,89 +25,89 @@
   <FILE>RCF.lss</FILE>
  </OUTPUT_FILES>
  <LABELS>
-  <INIT><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>122</LINE></INIT>
-  <INT0_HANDLER><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1215</LINE></INT0_HANDLER>
-  <INT1_HANDLER><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1224</LINE></INT1_HANDLER>
-  <TMR1_HANDLER><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1233</LINE></TMR1_HANDLER>
-  <ADC_HANDLER><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1242</LINE></ADC_HANDLER>
-  <COMMANDS><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\command_table.inc</FILE><LINE>1</LINE></COMMANDS>
-  <EMPTY><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1124</LINE></EMPTY>
-  <MAPPING_GET><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>914</LINE></MAPPING_GET>
-  <SET_MOTOR_PWM><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>947</LINE></SET_MOTOR_PWM>
-  <MAPPING_SET><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>900</LINE></MAPPING_SET>
-  <BROADCAST_SET><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>885</LINE></BROADCAST_SET>
-  <MOVAVG_POINTER_RESET><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1017</LINE></MOVAVG_POINTER_RESET>
-  <MOVAVG_SRAM_SETUP><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1024</LINE></MOVAVG_SRAM_SETUP>
-  <MAIN><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>233</LINE></MAIN>
-  <LOAD_FLAGS><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1092</LINE></LOAD_FLAGS>
-  <TELEGRAM_CHECK><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>764</LINE></TELEGRAM_CHECK>
-  <EXECUTE_COMMAND><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>871</LINE></EXECUTE_COMMAND>
-  <LOG_TACHOMETER><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>283</LINE></LOG_TACHOMETER>
-  <LOG_FINISHLINE><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>306</LINE></LOG_FINISHLINE>
-  <LOG_ACCELEROMETER><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>326</LINE></LOG_ACCELEROMETER>
-  <MAPPING><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>356</LINE></MAPPING>
-  <BROADCAST><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>669</LINE></BROADCAST>
-  <CLOCK><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1109</LINE></CLOCK>
-  <MOVAVG><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>992</LINE></MOVAVG>
-  <MAPPING_ISMAP_CHECK><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>366</LINE></MAPPING_ISMAP_CHECK>
-  <MAPPING_CHECK_DEBOUNCE><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>447</LINE></MAPPING_CHECK_DEBOUNCE>
-  <MAPPING_ESC><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>551</LINE></MAPPING_ESC>
-  <MAPPING_END><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>411</LINE></MAPPING_END>
-  <MAPPING_BEGIN><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>384</LINE></MAPPING_BEGIN>
-  <MAPPING_RESET_DEBOUNCE><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>460</LINE></MAPPING_RESET_DEBOUNCE>
-  <SET_MOTOR_BREAK><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>968</LINE></SET_MOTOR_BREAK>
-  <MAPPING_CHECK_TURN><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>472</LINE></MAPPING_CHECK_TURN>
-  <MAPPING_CHECK_TURN_OUT><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>506</LINE></MAPPING_CHECK_TURN_OUT>
-  <MAPPING_CHECK_TURN_IN><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>480</LINE></MAPPING_CHECK_TURN_IN>
-  <MAPPING_ADD><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>526</LINE></MAPPING_ADD>
-  <MAPPING_CHECK_TURN_OUT_RIGHT><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>512</LINE></MAPPING_CHECK_TURN_OUT_RIGHT>
-  <MAPPING_CHECK_TURN_OUT_LEFT><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>519</LINE></MAPPING_CHECK_TURN_OUT_LEFT>
-  <TRAJECTORY><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>558</LINE></TRAJECTORY>
-  <TRAJECTORY_COMPILER_SETUP><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>565</LINE></TRAJECTORY_COMPILER_SETUP>
-  <TRAJECTORY_COMPILER_RUNUP><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>615</LINE></TRAJECTORY_COMPILER_RUNUP>
-  <TRAJECTORY_COMPILER_LOOP><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>587</LINE></TRAJECTORY_COMPILER_LOOP>
-  <NOT_EOT><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>601</LINE></NOT_EOT>
-  <TRAJECTORY_COMPILER_ACCELERATE><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>611</LINE></TRAJECTORY_COMPILER_ACCELERATE>
-  <TRAJECTORY_COMPILER_BREAK><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>608</LINE></TRAJECTORY_COMPILER_BREAK>
-  <TRAJECTORY_COMPILER_FIND_END><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>645</LINE></TRAJECTORY_COMPILER_FIND_END>
-  <TRAJECTORY_ESC><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>656</LINE></TRAJECTORY_ESC>
-  <BROADCAST_TACHOMETER><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>690</LINE></BROADCAST_TACHOMETER>
-  <BROADCAST_FINISHLINE><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>707</LINE></BROADCAST_FINISHLINE>
-  <BROADCAST_ACCELEROMETER><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>700</LINE></BROADCAST_ACCELEROMETER>
-  <BROADCAST_ALL><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>714</LINE></BROADCAST_ALL>
-  <SERIAL_WRITE><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>749</LINE></SERIAL_WRITE>
-  <BROADCAST_ALL_SEND><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>724</LINE></BROADCAST_ALL_SEND>
-  <SERIAL_READ><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>739</LINE></SERIAL_READ>
-  <TELEGRAM_PARSER><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>772</LINE></TELEGRAM_PARSER>
-  <TELEGRAM_PARSE_SETUP><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>796</LINE></TELEGRAM_PARSE_SETUP>
-  <TELEGRAM_EXECUTE><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>819</LINE></TELEGRAM_EXECUTE>
-  <TELEGRAM_JUMP><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>805</LINE></TELEGRAM_JUMP>
-  <TELEGRAM_PARSER_ESC><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>792</LINE></TELEGRAM_PARSER_ESC>
-  <TELEGRAM_ERROR><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>853</LINE></TELEGRAM_ERROR>
-  <TELEGRAM_RESET><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>838</LINE></TELEGRAM_RESET>
-  <TELEGRAM_CLRBUFFER><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>845</LINE></TELEGRAM_CLRBUFFER>
-  <MAPPING_GET_LOOP><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>921</LINE></MAPPING_GET_LOOP>
-  <MAPPING_GET_ESC><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>937</LINE></MAPPING_GET_ESC>
-  <DELAY_100uS><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1198</LINE></DELAY_100uS>
-  <SET_MOTOR_PWM_ESC><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>964</LINE></SET_MOTOR_PWM_ESC>
-  <SET_MOTOR_MAX><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>981</LINE></SET_MOTOR_MAX>
-  <MOVAVG_SKIP_RESET><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1007</LINE></MOVAVG_SKIP_RESET>
-  <MOVAVG_ADD><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1042</LINE></MOVAVG_ADD>
-  <MOVAVG_DIVIDE><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1070</LINE></MOVAVG_DIVIDE>
-  <MOVAVG_SRAM_SETUP_LOOP><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1031</LINE></MOVAVG_SRAM_SETUP_LOOP>
-  <MOVAVG_ADD_LOOP><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1050</LINE></MOVAVG_ADD_LOOP>
-  <MOVAVG_ADD_SKIP_CARRY><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1061</LINE></MOVAVG_ADD_SKIP_CARRY>
-  <MOVAVG_DIVIDE_LOOP><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1074</LINE></MOVAVG_DIVIDE_LOOP>
-  <TEST><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1128</LINE></TEST>
-  <DELAY><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1161</LINE></DELAY>
-  <TEST35><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1140</LINE></TEST35>
-  <TEST40><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1147</LINE></TEST40>
-  <TEST45><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1154</LINE></TEST45>
-  <LOOP3><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1163</LINE></LOOP3>
-  <LOOP2><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1165</LINE></LOOP2>
-  <LOOP1><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1167</LINE></LOOP1>
-  <DELAY_10MS><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1180</LINE></DELAY_10MS>
-  <DELAY_10MS_LOOP><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1185</LINE></DELAY_10MS_LOOP>
-  <DELAY_100uS_LOOP><FILE>C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1203</LINE></DELAY_100uS_LOOP>
+  <INIT><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>123</LINE></INIT>
+  <INT0_HANDLER><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1236</LINE></INT0_HANDLER>
+  <INT1_HANDLER><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1245</LINE></INT1_HANDLER>
+  <TMR1_HANDLER><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1254</LINE></TMR1_HANDLER>
+  <ADC_HANDLER><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1263</LINE></ADC_HANDLER>
+  <COMMANDS><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\command_table.inc</FILE><LINE>1</LINE></COMMANDS>
+  <EMPTY><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1145</LINE></EMPTY>
+  <MAPPING_GET><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>935</LINE></MAPPING_GET>
+  <SET_MOTOR_PWM><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>968</LINE></SET_MOTOR_PWM>
+  <MAPPING_SET><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>921</LINE></MAPPING_SET>
+  <BROADCAST_SET><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>906</LINE></BROADCAST_SET>
+  <MOVAVG_POINTER_RESET><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1038</LINE></MOVAVG_POINTER_RESET>
+  <MOVAVG_SRAM_SETUP><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1045</LINE></MOVAVG_SRAM_SETUP>
+  <MAIN><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>234</LINE></MAIN>
+  <LOAD_FLAGS><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1113</LINE></LOAD_FLAGS>
+  <TELEGRAM_CHECK><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>785</LINE></TELEGRAM_CHECK>
+  <EXECUTE_COMMAND><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>892</LINE></EXECUTE_COMMAND>
+  <LOG_TACHOMETER><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>284</LINE></LOG_TACHOMETER>
+  <LOG_FINISHLINE><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>307</LINE></LOG_FINISHLINE>
+  <LOG_ACCELEROMETER><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>327</LINE></LOG_ACCELEROMETER>
+  <MAPPING><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>357</LINE></MAPPING>
+  <BROADCAST><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>690</LINE></BROADCAST>
+  <CLOCK><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1130</LINE></CLOCK>
+  <MOVAVG><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1013</LINE></MOVAVG>
+  <MAPPING_ISMAP_CHECK><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>367</LINE></MAPPING_ISMAP_CHECK>
+  <MAPPING_CHECK_DEBOUNCE><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>448</LINE></MAPPING_CHECK_DEBOUNCE>
+  <MAPPING_ESC><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>552</LINE></MAPPING_ESC>
+  <MAPPING_END><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>412</LINE></MAPPING_END>
+  <MAPPING_BEGIN><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>385</LINE></MAPPING_BEGIN>
+  <MAPPING_RESET_DEBOUNCE><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>461</LINE></MAPPING_RESET_DEBOUNCE>
+  <SET_MOTOR_BREAK><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>989</LINE></SET_MOTOR_BREAK>
+  <MAPPING_CHECK_TURN><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>473</LINE></MAPPING_CHECK_TURN>
+  <MAPPING_CHECK_TURN_OUT><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>507</LINE></MAPPING_CHECK_TURN_OUT>
+  <MAPPING_CHECK_TURN_IN><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>481</LINE></MAPPING_CHECK_TURN_IN>
+  <MAPPING_ADD><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>527</LINE></MAPPING_ADD>
+  <MAPPING_CHECK_TURN_OUT_RIGHT><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>513</LINE></MAPPING_CHECK_TURN_OUT_RIGHT>
+  <MAPPING_CHECK_TURN_OUT_LEFT><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>520</LINE></MAPPING_CHECK_TURN_OUT_LEFT>
+  <TRAJECTORY><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>559</LINE></TRAJECTORY>
+  <TRAJECTORY_COMPILER_SETUP><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>566</LINE></TRAJECTORY_COMPILER_SETUP>
+  <TRAJECTORY_COMPILER_RUNUP><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>590</LINE></TRAJECTORY_COMPILER_RUNUP>
+  <TRAJECTORY_COMPILER_LOOP><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>619</LINE></TRAJECTORY_COMPILER_LOOP>
+  <TRAJECTORY_COMPILER_FIND_END><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>649</LINE></TRAJECTORY_COMPILER_FIND_END>
+  <TRAJECTORY_COMPILER_BREAK><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>626</LINE></TRAJECTORY_COMPILER_BREAK>
+  <TRAJECTORY_COMPILER_ACCELERATE><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>629</LINE></TRAJECTORY_COMPILER_ACCELERATE>
+  <NOT_EOT><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>662</LINE></NOT_EOT>
+  <TRAJECTORY_ESC><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>677</LINE></TRAJECTORY_ESC>
+  <BROADCAST_TACHOMETER><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>711</LINE></BROADCAST_TACHOMETER>
+  <BROADCAST_FINISHLINE><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>728</LINE></BROADCAST_FINISHLINE>
+  <BROADCAST_ACCELEROMETER><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>721</LINE></BROADCAST_ACCELEROMETER>
+  <BROADCAST_ALL><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>735</LINE></BROADCAST_ALL>
+  <SERIAL_WRITE><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>770</LINE></SERIAL_WRITE>
+  <BROADCAST_ALL_SEND><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>745</LINE></BROADCAST_ALL_SEND>
+  <SERIAL_READ><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>760</LINE></SERIAL_READ>
+  <TELEGRAM_PARSER><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>793</LINE></TELEGRAM_PARSER>
+  <TELEGRAM_PARSE_SETUP><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>817</LINE></TELEGRAM_PARSE_SETUP>
+  <TELEGRAM_EXECUTE><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>840</LINE></TELEGRAM_EXECUTE>
+  <TELEGRAM_JUMP><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>826</LINE></TELEGRAM_JUMP>
+  <TELEGRAM_PARSER_ESC><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>813</LINE></TELEGRAM_PARSER_ESC>
+  <TELEGRAM_ERROR><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>874</LINE></TELEGRAM_ERROR>
+  <TELEGRAM_RESET><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>859</LINE></TELEGRAM_RESET>
+  <TELEGRAM_CLRBUFFER><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>866</LINE></TELEGRAM_CLRBUFFER>
+  <MAPPING_GET_LOOP><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>942</LINE></MAPPING_GET_LOOP>
+  <MAPPING_GET_ESC><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>958</LINE></MAPPING_GET_ESC>
+  <DELAY_100uS><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1219</LINE></DELAY_100uS>
+  <SET_MOTOR_PWM_ESC><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>985</LINE></SET_MOTOR_PWM_ESC>
+  <SET_MOTOR_MAX><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1002</LINE></SET_MOTOR_MAX>
+  <MOVAVG_SKIP_RESET><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1028</LINE></MOVAVG_SKIP_RESET>
+  <MOVAVG_ADD><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1063</LINE></MOVAVG_ADD>
+  <MOVAVG_DIVIDE><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1091</LINE></MOVAVG_DIVIDE>
+  <MOVAVG_SRAM_SETUP_LOOP><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1052</LINE></MOVAVG_SRAM_SETUP_LOOP>
+  <MOVAVG_ADD_LOOP><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1071</LINE></MOVAVG_ADD_LOOP>
+  <MOVAVG_ADD_SKIP_CARRY><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1082</LINE></MOVAVG_ADD_SKIP_CARRY>
+  <MOVAVG_DIVIDE_LOOP><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1095</LINE></MOVAVG_DIVIDE_LOOP>
+  <TEST><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1149</LINE></TEST>
+  <DELAY><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1182</LINE></DELAY>
+  <TEST35><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1161</LINE></TEST35>
+  <TEST40><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1168</LINE></TEST40>
+  <TEST45><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1175</LINE></TEST45>
+  <LOOP3><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1184</LINE></LOOP3>
+  <LOOP2><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1186</LINE></LOOP2>
+  <LOOP1><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1188</LINE></LOOP1>
+  <DELAY_10MS><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1201</LINE></DELAY_10MS>
+  <DELAY_10MS_LOOP><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1206</LINE></DELAY_10MS_LOOP>
+  <DELAY_100uS_LOOP><FILE>C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm</FILE><LINE>1224</LINE></DELAY_100uS_LOOP>
  </LABELS>
 </ASSEMBLER_INFO>
