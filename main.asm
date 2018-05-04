@@ -30,8 +30,9 @@
 
 .ORG	0x28
 
-	.INCLUDE	"ram_table.inc"
-	.INCLUDE	"command_table.inc"
+	.INCLUDE	"ram_table.inc"													; Include RAM Table
+	.INCLUDE	"command_table.inc"												; Include Command Table
+	.INCLUDE	"macros.inc"													; Include Macros
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > CONSTANTS
@@ -823,9 +824,11 @@ BROADCAST_SET:
 
 MAPPING_SET:
 	
-	MOV		TEMP1, MDFLG														; Set MAP flag
-	SBR		TEMP1, (1<<MAP)														; ^
-	MOV		MDFLG, TEMP1														; ^
+	;MOV		TEMP1, MDFLG														; Set MAP flag
+	;SBR		TEMP1, (1<<MAP)														; ^
+	;MOV		MDFLG, TEMP1														; ^
+
+	SFLG	MDFLG, MAP
 
 	STS		MODE_FLG, MDFLG														; Store new mode flags to SRAM
 

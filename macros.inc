@@ -1,11 +1,25 @@
-.MACRO	SWRITE	
-	
-	LDS		TXREG, @0															;
-	STS		SERIAL_TX, TXREG													;
-	SBIS	UCSRA, UDRE															; Wait for Empty Transmit Buffer (UDRE) Flag
-	RJMP	SERIAL_WRITE														; ^
 
-	OUT	UDR, TXREG																; Write data from Transmission Register
-	
-	RET	
-.ENDMACRO	
+; ____________________________________________________________________________________________________________________________________________________
+; >> MACROS
+
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+;  > SET FLAG
+
+ .MACRO	SFLG
+
+	MOV		TEMP1, @0														; Clear Flag (@1) of Register (@0)
+	SBR		TEMP1, (1<<@1)													; ^
+	MOV		@0, TEMP1														; ^
+
+.ENDMACRO
+
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+;  > CLEAR FLAG
+
+ .MACRO	CFLG
+
+	MOV		TEMP1, @0														; Clear Flag (@1) of Register (@0)
+	CBR		TEMP1, (1<<@1)													; ^
+	MOV		@0, TEMP1														; ^
+
+.ENDMACRO
