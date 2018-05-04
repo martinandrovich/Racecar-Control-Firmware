@@ -601,9 +601,9 @@ TRAJECTORY_COMPILER_RUNUP:
 	LD		TEMP2, Y+															; ^
 
 	CP		TEMP1, TEMP3														; Check for 0xFF_FF
-	BRNE	CONTINUE_COMPILER_SETUP												; ^
+	BRNE	TRAJECTORY_COMPILER_RUNUP											; ^
 	CPC		TEMP2, TEMP3														; ^
-	BRNE	CONTINUE_COMPILER_SETUP												; ^
+	BRNE	TRAJECTORY_COMPILER_RUNUP											; ^
 
 	SBIW	Y, 4																; Offset the mapping with 4, must be last OutSwing
 
@@ -613,14 +613,14 @@ TRAJECTORY_COMPILER_RUNUP:
 	ST		X+, TEMP1															; Save Last Swing for Run_Up
 	ST		X+, TEMP2															;
 
-	LDS		TEMPWH, CIRCUIT_LENGTH_H 											; Load_Circuit_Length
-	LDS		TEMPWL, CIRCUIT_LENGTH_L											;
+	LDS		TEMPWH, TRACK_LENGTH_H 												; Load_Circuit_Length
+	LDS		TEMPWL, TRACK_LENGTH_L												;
 
 	SUB		TEMPWL, TEMP2														; Subtract Total circuit length with Last Swing value
 	SBC		TEMPWH, TEMP1														; 
 
-	STS		LAST_STRAIGHT_H, TEMPWH												; NOW IT IS LOADED GO BACK TO GENERATOR!!!
-	STS		LAST_STRAIGHT_L, TEMPWL												;
+	STS		LATEST_STRAIGHT_H, TEMPWH											; NOW IT IS LOADED GO BACK TO GENERATOR!!!
+	STS		LATEST_STRAIGHT_L, TEMPWL											;
 
 	RJMP	TRAJECTORY_COMPILER_LOOP
 
