@@ -15,7 +15,7 @@
     <Name>RCF</Name>
     <RootNamespace>RCF</RootNamespace>
     <ToolchainFlavour>Native</ToolchainFlavour>
-    <EntryFile>$(MSBuildProjectDirectory)\main_new.asm</EntryFile>
+    <EntryFile>$(MSBuildProjectDirectory)\main.asm</EntryFile>
     <KeepTimersRunning>true</KeepTimersRunning>
     <OverrideVtor>false</OverrideVtor>
     <CacheFlash>true</CacheFlash>
@@ -92,19 +92,22 @@
     <Compile Include="files\broadcast.asm">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="files\main_1.0.2.asm">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="files\main_1.0.3.asm">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="files\main_1.1.2.asm">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="files\main_1_0_3.asm">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="files\main_1_0_2.asm">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="files\mov_avg.asm">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="files\telegram_parser.asm">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="macros.inc">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="main.asm">
@@ -118,9 +121,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="macros.inc">
-      <SubType>Code</SubType>
-    </None>
     <None Include="version_log.txt">
       <SubType>Code</SubType>
     </None>

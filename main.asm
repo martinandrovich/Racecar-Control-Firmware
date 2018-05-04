@@ -413,8 +413,8 @@ MAPPING_END:
 	LDS		TEMP2, TACHOMETER_H													; Load current Tachometer values
 	LDS		TEMP3, TACHOMETER_L													; ^
 
-	STS		TEMP2, TRACK_LENGTH_H												; Store Track Length (Finishline Tachometer value) into SRAM
-	STS		TEMP3, TRACK_LENGTH_L												; ^
+	STS		TRACK_LENGTH_H, TEMP2 												; Store Track Length (Finishline Tachometer value) into SRAM
+	STS		TRACK_LENGTH_L, TEMP3 												; ^
 
 	;ST		Y+, TEMP2															; Save finishline tachometer data
 	;ST		Y+, TEMP3															;
@@ -552,8 +552,6 @@ TRAJECTORY_COMPILER_SETUP:
 
 	LDI		YH, HIGH(MAPP_TABLE)												; Load Mapping Table
 	LDI		YL, LOW(MAPP_TABLE)													; 
-
-<<<<<<< HEAD
 	
 	LDI		TEMP3, 0															; Check for FinishLine
 
@@ -569,8 +567,6 @@ TRAJECTORY_COMPILER_SETUP:
 
 	RET
 
-=======
->>>>>>> b5fb1f4b9648d0b9a04c082116c743e88d06eaa6
 TRAJECTORY_COMPILER_LOOP:
 
 	LD		TEMP1, Y+															;
