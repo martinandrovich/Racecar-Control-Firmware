@@ -30,8 +30,9 @@
 
 .ORG	0x28
 
-	.INCLUDE	"ram_table.inc"
-	.INCLUDE	"command_table.inc"
+	.INCLUDE	"ram_table.inc"													; Include RAM Table
+	.INCLUDE	"command_table.inc"												; Include Command Table
+	.INCLUDE	"macros.inc"													; Include Macros
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > CONSTANTS
@@ -112,6 +113,7 @@
 	.EQU	ISMAP		= 7														; Program currently mapping
 	.EQU	INTURN		= 6														; In turn
 	.EQU	TURNDIR		= 5														; Direction of turn (0 = L & 1 = R)
+	.EQU	TJRDY		= 4														; Trajectory ready
 
 
 ; ____________________________________________________________________________________________________________________________________________________
@@ -551,6 +553,7 @@ TRAJECTORY_COMPILER_SETUP:
 	LDI		YH, HIGH(MAPP_TABLE)												; Load Mapping Table
 	LDI		YL, LOW(MAPP_TABLE)													; 
 
+<<<<<<< HEAD
 	
 	LDI		TEMP3, 0															; Check for FinishLine
 
@@ -566,6 +569,8 @@ TRAJECTORY_COMPILER_SETUP:
 
 	RET
 
+=======
+>>>>>>> b5fb1f4b9648d0b9a04c082116c743e88d06eaa6
 TRAJECTORY_COMPILER_LOOP:
 
 	LD		TEMP1, Y+															;
@@ -589,6 +594,8 @@ NOT_EOT:
 
 
 TRAJECTORY_COMPILER_BREAK:
+
+
 
 TRAJECTORY_COMPILER_ACCELERATE:
 
@@ -874,9 +881,11 @@ BROADCAST_SET:
 
 MAPPING_SET:
 	
-	MOV		TEMP1, MDFLG														; Set MAP flag
-	SBR		TEMP1, (1<<MAP)														; ^
-	MOV		MDFLG, TEMP1														; ^
+	;MOV		TEMP1, MDFLG														; Set MAP flag
+	;SBR		TEMP1, (1<<MAP)														; ^
+	;MOV		MDFLG, TEMP1														; ^
+
+	SFLG	MDFLG, MAP
 
 	STS		MODE_FLG, MDFLG														; Store new mode flags to SRAM
 
