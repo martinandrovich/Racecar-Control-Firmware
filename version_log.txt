@@ -38,7 +38,11 @@
 - Added:		Finishline Interrupt (INT1, PD3)
 - Added:		Finishline Broadcast Test
 
-# 1.2.0  <<
+# 1.2.0
 - Added:		Internal Mapping
 - Added:		Mapping SET & GET Commands
+
+# 1.2.1  <<
+- Added:		Autonomous Mode (Simple) [todo]
+- Added:		Internal Trajectory (Simple) [todo]
 
