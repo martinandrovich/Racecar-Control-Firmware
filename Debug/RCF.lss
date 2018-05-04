@@ -1,14 +1,14 @@
 
-AVRASM ver. 2.2.7  C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm Fri May 04 09:56:01 2018
+AVRASM ver. 2.2.7  C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm Fri May 04 10:10:53 2018
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.150\avrasm\inc\m32def.inc'
-C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm(33): Including file 'C:\Users\Danie\Desktop\Racecar-Control-Firmware\ram_table.inc'
-C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm(34): Including file 'C:\Users\Danie\Desktop\Racecar-Control-Firmware\command_table.inc'
-C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm(35): Including file 'C:\Users\Danie\Desktop\Racecar-Control-Firmware\macros.inc'
+C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(33): Including file 'C:\Users\Martin\Desktop\Racecar-Control-Firmware\ram_table.inc'
+C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(34): Including file 'C:\Users\Martin\Desktop\Racecar-Control-Firmware\command_table.inc'
+C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(35): Including file 'C:\Users\Martin\Desktop\Racecar-Control-Firmware\macros.inc'
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.150\avrasm\inc\m32def.inc'
-C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm(33): Including file 'C:\Users\Danie\Desktop\Racecar-Control-Firmware\ram_table.inc'
-C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm(34): Including file 'C:\Users\Danie\Desktop\Racecar-Control-Firmware\command_table.inc'
-C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm(35): Including file 'C:\Users\Danie\Desktop\Racecar-Control-Firmware\macros.inc'
+C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(33): Including file 'C:\Users\Martin\Desktop\Racecar-Control-Firmware\ram_table.inc'
+C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(34): Including file 'C:\Users\Martin\Desktop\Racecar-Control-Firmware\command_table.inc'
+C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(35): Including file 'C:\Users\Martin\Desktop\Racecar-Control-Firmware\macros.inc'
                                  
                                  ; ###################################################################################################################################################
                                  
@@ -1239,9 +1239,13 @@ C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm(35): Including file 'C:
 0000b0 9390 0060                 	STS		TACHOMETER_H, TEMPWH												; Store new values into SRAM
 0000b2 9380 0061                 	STS		TACHOMETER_L, TEMPWL												; ^
                                  
-0000b4 2d01                      	MOV		TEMP1, FNFLG														; Clear TACHO Flag
-0000b5 770f                      	CBR		TEMP1, (1<<TACHO)													; ^
-0000b6 2e10                      	MOV		FNFLG, TEMP1														; ^
+0000b4 2d01
+0000b5 770f
+0000b6 2e10                      	CFLG	FNFLG, TACHO														; Clear TACHO flag in FNFLG
+                                 
+                                 	;MOV		TEMP1, FNFLG														; Clear TACHO Flag
+                                 	;CBR		TEMP1, (1<<TACHO)													; ^
+                                 	;MOV		FNFLG, TEMP1														; ^
                                  
 0000b7 9508                      	RET																			; Return
                                  
@@ -1257,9 +1261,13 @@ C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm(35): Including file 'C:
 0000bd fc06                      	SBRC	MDFLG, MAP	 														; Skip clearing flag if mapping mode enabled
 0000be 9508                      	RET																			; ^
                                  
-0000bf 2d01                      	MOV		TEMP1, FNFLG														; Clear FNLNE Flag
-0000c0 7b0f                      	CBR		TEMP1, (1<<FNLNE)													; ^
-0000c1 2e10                      	MOV		FNFLG, TEMP1														; ^
+                                 	;MOV		TEMP1, FNFLG														; Clear FNLNE Flag
+                                 	;CBR		TEMP1, (1<<FNLNE)													; ^
+                                 	;MOV		FNFLG, TEMP1														; ^
+                                 
+0000bf 2d01
+0000c0 7b0f
+0000c1 2e10                      	CFLG	FNFLG, FNLNE														; Set FNLNE flag in FNFLG
                                  
 0000c2 9508                      	RET																			; Return
                                  
@@ -1285,9 +1293,13 @@ C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm(35): Including file 'C:
                                  
 0000d1 9a36                      	SBI		ADCSR, ADSC															; Start ADC Conversion
                                  
-0000d2 2d01                      	MOV		TEMP1, FNFLG														; Clear ACCLR Flag
-0000d3 7d0f                      	CBR		TEMP1, (1<<ACCLR)													; ^
-0000d4 2e10                      	MOV		FNFLG, TEMP1														; ^
+0000d2 2d01
+0000d3 7d0f
+0000d4 2e10                      	CFLG	FNFLG, ACCLR														; Set ACCLR flag in FNFLG
+                                 
+                                 	;MOV		TEMP1, FNFLG														; Clear ACCLR Flag
+                                 	;CBR		TEMP1, (1<<ACCLR)													; ^
+                                 	;MOV		FNFLG, TEMP1														; ^
                                  
 0000d5 9508                      	RET																			; Return
                                  
@@ -1309,9 +1321,13 @@ C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm(35): Including file 'C:
                                  	// If  ISMAP -> CLR ISMAP(MTFLG) && CLR MAP(MDFLG)							= End Mapping
                                  	// If ~ISMAP -> SET ISMAP													= Begin Mapping
                                  	
-0000db 2d01                      	MOV		TEMP1, FNFLG														; Clear Finishline Flag
-0000dc 7b0f                      	CBR		TEMP1, (1<<FNLNE)													; ^
-0000dd 2e10                      	MOV		FNFLG, TEMP1														; ^
+                                 	;MOV		TEMP1, FNFLG														; Clear Finishline Flag
+                                 	;CBR		TEMP1, (1<<FNLNE)													; ^
+                                 	;MOV		FNFLG, TEMP1														; ^
+                                 
+0000db 2d01
+0000dc 7b0f
+0000dd 2e10                      	CFLG	FNFLG, FNLNE														; Set FNFNE flag in FNFLG
                                  	
 0000de fc27                      	SBRC	MTFLG, ISMAP														; Check ISMAP flag
 0000df c016                      	RJMP	MAPPING_END															; If SET then end mapping
@@ -1322,9 +1338,13 @@ C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm(35): Including file 'C:
                                  	
                                  MAPPING_BEGIN:
                                  
-0000e2 2d02                      	MOV		TEMP1, MTFLG														; Set ISMAP Flag
-0000e3 6800                      	SBR		TEMP1, (1<<ISMAP)													; ^
-0000e4 2e20                      	MOV		MTFLG, TEMP1														; ^
+                                 	;MOV		TEMP1, MTFLG														; Set ISMAP Flag
+                                 	;SBR		TEMP1, (1<<ISMAP)													; ^
+                                 	;MOV		MTFLG, TEMP1														; ^
+                                 
+0000e2 2d02
+0000e3 6800
+0000e4 2e20                      	SFLG	MTFLG, ISMAP														; Set ISMAP flag in MTFLG
                                  
 0000e5 2700                      	CLR		TEMP1																; Reset Tachometer
 0000e6 9300 0060                 	STS		TACHOMETER_H, TEMP1													; ^
@@ -1347,15 +1367,22 @@ C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm(35): Including file 'C:
                                  
                                  MAPPING_END:
                                  	
-0000f6 2d00                      	MOV		TEMP1, MDFLG														; Clear MAP flag
-0000f7 7b0f                      	CBR		TEMP1, (1<<MAP)														; ^
-0000f8 2e00                      	MOV		MDFLG, TEMP1														; ^
+                                 	;MOV		TEMP1, MDFLG														; Clear MAP flag
+                                 	;CBR		TEMP1, (1<<MAP)														; ^
+                                 	;MOV		MDFLG, TEMP1														; ^
                                  
+0000f6 2d00
+0000f7 7b0f
+0000f8 2e00                      	CFLG	MDFLG, MAP															; Clear MAP flag in MDFLG
 0000f9 9200 006f                 	STS		MODE_FLG, MDFLG														; Store new mode flags to SRAM
                                  
-0000fb 2d02                      	MOV		TEMP1, MTFLG														; Clear ISMAP Flag
-0000fc 770f                      	CBR		TEMP1, (1<<ISMAP)													; ^
-0000fd 2e20                      	MOV		MTFLG, TEMP1														; ^
+                                 	;MOV		TEMP1, MTFLG														; Clear ISMAP Flag
+                                 	;CBR		TEMP1, (1<<ISMAP)													; ^
+                                 	;MOV		MTFLG, TEMP1														; ^
+                                 
+0000fb 2d02
+0000fc 770f
+0000fd 2e20                      	CFLG	MTFLG, ISMAP														; Clear ISMAP flag in MTFLG
                                  
 0000fe 9110 0060                 	LDS		TEMP2, TACHOMETER_H													; Load current Tachometer values
 000100 9120 0061                 	LDS		TEMP3, TACHOMETER_L													; ^
@@ -1415,18 +1442,26 @@ C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm(35): Including file 'C:
                                  
                                  	; Check Right Turn
                                  	
-00012c 2d02                      	MOV		TEMP1, MTFLG														; Set TURNDIR Flag (checking right turn)
-00012d 6200                      	SBR		TEMP1, (1<<TURNDIR)													; ^
-00012e 2e20                      	MOV		MTFLG, TEMP1														; ^
+                                 	;MOV		TEMP1, MTFLG														; Set TURNDIR Flag (checking right turn)
+                                 	;SBR		TEMP1, (1<<TURNDIR)													; ^
+                                 	;MOV		MTFLG, TEMP1														; ^
+                                 
+00012c 2d02
+00012d 6200
+00012e 2e20                      	SFLG	MTFLG, TURNDIR														; Set TURNDIR flag in MTFLG
                                  
 00012f 3713                      	CPI		TEMP2, TURN_TH_IN_RIGHT												; Check Right Turn In
 000130 f078                      	BRLO	MAPPING_ADD															; Create mapping entry if true
                                  
                                  	; Check Left Turn
                                  
-000131 2d02                      	MOV		TEMP1, MTFLG														; Clear TURNDIR Flag (checking left turn)
-000132 7d0f                      	CBR		TEMP1, (1<<TURNDIR)													; ^
-000133 2e20                      	MOV		MTFLG, TEMP1														; ^
+                                 	;MOV		TEMP1, MTFLG														; Clear TURNDIR Flag (checking left turn)
+                                 	;CBR		TEMP1, (1<<TURNDIR)													; ^
+                                 	;MOV		MTFLG, TEMP1														; ^
+                                 
+000131 2d02
+000132 7d0f
+000133 2e20                      	CFLG	MTFLG, TURNDIR														; Clear TURNDIR flag in MTFLG
                                  
 000134 371a                      	CPI		TEMP2, TURN_TH_IN_LEFT												; Check Left Turn In
 000135 f450                      	BRSH	MAPPING_ADD															; Create mapping entry if true
@@ -1759,9 +1794,13 @@ C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm(35): Including file 'C:
                                  
 0001d9 9340 0068                 	STS		RECENT_DAT, RXREG													; Store recieved data in SRAM
                                  
-0001db 2d01                      	MOV		TEMP1, FNFLG														; Set CMDPD flag
-0001dc 6008                      	SBR		TEMP1, (1<<CMDPD)													; ^
-0001dd 2e10                      	MOV		FNFLG, TEMP1														; ^
+                                 	;MOV		TEMP1, FNFLG														; Set CMDPD flag
+                                 	;SBR		TEMP1, (1<<CMDPD)													; ^
+                                 	;MOV		FNFLG, TEMP1														; ^
+                                 
+0001db 2d01
+0001dc 6008
+0001dd 2e10                      	SFLG	FNFLG, CMDPD														; Set CMDPD flag in FNFLG
                                  
                                  TELEGRAM_RESET:
                                  	
@@ -1782,9 +1821,13 @@ C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm(35): Including file 'C:
                                  
 0001e6 2744                      	CLR		RXREG																; Clear reception register
                                  
-0001e7 2d01                      	MOV		TEMP1, FNFLG														; Clear CMDPD flag
-0001e8 7f07                      	CBR		TEMP1, (1<<CMDPD)													; ^
-0001e9 2e10                      	MOV		FNFLG, TEMP1														; ^
+                                 	;MOV		TEMP1, FNFLG														; Clear CMDPD flag
+                                 	;CBR		TEMP1, (1<<CMDPD)													; ^
+                                 	;MOV		FNFLG, TEMP1														; ^
+                                 
+0001e7 2d01
+0001e8 7f07
+0001e9 2e10                      	CFLG	FNFLG, CMDPD														; Clear CMDPD flag in FNFLG
                                  
 0001ea dff3                      	RCALL	TELEGRAM_RESET														; Reset parse step counter
 0001eb dff6                      	RCALL	TELEGRAM_CLRBUFFER													; Clear reception buffer
@@ -1796,9 +1839,13 @@ C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm(35): Including file 'C:
                                  
                                  EXECUTE_COMMAND:
                                  	
-0001ed 2d01                      	MOV		TEMP1, FNFLG														; Clear CMDPD flag
-0001ee 7f07                      	CBR		TEMP1, (1<<CMDPD)													; ^
-0001ef 2e10                      	MOV		FNFLG, TEMP1														; ^
+                                 	;MOV		TEMP1, FNFLG														; Clear CMDPD flag
+                                 	;CBR		TEMP1, (1<<CMDPD)													; ^
+                                 	;MOV		FNFLG, TEMP1														; ^
+                                 
+0001ed 2d01
+0001ee 7f07
+0001ef 2e10                      	CFLG	FNFLG, CMDPD														; Clear CMDPD flag in FNFLG
                                  
 0001f0 9509                      	ICALL																		; Call function (address) of Z-pointer
                                  
@@ -1822,14 +1869,10 @@ C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm(35): Including file 'C:
                                  ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
                                  
                                  MAPPING_SET:
-                                 	
-                                 	;MOV		TEMP1, MDFLG														; Set MAP flag
-                                 	;SBR		TEMP1, (1<<MAP)														; ^
-                                 	;MOV		MDFLG, TEMP1														; ^
                                  
 0001fb 2d00
 0001fc 6400
-0001fd 2e00                      	SFLG	MDFLG, MAP
+0001fd 2e00                      	SFLG	MDFLG, MAP															; Set MAP flag in MDFLG
                                  
 0001fe 9200 006f                 	STS		MODE_FLG, MDFLG														; Store new mode flags to SRAM
                                  
@@ -2040,9 +2083,13 @@ C:\Users\Danie\Desktop\Racecar-Control-Firmware\main.asm(35): Including file 'C:
                                  
 000261 0000                      	NOP																			; Do Something
                                  
-000262 2d01                      	MOV		TEMP1, FNFLG														; Clear TMR1 flag
-000263 7e0f                      	CBR		TEMP1,  (1<<TMR1)													; ^
-000264 2e10                      	MOV		FNFLG, TEMP1														; ^
+                                 	;MOV		TEMP1, FNFLG														; Clear TMR1 flag
+                                 	;CBR		TEMP1,  (1<<TMR1)													; ^
+                                 	;MOV		FNFLG, TEMP1														; ^
+                                 
+000262 2d01
+000263 7e0f
+000264 2e10                      	CFLG	FNFLG, TMR1															; Clear TMR1 flag in FNFLG
                                  
 000265 9508                      	RET																			; Return
                                  

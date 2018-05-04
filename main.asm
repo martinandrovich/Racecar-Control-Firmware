@@ -292,9 +292,11 @@ LOG_TACHOMETER:
 	STS		TACHOMETER_H, TEMPWH												; Store new values into SRAM
 	STS		TACHOMETER_L, TEMPWL												; ^
 
-	MOV		TEMP1, FNFLG														; Clear TACHO Flag
-	CBR		TEMP1, (1<<TACHO)													; ^
-	MOV		FNFLG, TEMP1														; ^
+	CFLG	FNFLG, TACHO														; Clear TACHO flag in FNFLG
+
+	;MOV		TEMP1, FNFLG														; Clear TACHO Flag
+	;CBR		TEMP1, (1<<TACHO)													; ^
+	;MOV		FNFLG, TEMP1														; ^
 
 	RET																			; Return
 
@@ -310,9 +312,11 @@ LOG_FINISHLINE:
 	SBRC	MDFLG, MAP	 														; Skip clearing flag if mapping mode enabled
 	RET																			; ^
 
-	MOV		TEMP1, FNFLG														; Clear FNLNE Flag
-	CBR		TEMP1, (1<<FNLNE)													; ^
-	MOV		FNFLG, TEMP1														; ^
+	;MOV		TEMP1, FNFLG														; Clear FNLNE Flag
+	;CBR		TEMP1, (1<<FNLNE)													; ^
+	;MOV		FNFLG, TEMP1														; ^
+
+	CFLG	FNFLG, FNLNE														; Set FNLNE flag in FNFLG
 
 	RET																			; Return
 
@@ -338,9 +342,11 @@ LOG_ACCELEROMETER:
 
 	SBI		ADCSR, ADSC															; Start ADC Conversion
 
-	MOV		TEMP1, FNFLG														; Clear ACCLR Flag
-	CBR		TEMP1, (1<<ACCLR)													; ^
-	MOV		FNFLG, TEMP1														; ^
+	CFLG	FNFLG, ACCLR														; Set ACCLR flag in FNFLG
+
+	;MOV		TEMP1, FNFLG														; Clear ACCLR Flag
+	;CBR		TEMP1, (1<<ACCLR)													; ^
+	;MOV		FNFLG, TEMP1														; ^
 
 	RET																			; Return
 
@@ -362,9 +368,11 @@ MAPPING_ISMAP_CHECK:
 	// If  ISMAP -> CLR ISMAP(MTFLG) && CLR MAP(MDFLG)							= End Mapping
 	// If ~ISMAP -> SET ISMAP													= Begin Mapping
 	
-	MOV		TEMP1, FNFLG														; Clear Finishline Flag
-	CBR		TEMP1, (1<<FNLNE)													; ^
-	MOV		FNFLG, TEMP1														; ^
+	;MOV		TEMP1, FNFLG														; Clear Finishline Flag
+	;CBR		TEMP1, (1<<FNLNE)													; ^
+	;MOV		FNFLG, TEMP1														; ^
+
+	CFLG	FNFLG, FNLNE														; Set FNFNE flag in FNFLG
 	
 	SBRC	MTFLG, ISMAP														; Check ISMAP flag
 	RJMP	MAPPING_END															; If SET then end mapping
@@ -375,9 +383,11 @@ MAPPING_ISMAP_CHECK:
 	
 MAPPING_BEGIN:
 
-	MOV		TEMP1, MTFLG														; Set ISMAP Flag
-	SBR		TEMP1, (1<<ISMAP)													; ^
-	MOV		MTFLG, TEMP1														; ^
+	;MOV		TEMP1, MTFLG														; Set ISMAP Flag
+	;SBR		TEMP1, (1<<ISMAP)													; ^
+	;MOV		MTFLG, TEMP1														; ^
+
+	SFLG	MTFLG, ISMAP														; Set ISMAP flag in MTFLG
 
 	CLR		TEMP1																; Reset Tachometer
 	STS		TACHOMETER_H, TEMP1													; ^
@@ -400,15 +410,18 @@ MAPPING_BEGIN:
 
 MAPPING_END:
 	
-	MOV		TEMP1, MDFLG														; Clear MAP flag
-	CBR		TEMP1, (1<<MAP)														; ^
-	MOV		MDFLG, TEMP1														; ^
+	;MOV		TEMP1, MDFLG														; Clear MAP flag
+	;CBR		TEMP1, (1<<MAP)														; ^
+	;MOV		MDFLG, TEMP1														; ^
 
+	CFLG	MDFLG, MAP															; Clear MAP flag in MDFLG
 	STS		MODE_FLG, MDFLG														; Store new mode flags to SRAM
 
-	MOV		TEMP1, MTFLG														; Clear ISMAP Flag
-	CBR		TEMP1, (1<<ISMAP)													; ^
-	MOV		MTFLG, TEMP1														; ^
+	;MOV		TEMP1, MTFLG														; Clear ISMAP Flag
+	;CBR		TEMP1, (1<<ISMAP)													; ^
+	;MOV		MTFLG, TEMP1														; ^
+
+	CFLG	MTFLG, ISMAP														; Clear ISMAP flag in MTFLG
 
 	LDS		TEMP2, TACHOMETER_H													; Load current Tachometer values
 	LDS		TEMP3, TACHOMETER_L													; ^
@@ -468,18 +481,22 @@ MAPPING_CHECK_TURN_IN:
 
 	; Check Right Turn
 	
-	MOV		TEMP1, MTFLG														; Set TURNDIR Flag (checking right turn)
-	SBR		TEMP1, (1<<TURNDIR)													; ^
-	MOV		MTFLG, TEMP1														; ^
+	;MOV		TEMP1, MTFLG														; Set TURNDIR Flag (checking right turn)
+	;SBR		TEMP1, (1<<TURNDIR)													; ^
+	;MOV		MTFLG, TEMP1														; ^
+
+	SFLG	MTFLG, TURNDIR														; Set TURNDIR flag in MTFLG
 
 	CPI		TEMP2, TURN_TH_IN_RIGHT												; Check Right Turn In
 	BRLO	MAPPING_ADD															; Create mapping entry if true
 
 	; Check Left Turn
 
-	MOV		TEMP1, MTFLG														; Clear TURNDIR Flag (checking left turn)
-	CBR		TEMP1, (1<<TURNDIR)													; ^
-	MOV		MTFLG, TEMP1														; ^
+	;MOV		TEMP1, MTFLG														; Clear TURNDIR Flag (checking left turn)
+	;CBR		TEMP1, (1<<TURNDIR)													; ^
+	;MOV		MTFLG, TEMP1														; ^
+
+	CFLG	MTFLG, TURNDIR														; Clear TURNDIR flag in MTFLG
 
 	CPI		TEMP2, TURN_TH_IN_LEFT												; Check Left Turn In
 	BRSH	MAPPING_ADD															; Create mapping entry if true
@@ -812,9 +829,11 @@ TELEGRAM_EXECUTE:
 
 	STS		RECENT_DAT, RXREG													; Store recieved data in SRAM
 
-	MOV		TEMP1, FNFLG														; Set CMDPD flag
-	SBR		TEMP1, (1<<CMDPD)													; ^
-	MOV		FNFLG, TEMP1														; ^
+	;MOV		TEMP1, FNFLG														; Set CMDPD flag
+	;SBR		TEMP1, (1<<CMDPD)													; ^
+	;MOV		FNFLG, TEMP1														; ^
+
+	SFLG	FNFLG, CMDPD														; Set CMDPD flag in FNFLG
 
 TELEGRAM_RESET:
 	
@@ -835,9 +854,11 @@ TELEGRAM_ERROR:
 
 	CLR		RXREG																; Clear reception register
 
-	MOV		TEMP1, FNFLG														; Clear CMDPD flag
-	CBR		TEMP1, (1<<CMDPD)													; ^
-	MOV		FNFLG, TEMP1														; ^
+	;MOV		TEMP1, FNFLG														; Clear CMDPD flag
+	;CBR		TEMP1, (1<<CMDPD)													; ^
+	;MOV		FNFLG, TEMP1														; ^
+
+	CFLG	FNFLG, CMDPD														; Clear CMDPD flag in FNFLG
 
 	RCALL	TELEGRAM_RESET														; Reset parse step counter
 	RCALL	TELEGRAM_CLRBUFFER													; Clear reception buffer
@@ -849,9 +870,11 @@ TELEGRAM_ERROR:
 
 EXECUTE_COMMAND:
 	
-	MOV		TEMP1, FNFLG														; Clear CMDPD flag
-	CBR		TEMP1, (1<<CMDPD)													; ^
-	MOV		FNFLG, TEMP1														; ^
+	;MOV		TEMP1, FNFLG														; Clear CMDPD flag
+	;CBR		TEMP1, (1<<CMDPD)													; ^
+	;MOV		FNFLG, TEMP1														; ^
+
+	CFLG	FNFLG, CMDPD														; Clear CMDPD flag in FNFLG
 
 	ICALL																		; Call function (address) of Z-pointer
 
@@ -875,12 +898,8 @@ BROADCAST_SET:
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 MAPPING_SET:
-	
-	;MOV		TEMP1, MDFLG														; Set MAP flag
-	;SBR		TEMP1, (1<<MAP)														; ^
-	;MOV		MDFLG, TEMP1														; ^
 
-	SFLG	MDFLG, MAP
+	SFLG	MDFLG, MAP															; Set MAP flag in MDFLG
 
 	STS		MODE_FLG, MDFLG														; Store new mode flags to SRAM
 
@@ -1091,9 +1110,11 @@ CLOCK:
 
 	NOP																			; Do Something
 
-	MOV		TEMP1, FNFLG														; Clear TMR1 flag
-	CBR		TEMP1,  (1<<TMR1)													; ^
-	MOV		FNFLG, TEMP1														; ^
+	;MOV		TEMP1, FNFLG														; Clear TMR1 flag
+	;CBR		TEMP1,  (1<<TMR1)													; ^
+	;MOV		FNFLG, TEMP1														; ^
+
+	CFLG	FNFLG, TMR1															; Clear TMR1 flag in FNFLG
 
 	RET																			; Return
 
