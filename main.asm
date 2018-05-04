@@ -591,7 +591,7 @@ TRAJECTORY_COMPILER_SETUP:
 
 	BREQ	TRAJECTORY_COMPILER_RUNUP											; Branch if FinishLine 00_00
 
-	//SHOULD START MAPPING ERROR OCCURED
+	//Should start mapping, if error occured
 
 	RET																			;
 
@@ -617,7 +617,8 @@ TRAJECTORY_COMPILER_RUNUP:
 	SUB		TEMPWL, TEMP2														; Subtract Total circuit length with Last Swing value
 	SBC		TEMPWH, TEMP1														; 
 
-	STS		LATEST_STRAIGHT, TEMPWL												; Save latest Straight
+	STS		LATEST_STRAIGHT_L, TEMPWL											; Save latest Straight
+	STS		LATEST_STRAIGHT_H, TEMPWH											;
 
 	LDI		YH, HIGH(MAPP_TABLE+2)												; Load Y Pointer to (offset) Mapping Table
 	LDI		YL,  LOW(MAPP_TABLE+2)												; 
@@ -630,7 +631,7 @@ TRAJECTORY_COMPILER_LOOP:
 	CPI		TEMP2, 0xFF															; Check EoT
 	BREQ	TRAJECTORY_COMPILER_END												; 
 
-	SBRC	TEMP1, 7															; CHECK HIGHBIT TACHO FOR BREAK OR ACCELEROMETER
+	SBRC	TEMP2, 7															; CHECK HIGHBIT TACHO FOR BREAK OR ACCELEROMETER
 	RJMP	TRAJECTORY_COMPILER_BREAK											;
 	RJMP	TRAJECTORY_COMPILER_ACCELERATE										; 
 	
@@ -643,22 +644,39 @@ TRAJECTORY_COMPILER_ACCELERATE:
 	ST		X+, TEMPWH															;
 	ST		X+, TEMPWL															;
 
-	LDS		TEMPWH, LATEST_STRAIGHT_H											;
-	LDS		TEMPWL, LATEST_STRAIGHT_L											;
-
-	SUB		TEMP1, TEMPWL														;
-	SBC		TEMP2, TEMPWH														;
-
 	STS		LATEST_STRAIGHT_H, TEMP2											;
 	STS		LATEST_STRAIGHT_L, TEMP1											;
 
 	RJMP	TRAJECTORY_COMPILER_LOOP											; Loop
 
 TRAJECTORY_COMPILER_BREAK:
+	
+	LDS		TEMPWH, LATEST_STRAIGHT_H											;
+	LDS		TEMPWL,	LATEST_STRAIGHT_L											;
 
-	NOP
+	SUB		TEMPWL, TEMP1														; Calculate latest straight
+	SBC		TEMPWH, TEMP2														;
 
-	RJMP	TRAJECTORY_COMPILER_LOOP											; Loop
+	STS		LATEST_STRAIGHT, TEMPWL												;
+
+	RCALL	TRAJECTORY_COMPILER_BREAK_OFFSET									;
+
+	SBIW	Y, 2																; Offset back
+
+	LD		TEMP2, Y+															; Read values again
+	LD		TEMP1, Y+															;
+
+	CBR		TEMP2, (1<<7)														; Clear MSB for sub
+
+	SUB		TEMP1, TEMP3														;
+	SBCI	TEMP2, 0															;
+
+	SBR		TEMP2, (1<<7)														; Set MSB for sub
+
+	ST		X+, TEMP2															; Store Tachometer values for break.
+	ST		X+,	TEMP1															;
+
+	RJMP	TRAJECTORY_COMPILER_LOOP											; Do it again
 
 TRAJECTORY_COMPILER_BREAK_OFFSET:
 	
@@ -672,6 +690,7 @@ TRAJECTORY_COMPILER_BREAK_OFFSET_LOOP:
 	LPM		TEMP2, Z+2															; Load value of Z Pointer from Table and increment by 2
 
 	CP		TEMP1, TEMP2														; Find matching Table value
+
 	BREQ	TRAJECTORY_COMPILER_BREAK_OFFSET_END								; ^
 	BRLO	TRAJECTORY_COMPILER_BREAK_OFFSET_LOOP								; ^
 
@@ -693,14 +712,10 @@ TRAJECTORY_COMPILER_END:
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > RUN
 
-	// Placeholder
-	// ...
-
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 TRAJECTORY_ESC:
 
-	
 
 	RET																			; Return
 
