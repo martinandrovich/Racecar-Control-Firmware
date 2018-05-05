@@ -38,6 +38,8 @@
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > CONSTANTS
 
+	.EQU	MSB			= 7														; Most Signifigant Bit
+
 	.EQU	BAUDRATE	= 0x00CF												; Baudrate configuration (default = 0xCF)
 
 	.EQU	TMR1FREQ	= 976 - 1												; Timer1 configuration
@@ -66,7 +68,7 @@
 	.EQU	TURN_TH_OUT_LEFT			= 122
 	.EQU	TURN_TH_OUT_RIGHT			= 115
 
-	.EQU	MAPPING_SEEK_PWM			= 60									; Mapping Seek PWM in BYTES (0-255)
+	.EQU	MAPPING_SEEK_PWM			= 65									; Mapping Seek PWM in BYTES (0-255)
 	.EQU	MAPPING_PWM					= 90									; Mapping PWM in BYTES (0-255)
 	.EQU	MAPPING_DEBOUNCE_VAL		= 10									; Mapping Debounce in TICKS
 	.EQU	MAPPING_OFFSET_IN			= 8										; Mapping Offset In in TICKS
@@ -78,7 +80,7 @@
 	.EQU	TRAJECTORY_BRAKE_OFFSET		= 0										;
 	.EQU	TRAJECTORY_BRAKE_TOLERANCE	= 0										;
 
-	.EQU	TRAJECTORY_ACCLR_PWM		= 255									;
+	.EQU	TRAJECTORY_ACCLR_PWM		= 140									;
 	.EQU	TRAJECTORY_TURN_PWM			= 101									;
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
@@ -101,10 +103,6 @@
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > FLAGS
-
-	; GLOBAL VARS
-
-	.EQU	MSB			= 7														; Most Signifigant Bit
 
 	; MDFLG | Mode Flags 
 
@@ -380,6 +378,11 @@ AUTONOMOUS:
 AUTONOMOUS_BEGIN_MAPPING:
 
 	SFLG	MDFLG, MAP															; Set MAPP flag in MDFLG
+
+	LDI		TEMP1, MAPPING_SEEK_PWM												; Start vehicle with mapping seek PWM
+	STS		RECENT_DAT, TEMP1													; ^	
+	CALL	SET_MOTOR_PWM														; ^
+
 	RJMP	AUTONOMOUS_ESC														; Escape
 
 AUTONOMOUS_RUN:
@@ -398,7 +401,7 @@ AUTONOMOUS_RUN:
 
 AUTONOMOUS_ESC:
 
-	RET
+	RET																			; Return
 
 ; ____________________________________________________________________________________________________________________________________________________
 ; >> MAPPING
@@ -438,7 +441,7 @@ MAPPING_DEBOUNCE_CHECK:
 	CPC		TEMPWH, TEMP2 														; ^
 	BRSH	MAPPING_CHECK_TURN													; ^
 	
-	RET
+	RET																			; Return
 
 MAPPING_DEBOUNCE_RESET:
 
@@ -782,8 +785,19 @@ TRAJECTORY_RUN_CHECK_MSB:
 	RJMP	TRAJECTORY_RUN_BREAK												; if 1 then Break
 	RJMP	TRAJECTORY_RUN_ACCELERATE											; if 0 then Accelerate
 
+TRAJECTORY_RUN_END:
+
+	CFLG	MTFLG, ISRUN														; Clear ISRUN in MTFLG
+	
+	CALL	MOVAVG_POINTER_RESET												; Reset Moving Average Pointer
+	CALL	MOVAVG_SRAM_SETUP													; Initialize allocated Moving Average SRAM to default
+
+	RET
+
 TRAJECTORY_RUN_BREAK:
 
+	CALL	TEST35
+	
 	SFLG	MTFLG, ISBRK														; Set ISBRK in MTFLG
 	
 	CALL	SET_MOTOR_BREAK														; Set Motor to Brake PWM
@@ -792,6 +806,8 @@ TRAJECTORY_RUN_BREAK:
 
 TRAJECTORY_RUN_ACCELERATE:
 
+	CALL	TEST40
+	
 	LDI		TEMP3, TRAJECTORY_ACCLR_PWM											; Set Motor to Acceleration PWM
 	STS		RECENT_DAT, TEMP3													; ^
 	CALL	SET_MOTOR_PWM														; ^
@@ -803,6 +819,8 @@ TRAJECTORY_RUN_ACCELERATE:
 
 TRAJECTORY_RUN_TURN:
 
+	CALL	TEST45
+	
 	CFLG	MTFLG, ISBRK														; Clear ISBRK flag in MTFLG
 
 	LDI		TEMP3, TRAJECTORY_TURN_PWM											; Set Motor to Turn PWM
@@ -817,15 +835,6 @@ TRAJECTORY_RUN_TURN:
 TRAJECTORY_RUN_ESC:
 	
 	RET																			; Return
-
-TRAJECTORY_RUN_END:
-
-	CFLG	MTFLG, ISRUN														; Clear ISRUN in MTFLG
-	
-	CALL	MOVAVG_POINTER_RESET												; Reset Moving Average Pointer
-	CALL	MOVAVG_SRAM_SETUP													; Initialize allocated Moving Average SRAM to default
-
-	RET
 
 ; ____________________________________________________________________________________________________________________________________________________
 ; >> BROADCAST
