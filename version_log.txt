@@ -43,6 +43,8 @@
 - Added:		Mapping SET & GET Commands
 
 # 1.2.1  <<
-- Added:		Autonomous Mode (Simple) [todo]
-- Added:		Internal Trajectory (Simple) [todo]
+- Added:		Internal Trajectory Compiler
+- Added:		Internal Trajectory Runner
+- Added:		Autonomous Mode
+- Added:		Trajectory + Autonomous Mode SET & GET Commands
 
