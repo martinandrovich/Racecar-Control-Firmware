@@ -101,6 +101,10 @@
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > FLAGS
 
+	; GLOBAL VARS
+
+	.EQU	MSB			= 7;
+
 	; MDFLG | Mode Flags 
 
 	.EQU	AUTO		= 7														; Autonomous Mode
@@ -123,6 +127,7 @@
 	.EQU	INTURN		= 6														; In turn
 	.EQU	TURNDIR		= 5														; Direction of turn (0 = L & 1 = R)
 	.EQU	TJRDY		= 4														; Trajectory ready
+	.EQU	ISBRAKE		= 3														;
 
 
 ; ____________________________________________________________________________________________________________________________________________________
@@ -718,6 +723,66 @@ TRAJECTORY_COMPILER_END:
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > RUN
+																			; Check if Tjatectory runner ready
+	SBRS MTFLG, TJRDY														; If Set Skip
+	RET																		; 
+	LD		TEMP1, X														; Check EoT
+	CPI		TEMP1, 0xFF														;
+	BREQ	TRAJECTORY_RUNNER_END											;
+
+	//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! SHOULD JUST LOAD FIRST TIME !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	// LDI		XH, HIGH(TRAJ_TABLE)											; Load X Pointer to Trajectory Table
+	// LDI		XL,  LOW(TRAJ_TABLE)											; -> SHOULD NOT DO THIS EVERYTIME 
+	//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! SHOULD JUST LOAD FIRST TIME !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	// LDI		YH, HIGH(MAPP_TABLE)											; Load Y Pointer to Mapping Table
+	// LDI		YL,  LOW(MAPP_TABLE)											; -> SHOULD NOT DO THIS EVERYTIME
+																				
+	LDS		TEMP1, TACHOMETER_H													; Load Tachometer Vals
+	LDS		TEMP2, TACHOMETER_L													;
+
+	SBRC	MTFLG, ISBRAKE														; Check ISBRAKE FLAG
+	RJMP	TRAJECTORY_ISBRAKE_COMPARE											;
+
+	LD		TEMPWH, X+															; Load Trajectory
+	LD		TEMPWL, X+															; ^
+	SBIW	XH:XL, 2															; Reset X-pointer to old pos
+
+	LDI		TEMP3, (1<<MSB)														; Load MSB
+	AND		TEMP3, TEMPWH														; Mask MSB
+	CBR		TEMPWH, (1<<MSB)													; Remove high-bit
+
+	CP		TEMPWL, TEMP2														; Comparing 16 bit- used to decide if action should happend or not
+	CPC		TEMPWH, TEMP2														;
+	BRSH	TRAJECTORY_RUNNER_BRK_ACCLR											; BRSH incase we skipped a tachometer tick
+	RET																			;
+
+TRAJECTORY_RUNNER_BRK_ACCLR:												
+	SBRC	TEMP3, MSB															;Check if anything equals
+	RJMP	TRAJECTORY_RUNNER_BRAKE												;Default vaLue should be 101 or something
+	RJMP	TRAJECTORY_RUNNER_ACCELERATE										;Default value should be 255
+
+TRAJECTORY_RUNNER_ACCELERATE:
+	LDI		TEMP3, 255
+	STS		RECENT_DAT, TEMP3
+	CALL	SET_MOTOR_PWM
+	ADIW	XH:XL, 2
+	ADIW	YH:YL, 2
+	RET
+
+TRAJECTORY_RUNNER_BRAKE:
+	// ... START BRAKE ... PRETTY MUCH IT?
+	// ... WITH STATIC OFFSETS ...
+	// ... SET_MOTOR_BREAK ...
+	// ... SET_FLAG_ISBRAKE
+	// ... 
+
+	// TRAJECTORY_ISBRAKE_COMPARE	
+	// LDS	TEMPWH,  
+	// LDS	TEMPWL,
+
+	// TRAJECTORY_RUNNER_END:
+	// ... CBR MTFLG, (1<<STOP_RUNNER)
+	// ... 
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
