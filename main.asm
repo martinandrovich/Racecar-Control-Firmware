@@ -250,12 +250,12 @@ MAIN:
 
 	SBRC	FNFLG, CMDPD														; Command Pending
 	CALL	EXECUTE_COMMAND														; ^
-	
-	SBRC	FNFLG, TACHO														; Tachometer Ready
-	CALL	LOG_TACHOMETER														; ^
 
 	SBRC	FNFLG, FNLNE														; Finishline Ready
 	CALL	LOG_FINISHLINE														; ^
+	
+	SBRC	FNFLG, TACHO														; Tachometer Ready
+	CALL	LOG_TACHOMETER														; ^
 
 	SBRC	FNFLG, ACCLR														; Accelerometer Ready
 	CALL	LOG_ACCELEROMETER													; ^
@@ -317,6 +317,10 @@ LOG_FINISHLINE:
 	LDS		TEMP1, FINISHLINE													; Load, increment & store Finishline value
 	INC		TEMP1																; ^
 	STS		FINISHLINE, TEMP1													; ^
+
+	CLR		TEMP1																;
+	STS		TACHOMETER_H, TEMP1													;
+	STS		TACHOMETER_L, TEMP1													;
 
 	SBRC	MDFLG, MAP	 														; Skip clearing flag if mapping mode enabled
 	RET																			; ^
@@ -398,10 +402,6 @@ MAPPING_BEGIN:
 
 	SFLG	MTFLG, ISMAP														; Set ISMAP flag in MTFLG
 
-	CLR		TEMP1																; Reset Tachometer
-	STS		TACHOMETER_H, TEMP1													; ^
-	STS		TACHOMETER_L, TEMP1													; ^
-
 	RCALL	MAPPING_RESET_DEBOUNCE												; Reset Tachometer Debounce											
 
 	LDI		TEMP1, MAPPING_PWM													; Start vehicle with mapping PWM
@@ -440,10 +440,6 @@ MAPPING_END:
 
 	;ST		Y+, TEMP2															; Save finishline tachometer data
 	;ST		Y+, TEMP3															;
-
-	CLR		TEMP1																; Reset Tachometer
-	STS		TACHOMETER_H, TEMP1													; ^
-	STS		TACHOMETER_L, TEMP1													; ^
 
 	SER		TEMP1																; Store 0xFFFF into mapping in SRAM
 	ST		Y+, TEMP1															; ^
