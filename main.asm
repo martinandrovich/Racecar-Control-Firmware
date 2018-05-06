@@ -77,10 +77,9 @@
 	; Trajectory Constants
 	
 	.EQU	TRAJECTORY_ACCLR_OFFSET		= 0										;
-	.EQU	TRAJECTORY_BRAKE_OFFSET		= 0										;
-	.EQU	TRAJECTORY_BRAKE_TOLERANCE	= 0										;
+	.EQU	TRAJECTORY_BRAKE_TOLERANCE	= 5										;
 
-	.EQU	TRAJECTORY_ACCLR_PWM		= 140									;
+	.EQU	TRAJECTORY_ACCLR_PWM		= 200									;
 	.EQU	TRAJECTORY_TURN_PWM			= 101									;
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
@@ -271,6 +270,9 @@ MAIN:
 	SBRC	MDFLG, AUTO															; Autonomous Mode
 	CALL	AUTONOMOUS															; ^
 
+	SBRC	MTFLG, ISRUN														; Trajectory Mode
+	CALL	TRAJECTORY_RUN														; ^
+
 	SBRC	MDFLG, MAP															; Mapping Mode
 	CALL	MAPPING																; ^
 
@@ -323,7 +325,7 @@ LOG_FINISHLINE:
 	STS		TACHOMETER_H, TEMP1													; ^
 	STS		TACHOMETER_L, TEMP1													; ^
 
-	SBRC	MDFLG, MAP	 														; Skip clearing flag if mapping mode enabled
+	SBRC	MDFLG, MAP	 														; Skip clearing flag if Mapping Mode enabled
 	RET																			; ^
 
 	CFLG	FNFLG, FNLNE														; Clear FNLNE flag in FNFLG
@@ -377,6 +379,9 @@ AUTONOMOUS:
 
 AUTONOMOUS_BEGIN_MAPPING:
 
+	SBRC	MTFLG, MPRDY														; Start Trajectory if Mapping already done
+	RJMP	AUTONOMOUS_RUN														; ^
+	
 	SFLG	MDFLG, MAP															; Set MAPP flag in MDFLG
 
 	LDI		TEMP1, MAPPING_SEEK_PWM												; Start vehicle with mapping seek PWM
@@ -389,8 +394,7 @@ AUTONOMOUS_RUN:
 
 	// Can be disabled in order to only recompile mapping after each Run
 
-	CFLG	MDFLG, MAP															; Clear MAPP flag in MDFLG
-	CFLG	MTFLG, MPRDY														; Clear MPRDY flag in MTFLG
+	;CFLG	MTFLG, MPRDY														; Clear MPRDY flag in MTFLG
 
 	LDI		TEMP1, MAPPING_SEEK_PWM												; Set Motor Speed to Sleep PWM
 	STS		RECENT_DAT, TEMP1													; ^
@@ -615,16 +619,35 @@ TRAJECTORY_COMPILER_RUNUP:
 	LDS		TEMPWH, TRACK_LENGTH_H 												; Load Track Length
 	LDS		TEMPWL, TRACK_LENGTH_L												; ^
 
-	SUB		TEMP2, TEMPWL														; Subtract Track Length from Last Turn value (negative expected)
-	SBC		TEMP1, TEMPWH														; ^
+	SUB		TEMPWL, TEMP2														; Subtract Track Length from Last Turn value (negative expected)
+	SBC		TEMPWH, TEMP1														; ^
 
 	STS		LATEST_STRAIGHT_L, TEMP2											; Store Latest Straight into SRAM
 	STS		LATEST_STRAIGHT_H, TEMP1											; ^
 
-	;STS		LATEST_STRAIGHT, TEMP2
-
 	LDI		YH, HIGH(MAPP_TABLE+2)												; Load Y Pointer to (offset) Mapping Table
 	LDI		YL,  LOW(MAPP_TABLE+2)												; ^
+
+	LD		TEMP2, Y+															
+	LD		TEMP1, Y+
+
+	LDS		TEMPWH, LATEST_STRAIGHT_H											; Load Latest Straight
+	LDS		TEMPWL,	LATEST_STRAIGHT_L											; ^
+
+	CBR		TEMP2, (1<<MSB)
+
+	ADD		TEMP1, TEMPWL
+	ADC		TEMP2, TEMPWH
+
+	STS		LATEST_STRAIGHT, TEMP1
+
+	RCALL	TRAJECTORY_COMPILER_BREAK_OFFSET									; Find Brake Offset
+
+	LDI		YH, HIGH(MAPP_TABLE+4)												; Load Y Pointer to (offset) Mapping Table
+	LDI		YL,  LOW(MAPP_TABLE+4)												; ^
+
+	RJMP	JUMPTO
+
 
 TRAJECTORY_COMPILER_LOOP:
 
@@ -640,8 +663,6 @@ TRAJECTORY_COMPILER_LOOP:
 	
 
 TRAJECTORY_COMPILER_ACCELERATE:
-	
-	// Undødig brug af MOVW?
 	
 	MOVW	TEMPWH:TEMPWL, TEMP2:TEMP1											; 
 	SBIW	TEMPWH:TEMPWL, TRAJECTORY_ACCLR_OFFSET								; Subtract Acceleration Offset
@@ -666,8 +687,14 @@ TRAJECTORY_COMPILER_BREAK:
 
 	STS		LATEST_STRAIGHT, TEMP1												; Store Latest Straight value into SRAM
 
-	RCALL	TRAJECTORY_COMPILER_BREAK_OFFSET									; Find Brake Offset
+	;MOV		TXREG, TEMP2
+	;CALL	SERIAL_WRITE
 
+	;MOV		TXREG, TEMP1
+	;CALL	SERIAL_WRITE
+
+	RCALL	TRAJECTORY_COMPILER_BREAK_OFFSET									; Find Brake Offset
+JUMPTO:
 	SBIW	YH:YL, 2															; Reload Mapping values
 	LD		TEMP2, Y+															; ^
 	LD		TEMP1, Y+															; ^
@@ -745,6 +772,14 @@ TRAJECTORY_RUN_SETUP:
 	LDI		YH, HIGH(MAPP_TABLE)												; Load Y Pointer to Mapping Table
 	LDI		YL,  LOW(MAPP_TABLE)												; ^
 
+	LD		TEMP1, X+															; Shitty Quick Fix
+	LD		TEMP2, X+															; ^
+
+	SBIW	XH:XL, 2															; ^
+			
+	STS		LAST_TURN_H, TEMP1													; ^
+	STS		LAST_TURN_L, TEMP2													; ^
+
 	SFLG	MTFLG, ISRUN														; Set ISRUN flag in MTFLG
 
 	RET																			; Return
@@ -797,6 +832,13 @@ TRAJECTORY_RUN_END:
 TRAJECTORY_RUN_BREAK:
 
 	CALL	TEST35
+
+	LDS		TEMPWH, LAST_TURN_H
+	LDS		TEMPWL, LAST_TURN_L
+
+	CP		TEMP2, TEMPWL														; Escape if Current Tachometer >= Last Swing
+	CPC		TEMP1, TEMPWH														; ^ 
+	BRSH	TRAJECTORY_RUN_ESC													; ^
 	
 	SFLG	MTFLG, ISBRK														; Set ISBRK in MTFLG
 	

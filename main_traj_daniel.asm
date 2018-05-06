@@ -663,8 +663,8 @@ TRAJECTORY_COMPILER_BREAK:
 
 	STS		LATEST_STRAIGHT, TEMP1												;
 
-	;MOV		TXREG, TEMP1
-	;CALL	SERIAL_WRITE
+	MOV		TXREG, TEMP1
+	CALL	SERIAL_WRITE
 
 	RCALL	TRAJECTORY_COMPILER_BREAK_OFFSET									;
 
@@ -720,106 +720,6 @@ TRAJECTORY_COMPILER_END:
 	SFLG	MTFLG, TJRDY
 
 	RJMP	TRAJECTORY_ESC	
-
-;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-;  > RUN
-
-TRAJECTORY_RUNNER:
-
-	SBRS MTFLG, TJRDY														; If Set Skip
-	// RJMP TRAJECTORY_ESC													;
-	RET																		; Should be checked for before...
-
-	LD		TEMP1, X														; Check EoT
-	CPI		TEMP1, 0xFF														;
-	BREQ	TRAJECTORY_RUNNER_END											;
-
-	//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! SHOULD JUST LOAD FIRST TIME !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// LDI		XH, HIGH(TRAJ_TABLE)											; Load X Pointer to Trajectory Table
-	// LDI		XL,  LOW(TRAJ_TABLE)											; -> SHOULD NOT DO THIS EVERYTIME 
-	//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! SHOULD JUST LOAD FIRST TIME !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// LDI		YH, HIGH(MAPP_TABLE)											; Load Y Pointer to Mapping Table
-	// LDI		YL,  LOW(MAPP_TABLE)											; -> SHOULD NOT DO THIS EVERYTIME
-																				
-	LDS		TEMP1, TACHOMETER_H													; Load Tachometer Vals
-	LDS		TEMP2, TACHOMETER_L													; 
-
-	SBRC	MTFLG, ISBRAKE														; Check Isbrake FLAG
-	RJMP	TRAJECTORY_ISBRAKE_COMPARE											;
-
-	LD		TEMPWH, X+															; Load Trajectory
-	LD		TEMPWL, X+															; ^
-	SBIW	XH:XL, 2															; Reset X-pointer to old pos
-
-	LDI		TEMP3, (1<<MSB)														; Load MSB
-	AND		TEMP3, TEMPWH														; Mask MSB
-	CBR		TEMPWH, (1<<MSB)													; Remove high-bit
-
-	CP		TEMPWL, TEMP2														; Comparing 16 bit- used to decide if action should happend or not
-	CPC		TEMPWH, TEMP2														;
-	BRSH	TRAJECTORY_RUNNER_BRK_ACCLR											; BRSH incase we skipped a tachometer tick
-
-	// RJMP TRAJECTORY_ESC
-	RET																			;
-
-TRAJECTORY_RUNNER_BRK_ACCLR:
-												
-	SBRC	TEMP3, MSB															;Check if anything equals
-	RJMP	TRAJECTORY_RUNNER_BRAKE												;Default vaLue should be 101 or something
-	RJMP	TRAJECTORY_RUNNER_ACCELERATE										;Default value should be 255
-
-TRAJECTORY_RUNNER_ACCELERATE:
-
-	LDI		TEMP3, PWM_VELOCITY_VALUE															;Trajectory speed at first
-	STS		RECENT_DAT, TEMP3													;
-	CALL	SET_MOTOR_PWM														;
-	ADIW	XH:XL, 2															;Offset Pointer
-	ADIW	YH:YL, 2															;^
-	// RJMP TRAJECTORY_ESC
-	RET																			;Return
-
-TRAJECTORY_RUNNER_BRAKE:
-
-	CALL	SET_MOTOR_BREAK														;
-	SFLG	MTFLAG, ISBRAKE														;
-	// RJMP TRAJECTORY_ESC
-	RET																			;
-
-TRAJECTORY_ISBRAKE_COMPARE	
-	
-	LD		TEMPWH, Y+															;
-	LD		TEMPWL, Y+															;
-	SBIW	YH:YL, 2															;
-
-	SBIW	TEMPWH:TEMPWL, BRAKE_OFFSET_VALUE											;
-
-	CBR		TEMPWH, (1<<MSB)													;
-
-	CP		TEMPWL, TEMP2														;
-	CPC		TEMPWH, TEMP1														;
-	BRSH	TRAJECTORY_ESC														;
-	
-	CFLG	MTFLAG, ISBRAKE														;
-
-	LDI		TEMP3, PWM_VELOCITY_VALUE_ISBRAKE											;Trajectory speed at first
-	STS		RECENT_DAT, TEMP3													;
-	CALL	SET_MOTOR_PWM														; 
-
-	ADIW	XH:XL, 2															;Offset Pointer
-	ADIW	YH:YL, 2															;^
-
-	// RJMP TRAJECTORY_ESC														;
-	RET
-
-
-TRAJECTORY_RUNNER_END:
-
-	CFLG	######MTFLG######, (1<<STOP_RUNNER)
-	// RJMP TRAJECTORY_ESC
-	RET
-
-
-;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 TRAJECTORY_ESC:
 

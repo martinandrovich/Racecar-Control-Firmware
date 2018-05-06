@@ -119,6 +119,9 @@
     <Compile Include="main_new.asm">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="main_traj_daniel.asm">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="ram_table.inc">
       <SubType>Code</SubType>
     </Compile>

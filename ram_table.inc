@@ -52,6 +52,9 @@
 .EQU	LATEST_STRAIGHT_H				= 0x007B
 .EQU	LATEST_STRAIGHT_L				= 0x007C
 
+.EQU	LAST_TURN_H						= 0x007D
+.EQU	LAST_TURN_L						= 0x007E
+
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > Moving Average Filter [MOVAVG | 128B]
 
