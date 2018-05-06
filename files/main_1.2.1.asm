@@ -1,6 +1,6 @@
 ; ###################################################################################################################################################
 ; Racecar Control Firmware
-; Version 1.2.0
+; Version 1.2.1
 ; 
 ; Sequential Flag Architecture
 
@@ -30,11 +30,15 @@
 
 .ORG	0x28
 
-	.INCLUDE	"ram_table.inc"
-	.INCLUDE	"command_table.inc"
+	.INCLUDE	"macros.inc"													; Include Macros
+	.INCLUDE	"ram_table.inc"													; Include RAM Table
+	.INCLUDE	"command_table.inc"												; Include Command Table
+	.INCLUDE	"break_table.inc"												; Include Brake Offset Table
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > CONSTANTS
+
+	.EQU	MSB			= 7														; Most Signifigant Bit
 
 	.EQU	BAUDRATE	= 0x00CF												; Baudrate configuration (default = 0xCF)
 
@@ -51,24 +55,32 @@
 																				;	122 - 1		= 2048Hz
 																				;	 61 - 1		= 4096Hz
 
-	; Moving Average Filter
+	; Moving Average Filter Constants
 	
 	.EQU	MOVAVG_SIZE					= 64									; Size (bytes) of Moving Average Filter
 	.EQU	MOVAVG_DIVS					= 6										; Number of division to perform (i.e. 2^5 = 32)
 	.EQU	MOVAVG_TABLE_END			= MOVAVG_TABLE + MOVAVG_SIZE			;
 
-	; Mapping & Turn Detection Thresholds
+	; Mapping & Turn Detection Constants
 
 	.EQU	TURN_TH_IN_LEFT				= 122
 	.EQU	TURN_TH_IN_RIGHT			= 115
 	.EQU	TURN_TH_OUT_LEFT			= 122
 	.EQU	TURN_TH_OUT_RIGHT			= 115
 
-	.EQU	MAPPING_SEEK_PWM			= 58									; Mapping Seek PWM in BYTES (0-255)
+	.EQU	MAPPING_SEEK_PWM			= 65									; Mapping Seek PWM in BYTES (0-255)
 	.EQU	MAPPING_PWM					= 90									; Mapping PWM in BYTES (0-255)
 	.EQU	MAPPING_DEBOUNCE_VAL		= 10									; Mapping Debounce in TICKS
 	.EQU	MAPPING_OFFSET_IN			= 8										; Mapping Offset In in TICKS
 	.EQU	MAPPING_OFFSET_OUT			= 11									; Mapping Offset Out in TICKS
+
+	; Trajectory Constants
+	
+	.EQU	TRAJECTORY_ACCLR_OFFSET		= 0										;
+	.EQU	TRAJECTORY_BRAKE_TOLERANCE	= 5										;
+
+	.EQU	TRAJECTORY_ACCLR_PWM		= 200									;
+	.EQU	TRAJECTORY_TURN_PWM			= 101									;
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > REGISTERS
@@ -112,6 +124,9 @@
 	.EQU	ISMAP		= 7														; Program currently mapping
 	.EQU	INTURN		= 6														; In turn
 	.EQU	TURNDIR		= 5														; Direction of turn (0 = L & 1 = R)
+	.EQU	MPRDY		= 4														; Mapping is ready
+	.EQU	ISRUN		= 3														; Trajectory is running
+	.EQU	ISBRK		= 2														; Braking is active
 
 
 ; ____________________________________________________________________________________________________________________________________________________
@@ -143,7 +158,7 @@ INIT:
 	STS		ADC_L, TEMP1														; ^
 	STS		FINISHLINE, TEMP1
 
-	CALL	MOVAVG_POINTER_RESET												; Reset Moving Average pointer
+	CALL	MOVAVG_POINTER_RESET												; Reset Moving Average Pointer
 	CALL	MOVAVG_SRAM_SETUP													; Initialize allocated Moving Average SRAM to default
 
 	; Flags Initialization
@@ -239,12 +254,12 @@ MAIN:
 
 	SBRC	FNFLG, CMDPD														; Command Pending
 	CALL	EXECUTE_COMMAND														; ^
-	
-	SBRC	FNFLG, TACHO														; Tachometer Ready
-	CALL	LOG_TACHOMETER														; ^
 
 	SBRC	FNFLG, FNLNE														; Finishline Ready
 	CALL	LOG_FINISHLINE														; ^
+	
+	SBRC	FNFLG, TACHO														; Tachometer Ready
+	CALL	LOG_TACHOMETER														; ^
 
 	SBRC	FNFLG, ACCLR														; Accelerometer Ready
 	CALL	LOG_ACCELEROMETER													; ^
@@ -253,7 +268,10 @@ MAIN:
 ;  > MODES
 
 	SBRC	MDFLG, AUTO															; Autonomous Mode
-	NOP																			; ^
+	CALL	AUTONOMOUS															; ^
+
+	SBRC	MTFLG, ISRUN														; Trajectory Mode
+	CALL	TRAJECTORY_RUN														; ^
 
 	SBRC	MDFLG, MAP															; Mapping Mode
 	CALL	MAPPING																; ^
@@ -285,14 +303,12 @@ LOG_TACHOMETER:
 	LDS		TEMPWH, TACHOMETER_H												; Load previous values from SRAM
 	LDS		TEMPWL, TACHOMETER_L												; into WORD registers
 
-	ADIW	TEMPWH:TEMPWL, 1													; Increment data
+	ADIW	TEMPWH:TEMPWL, 1													; Increment Tachometer value
 
 	STS		TACHOMETER_H, TEMPWH												; Store new values into SRAM
 	STS		TACHOMETER_L, TEMPWL												; ^
 
-	MOV		TEMP1, FNFLG														; Clear TACHO Flag
-	CBR		TEMP1, (1<<TACHO)													; ^
-	MOV		FNFLG, TEMP1														; ^
+	CFLG	FNFLG, TACHO														; Clear TACHO flag in FNFLG
 
 	RET																			; Return
 
@@ -305,12 +321,14 @@ LOG_FINISHLINE:
 	INC		TEMP1																; ^
 	STS		FINISHLINE, TEMP1													; ^
 
-	SBRC	MDFLG, MAP	 														; Skip clearing flag if mapping mode enabled
+	CLR		TEMP1																; Reset Tachometer
+	STS		TACHOMETER_H, TEMP1													; ^
+	STS		TACHOMETER_L, TEMP1													; ^
+
+	SBRC	MDFLG, MAP	 														; Skip clearing flag if Mapping Mode enabled
 	RET																			; ^
 
-	MOV		TEMP1, FNFLG														; Clear FNLNE Flag
-	CBR		TEMP1, (1<<FNLNE)													; ^
-	MOV		FNFLG, TEMP1														; ^
+	CFLG	FNFLG, FNLNE														; Clear FNLNE flag in FNFLG
 
 	RET																			; Return
 
@@ -321,6 +339,9 @@ LOG_ACCELEROMETER:
 
 	SBRS	FNFLG, TMR1															; Check if logging is synchronized with CLOCK (Timer1)
 	RET
+
+	SBRC	MTFLG, ISRUN 														; Skip if Trajectory is running
+	RET																			; ^
 
 	IN		TEMP1, ADCL															; Read LOW of ADC
 	NOP																			; ^
@@ -336,159 +357,55 @@ LOG_ACCELEROMETER:
 
 	SBI		ADCSR, ADSC															; Start ADC Conversion
 
-	MOV		TEMP1, FNFLG														; Clear ACCLR Flag
-	CBR		TEMP1, (1<<ACCLR)													; ^
-	MOV		FNFLG, TEMP1														; ^
+	CFLG	FNFLG, ACCLR														; Clear ACCLR flag in FNFLG
 
 	RET																			; Return
-; ____________________________________________________________________________________________________________________________________________________
-; >> TRAJECTORY GENERATOR
-	;;BEFORE
-	;;SBRS	TRAJECTORY_GEN, FLAG
-	;;RET
-	;;MOV.......
-
-TRAJECTORY GENERATOR:
-	
-	RJMP TRAJECTORYSETUP:
-
-GENERATOR_II:
-
-	/*
-	LDI		YH, HIGH(MAPP_TABLE)											; RESET Y Pointer 
-	LDI		YL, LOW(MAPP_TABLE)													; 	
-	*/
-	// READ VALUES FROM TACHOMETER, IF THERE IS AN 0 YOU SHOULD MINUS AND IF IT'S A 1 YOU SHOULD RESET AND SET LENGTH
-	/*
-
-RESTART_TWO:
-
-	LD		TEMP1, Y+
-	LD		TEMP2, Y+
-
-	LDI		TEMP3, 0xFF
-
-	CP		TEMP1, TEMP3														; Check EOT
-	BRNE	NOT_EOT																; 
-	CPC		TEMP2, TEMP3														; 
-	BRNE	NOT_EOT																; 
-
-	STOP THE GENERATOR HERE, GO TO PERFORMER MODE...
-
-NOT_EOT:
-
-	SBRS	TEMP1, 7															; CHECK HIGHBIT TACHO FOR BREAK OR ACCELEROMETER
-	RJMP	ACCELERATE
-	RJMP	BREAK
-
-BREAK:
-	LDS	TEMPWH, LAST_STRAIGHT_H 
-	LDS TEMPWL, LAST_STRAIGHT_L
-	CPC CHECK_FOR_BREAK_DELAY......
-
-ACCELERATE:
-	LDS TEMPWH, LAST_STRAG
-
-	// IS GOING TO BREAK IF SET OTHERWISE SPEED UP
-
-
-	*/
-
-	THERE SHOULD BE A BREAK SYSTEM HERE!!
-
-	;;IF FLAG IS SET, SHOULD START GENERATING POINTS, REMEMBER TO DISABLE FLAG WHEN GENERATING POINTS IS DONE, AFTER FLAG IS DONE 
-	
-	;;TRACJECTORY GENERATOR
-	;;
-; ____________________________________________________________________________________________________________________________________________________
-; >> TRAJECTORY PERFORMER
-
-	;;TRAJECTORY SPEED 
-
-	;;IF FLAG IS SET, SHOULD START 'READING POINTS'
 
 ; ____________________________________________________________________________________________________________________________________________________
-; >> TRAJECTORYSETUP
+; >> AUTONOMOUS MODE
 
-TRAJECTORYSETUP:
+AUTONOMOUS:
 
-	/*
+	SBRC	MTFLG, ISRUN														; Escape if Trajectory is Running
+	RJMP	AUTONOMOUS_ESC														; ^
 
-	.EQU	LAST_STRAIGHT_H = 0x098 ;; EXAMPLE PROGRAM
-	.EQU	LAST_STRAIGHT_L = 0x099 ;; EXAMPLE PROGRAM
+	SBRS	MDFLG, MAP															; Begin Mapping if not Mapping
+	RJMP	AUTONOMOUS_BEGIN_MAPPING											; ^
 
-	LDI		XH, HIGH(TRAJ_TABLE)												;
-	LDI		XL, LOW(TRAJ_TABLE)													;
+	SBRS	MTFLG, MPRDY														; Escape if Mapping not Ready
+	RJMP	AUTONOMOUS_ESC														; ^
 
-	LDI		YH, HIGH(MAPP_TABLE)												; Check FNLNE flag
-	LDI		YL, LOW(MAPP_TABLE)													; Check FNLNE flag
+	RJMP	AUTONOMOUS_RUN														; Start Trajectory
+
+AUTONOMOUS_BEGIN_MAPPING:
+
+	SBRC	MTFLG, MPRDY														; Start Trajectory if Mapping already done
+	RJMP	AUTONOMOUS_RUN														; ^
 	
-	LDI		TEMP3, 0															; Check FNLNE flag
+	SFLG	MDFLG, MAP															; Set MAPP flag in MDFLG
 
-	LD		TEMP1, Y+															; Check FNLNE flag
-	LD		TEMP2, Y+															; Check FNLNE flag
+	LDI		TEMP1, MAPPING_SEEK_PWM												; Start vehicle with mapping seek PWM
+	STS		RECENT_DAT, TEMP1													; ^	
+	CALL	SET_MOTOR_PWM														; ^
 
-	CP		TEMP1, TEMP3														; Check FNLNE flag
-	CPC		TEMP2, TEMP3														; Check FNLNE flag
+	RJMP	AUTONOMOUS_ESC														; Escape
 
-	BREQ	SETUP_FIRST_POINT_SEARCH_ALGO										; Check FNLNE flag
+AUTONOMOUS_RUN:
 
-	RET		; END this shit should handle error!!!
+	// Can be disabled in order to only recompile mapping after each Run
 
-; ____________________________________________________________________________________________________________________________________________________
-; >> TRAJECTORY SETUP_FIRST_POINT
-	
-SETUP_FIRST_POINT_SEARCH_ALGO:
+	;CFLG	MTFLG, MPRDY														; Clear MPRDY flag in MTFLG
 
-	LDI		TEMP3, 0xFF															; Check FNLNE flag
+	LDI		TEMP1, MAPPING_SEEK_PWM												; Set Motor Speed to Sleep PWM
+	STS		RECENT_DAT, TEMP1													; ^
+	CALL	SET_MOTOR_PWM														; ^
 
-RESTART_LOOP:
+	CALL	TRAJECTORY_COMPILE													; Compile Trajectory
+	CALL	TRAJECTORY_RUN														; Start Trajectory
 
-	LD		TEMP1, Y+															; Check FNLNE flag
-	LD		TEMP2, Y+															; Check FNLNE flag
+AUTONOMOUS_ESC:
 
-	CP		TEMP1, TEMP3														; Check FNLNE flag
-	BRNE	RESTART_LOOP														; Check FNLNE flag
-	CPC		TEMP2, TEMP3														; Check FNLNE flag
-	BRNE	RESTART_LOOP														; Check FNLNE flag
-
-	SBIW	Y, 4																; Check FNLNE flag
-
-	LD		TEMP1, Y+															; LOAD LAST SWING
-	LD		TEMP2, Y+															; 	
-
-	ST		X+, TEMP1															; SAVE SWING TO TRAJECTORY , IT IS ALREADY 0, SO SHOULD NOT ORI
-	ST		X+, TEMP2															;
-
-	LDS		TEMPWH, CIRCUIT_LENGTH_H 											; LOAD CIRCUIT_LENGTH_H
-	LDS		TEMPWL, CIRCUIT_LENGTH_L											;
-
-	SUB		TEMPWL, TEMP2														; SUBTRACT TACHOMETER
-	SUBC	TEMPWH, TEMP1														; ORDER IS IMPORTANT!! 
-
-	STS		LAST_STRAIGHT_H, TEMPWH												; NOW IT IS LOADED GO BACK TO GENERATOR!!!
-	STS		LAST_STRAIGHT_L, TEMPWL												;
-
-	BREAKTABLE:																		//NO NEED FOR Z-POINTER, BUT WOULD BE BETTER...
-	.EQU BREAKTABLE_TEMP = 0x600
-	LDI		TEMP1, 18
-	LDS		BREAKTABLE_TEMP, TEMP1
-	LDI		TEMP1, 18*2
-	LDS		BREAKTABLE_TEMP, TEMP1
-	LDI		TEMP1, 18*3
-	LDS		BREAKTABLE_TEMP, TEMP1
-	LDI		TEMP1, 18*4
-	LDS		BREAKTABLE_TEMP, TEMP1
-	LDI		TEMP1, 18*5
-	LDS		BREAKTABLE_TEMP, TEMP1
-
-	RJMP	GENERATOR_II
-	*/
-	;;TRAJECTORY SPEED 
-
-	;;IF FLAG IS SET, SHOULD START 'READING POINTS'
-
-
+	RET																			; Return
 
 ; ____________________________________________________________________________________________________________________________________________________
 ; >> MAPPING
@@ -499,7 +416,7 @@ MAPPING:
 	RJMP	MAPPING_ISMAP_CHECK													; If SET then check ISMAP
 
 	SBRC	MTFLG, ISMAP														; Check ISMAP flag
-	RJMP	MAPPING_CHECK_DEBOUNCE												; If SET then continue mapping
+	RJMP	MAPPING_DEBOUNCE_CHECK												; If SET then continue mapping
 
 	RJMP	MAPPING_ESC															; Return
 
@@ -507,10 +424,8 @@ MAPPING_ISMAP_CHECK:
 
 	// If  ISMAP -> CLR ISMAP(MTFLG) && CLR MAP(MDFLG)							= End Mapping
 	// If ~ISMAP -> SET ISMAP													= Begin Mapping
-	
-	MOV		TEMP1, FNFLG														; Clear Finishline Flag
-	CBR		TEMP1, (1<<FNLNE)													; ^
-	MOV		FNFLG, TEMP1														; ^
+
+	CFLG	FNFLG, FNLNE														; Clear FNFNE flag in FNFLG
 	
 	SBRC	MTFLG, ISMAP														; Check ISMAP flag
 	RJMP	MAPPING_END															; If SET then end mapping
@@ -518,18 +433,38 @@ MAPPING_ISMAP_CHECK:
 	SBRS	MTFLG, ISMAP														; Check ISMAP flag
 	RJMP	MAPPING_BEGIN														; If CLR then begin mapping
 
+MAPPING_DEBOUNCE_CHECK:
+	
+	LDS		TEMPWH, TACHOMETER_H												; Load current Tachometer value
+	LDS		TEMPWL, TACHOMETER_L												; ^
+
+	LDS		TEMP2, MAPPING_DEBOUNCE_H											; Load Debounce Tachometer value
+	LDS		TEMP3, MAPPING_DEBOUNCE_L											; ^
+
+	CP		TEMPWL, TEMP3														; Check if debounce is reached
+	CPC		TEMPWH, TEMP2 														; ^
+	BRSH	MAPPING_CHECK_TURN													; ^
+	
+	RET																			; Return
+
+MAPPING_DEBOUNCE_RESET:
+
+	LDS		TEMPWH, TACHOMETER_H												; Load current Tachometer value
+	LDS		TEMPWL, TACHOMETER_L												; ^
+	
+	ADIW	TEMPWH:TEMPWL, MAPPING_DEBOUNCE_VAL									; Update Minumum Tachometer Detection value (current Tachometer + Constant)
+
+	STS		MAPPING_DEBOUNCE_H, TEMPWH											; Store values to SRAM
+	STS		MAPPING_DEBOUNCE_L, TEMPWL											; ^
+
+	RET																			; Return
 	
 MAPPING_BEGIN:
 
-	MOV		TEMP1, MTFLG														; Set ISMAP Flag
-	SBR		TEMP1, (1<<ISMAP)													; ^
-	MOV		MTFLG, TEMP1														; ^
+	CFLG	MTFLG, MPRDY														; Clear MPRDY flag in MTFLG
+	SFLG	MTFLG, ISMAP														; Set ISMAP flag in MTFLG
 
-	CLR		TEMP1																; Reset Tachometer
-	STS		TACHOMETER_H, TEMP1													; ^
-	STS		TACHOMETER_L, TEMP1													; ^
-
-	RCALL	MAPPING_RESET_DEBOUNCE												; Reset Tachometer Debounce											
+	RCALL	MAPPING_DEBOUNCE_RESET												; Reset Tachometer Debounce											
 
 	LDI		TEMP1, MAPPING_PWM													; Start vehicle with mapping PWM
 	STS		RECENT_DAT, TEMP1													; ^	
@@ -545,55 +480,28 @@ MAPPING_BEGIN:
 	RJMP	MAPPING_ESC															; Return
 
 MAPPING_END:
-	
-	MOV		TEMP1, MDFLG														; Clear MAP flag
-	CBR		TEMP1, (1<<MAP)														; ^
-	MOV		MDFLG, TEMP1														; ^
 
-	STS		MODE_FLG, MDFLG														; Store new mode flags to SRAM
-
-	MOV		TEMP1, MTFLG														; Clear ISMAP Flag
-	CBR		TEMP1, (1<<ISMAP)													; ^
-	MOV		MTFLG, TEMP1														; ^
+	CFLG	MDFLG, MAP															; Clear MAP flag in MDFLG
+	CFLG	MTFLG, ISMAP														; Clear ISMAP flag in MTFLG
+	SFLG	MTFLG, MPRDY														; Set MPRDY flag in MTFLG
 
 	LDS		TEMP2, TACHOMETER_H													; Load current Tachometer values
 	LDS		TEMP3, TACHOMETER_L													; ^
 
-	ST		Y+, TEMP2															; Save finishline tachometer data
-	ST		Y+, TEMP3															;
+	STS		TRACK_LENGTH_H, TEMP2 												; Store Track Length (Finishline Tachometer value) into SRAM
+	STS		TRACK_LENGTH_L, TEMP3 												; ^
+
+	;ST		Y+, TEMP2															; Save finishline tachometer data
+	;ST		Y+, TEMP3															;
 
 	SER		TEMP1																; Store 0xFFFF into mapping in SRAM
 	ST		Y+, TEMP1															; ^
 	ST		Y, TEMP1															; ^
 
+	SBRS	MDFLG, AUTO															; Skip if in Autonomous Mode
 	CALL	SET_MOTOR_BREAK														; Break vehicle
 
 	RJMP	MAPPING_ESC															; Return
-
-MAPPING_CHECK_DEBOUNCE:
-	
-	LDS		TEMPWH, TACHOMETER_H												; Load current Tachometer value
-	LDS		TEMPWL, TACHOMETER_L												; ^
-
-	LDS		TEMP2, MAPPING_DEBOUNCE_H											; Load Debounce Tachometer value
-	LDS		TEMP3, MAPPING_DEBOUNCE_L											; ^
-
-	CP		TEMPWL, TEMP3														; Check if debounce is reached
-	CPC		TEMPWH, TEMP2 														; ^
-	BRLO	MAPPING_ESC															; Escape if FALSE
-	RJMP	MAPPING_CHECK_TURN													; Continue if TRUE
-
-MAPPING_RESET_DEBOUNCE:
-
-	LDS		TEMPWH, TACHOMETER_H												; Load current Tachometer value
-	LDS		TEMPWL, TACHOMETER_L												; ^
-	
-	ADIW	TEMPWH:TEMPWL, MAPPING_DEBOUNCE_VAL									; Update Minumum Tachometer Detection value (current Tachometer + Constant)
-
-	STS		MAPPING_DEBOUNCE_H, TEMPWH											; Store values to SRAM
-	STS		MAPPING_DEBOUNCE_L, TEMPWL											; ^
-
-	RET																			; Return
 
 MAPPING_CHECK_TURN:
 
@@ -606,19 +514,15 @@ MAPPING_CHECK_TURN:
 MAPPING_CHECK_TURN_IN:
 
 	; Check Right Turn
-	
-	MOV		TEMP1, MTFLG														; Set TURNDIR Flag (checking right turn)
-	SBR		TEMP1, (1<<TURNDIR)													; ^
-	MOV		MTFLG, TEMP1														; ^
+
+	SFLG	MTFLG, TURNDIR														; Set TURNDIR flag in MTFLG
 
 	CPI		TEMP2, TURN_TH_IN_RIGHT												; Check Right Turn In
 	BRLO	MAPPING_ADD															; Create mapping entry if true
 
 	; Check Left Turn
 
-	MOV		TEMP1, MTFLG														; Clear TURNDIR Flag (checking left turn)
-	CBR		TEMP1, (1<<TURNDIR)													; ^
-	MOV		MTFLG, TEMP1														; ^
+	CFLG	MTFLG, TURNDIR														; Clear TURNDIR flag in MTFLG
 
 	CPI		TEMP2, TURN_TH_IN_LEFT												; Check Left Turn In
 	BRSH	MAPPING_ADD															; Create mapping entry if true
@@ -652,7 +556,7 @@ MAPPING_ADD:
 	EOR		TEMP1, TEMP2														; ^
 	MOV		MTFLG, TEMP1														; ^
 
-	RCALL	MAPPING_RESET_DEBOUNCE												; Reset Tachometer Debounce
+	RCALL	MAPPING_DEBOUNCE_RESET												; Reset Tachometer Debounce
 
 	LDS		TEMPWH, TACHOMETER_H												; Load current Tachometer values
 	LDS		TEMPWL, TACHOMETER_L												; ^
@@ -666,14 +570,312 @@ MAPPING_ADD:
 
 	SBRC	TEMP1, INTURN														; Set MSB of Tachometer (HIGH) to value of INTURN bit
 	ORI		TEMPWH, (1<<7)														; ^
-
-	// Store pointers?
 	
 	ST		Y+, TEMPWH															; Store mapping into SRAM
 	ST		Y+, TEMPWL															; ^
 
 MAPPING_ESC:
 
+	RET																			; Return
+
+; ____________________________________________________________________________________________________________________________________________________
+; >> TRAJECTORY
+
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+;  > COMPILER
+TRAJECTORY_COMPILE:
+TRAJECTORY_COMPILER_SETUP:
+
+	LDI		XH, HIGH(TRAJ_TABLE)												; Load X Pointer to Trajectory Table
+	LDI		XL,  LOW(TRAJ_TABLE)												; ^
+
+	LDI		YH, HIGH(MAPP_TABLE)												; Load Y Pointer to Mapping Table
+	LDI		YL,  LOW(MAPP_TABLE)												; ^
+
+	LD		TEMP1, Y+															; Load first Mapping value
+	LD		TEMP2, Y+															; ^
+
+	CPI		TEMP1, 0															; Perfrom RUNUP if first Mapping value is 0
+	BREQ	TRAJECTORY_COMPILER_RUNUP											; ^
+
+	RET																			; Return
+
+TRAJECTORY_COMPILER_RUNUP:
+
+	LD		TEMP1, Y+															; Load Mapping value
+	LD		TEMP2, Y+															; ^
+
+	CPI		TEMP1, 0xFF															; Loop until EoT is found
+	BRNE	TRAJECTORY_COMPILER_RUNUP											; ^
+
+	SBIW	Y, 4																; Offset the mapping to last outgoing turn in Mapping
+
+	LD		TEMP1, Y+															; Load Mapping values
+	LD		TEMP2, Y															; ^
+
+	ST		X+, TEMP1															; Store values into Trajectory SRAM
+	ST		X+, TEMP2															; ^
+
+	LDS		TEMPWH, TRACK_LENGTH_H 												; Load Track Length
+	LDS		TEMPWL, TRACK_LENGTH_L												; ^
+
+	SUB		TEMPWL, TEMP2														; Subtract Track Length from Last Turn value (negative expected)
+	SBC		TEMPWH, TEMP1														; ^
+
+	STS		LATEST_STRAIGHT_L, TEMP2											; Store Latest Straight into SRAM
+	STS		LATEST_STRAIGHT_H, TEMP1											; ^
+
+	LDI		YH, HIGH(MAPP_TABLE+2)												; Load Y Pointer to (offset) Mapping Table
+	LDI		YL,  LOW(MAPP_TABLE+2)												; ^
+
+	LD		TEMP2, Y+															
+	LD		TEMP1, Y+
+
+	LDS		TEMPWH, LATEST_STRAIGHT_H											; Load Latest Straight
+	LDS		TEMPWL,	LATEST_STRAIGHT_L											; ^
+
+	CBR		TEMP2, (1<<MSB)
+
+	ADD		TEMP1, TEMPWL
+	ADC		TEMP2, TEMPWH
+
+	STS		LATEST_STRAIGHT, TEMP1
+
+	RCALL	TRAJECTORY_COMPILER_BREAK_OFFSET									; Find Brake Offset
+
+	LDI		YH, HIGH(MAPP_TABLE+4)												; Load Y Pointer to (offset) Mapping Table
+	LDI		YL,  LOW(MAPP_TABLE+4)												; ^
+
+	RJMP	JUMPTO
+
+
+TRAJECTORY_COMPILER_LOOP:
+
+	LD		TEMP2, Y+															; Load Mapping values
+	LD		TEMP1, Y+															; ^
+
+	CPI		TEMP2, 0xFF															; Check EoT
+	BREQ	TRAJECTORY_COMPILER_END												; ^
+
+	SBRC	TEMP2, MSB															; Check MSB:
+	RJMP	TRAJECTORY_COMPILER_BREAK											; if 1 then Break
+	RJMP	TRAJECTORY_COMPILER_ACCELERATE										; if 0 then Accelerate
+	
+
+TRAJECTORY_COMPILER_ACCELERATE:
+	
+	MOVW	TEMPWH:TEMPWL, TEMP2:TEMP1											; 
+	SBIW	TEMPWH:TEMPWL, TRAJECTORY_ACCLR_OFFSET								; Subtract Acceleration Offset
+
+	ST		X+, TEMPWH															; Store into Trajectory SRAM
+	ST		X+, TEMPWL															; ^
+
+	STS		LATEST_STRAIGHT_H, TEMP2											; Store Latest Straight into SRAM
+	STS		LATEST_STRAIGHT_L, TEMP1											; ^
+
+	RJMP	TRAJECTORY_COMPILER_LOOP											; Loop
+
+TRAJECTORY_COMPILER_BREAK:
+	
+	LDS		TEMPWH, LATEST_STRAIGHT_H											; Load Latest Straight
+	LDS		TEMPWL,	LATEST_STRAIGHT_L											; ^
+
+	CBR		TEMP2, (1<<MSB)														; Clear MSB for Calculations
+	
+	SUB		TEMP1, TEMPWL														; Calculate Latest Straight
+	SBC		TEMP2, TEMPWH														; ^
+
+	STS		LATEST_STRAIGHT, TEMP1												; Store Latest Straight value into SRAM
+
+	;MOV		TXREG, TEMP2
+	;CALL	SERIAL_WRITE
+
+	;MOV		TXREG, TEMP1
+	;CALL	SERIAL_WRITE
+
+	RCALL	TRAJECTORY_COMPILER_BREAK_OFFSET									; Find Brake Offset
+JUMPTO:
+	SBIW	YH:YL, 2															; Reload Mapping values
+	LD		TEMP2, Y+															; ^
+	LD		TEMP1, Y+															; ^
+
+	CBR		TEMP2, (1<<MSB)														; Clear MSB for Calculations
+
+	SUB		TEMP1, TEMP3														; Subtract Brake Offset
+	SBCI	TEMP2, 0															; ^
+
+	SBR		TEMP2, (1<<MSB)														; Set MSB
+
+	ST		X+, TEMP2															; Store into Trajectory SRAM
+	ST		X+,	TEMP1															; ^
+
+	RJMP	TRAJECTORY_COMPILER_LOOP											; Loop
+
+TRAJECTORY_COMPILER_BREAK_OFFSET:
+	
+	LDI		ZH, HIGH(BREAK_OFFSET_TABLE*2)										; Load Z Pointer to Break Offset Table
+	LDI		ZL,  LOW(BREAK_OFFSET_TABLE*2)										; ^
+
+	LDS		TEMP1, LATEST_STRAIGHT												; Load value of Latest Straight Distance
+
+TRAJECTORY_COMPILER_BREAK_OFFSET_LOOP:
+
+	LPM		TEMP2, Z															; Load value of Z Pointer from Table and increment by 2
+	ADIW	ZH:ZL, 2
+
+	CP		TEMP2, TEMP1														; Find matching Table value
+	BRSH	TRAJECTORY_COMPILER_BREAK_OFFSET_END								; ^
+
+	RJMP	TRAJECTORY_COMPILER_BREAK_OFFSET_LOOP
+
+TRAJECTORY_COMPILER_BREAK_OFFSET_END:
+
+	SBIW	ZH:ZL, 1															; Decrement Z Pointer
+	LPM		TEMP3, Z															; Load value of Z Pointer															
+
+	CALL	TELEGRAM_RESET														; Reset Telegram due to Z Pointer
+
+	RET																			; Return
+
+TRAJECTORY_COMPILER_END:
+
+	SER		TEMP1																; Store 0xFFFF into trajectory in SRAM
+	ST		X+, TEMP1															; ^
+	ST		X, TEMP1															; ^
+
+	RET																			; Return	
+
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+;  > RUNNER
+
+TRAJECTORY_RUN:
+
+	SBRS	MTFLG, ISRUN														; Check if Trajectory Runner has been initalized
+	RCALL	TRAJECTORY_RUN_SETUP												; and initialize if not.
+	
+	LD		TEMP1, X															; Check EoT
+	CPI		TEMP1, 0xFF															; ^
+	BREQ	TRAJECTORY_RUN_END													; ^
+	
+	LDS		TEMP1, TACHOMETER_H													; Load Tachometer values
+	LDS		TEMP2, TACHOMETER_L													; ^
+	
+	SBRC	MTFLG, ISBRK														; Check ISBRK FLAG
+	RJMP	TRAJECTORY_RUN_CHECK_ISBRK											;
+	RJMP	TRAJECTORY_RUN_CHECK_MSB											;
+
+TRAJECTORY_RUN_SETUP:
+	
+	LDI		XH, HIGH(TRAJ_TABLE)												; Load X Pointer to Trajectory Table
+	LDI		XL,  LOW(TRAJ_TABLE)												; ^
+	
+	LDI		YH, HIGH(MAPP_TABLE)												; Load Y Pointer to Mapping Table
+	LDI		YL,  LOW(MAPP_TABLE)												; ^
+
+	LD		TEMP1, X+															; Shitty Quick Fix
+	LD		TEMP2, X+															; ^
+
+	SBIW	XH:XL, 2															; ^
+			
+	STS		LAST_TURN_H, TEMP1													; ^
+	STS		LAST_TURN_L, TEMP2													; ^
+
+	SFLG	MTFLG, ISRUN														; Set ISRUN flag in MTFLG
+
+	RET																			; Return
+
+TRAJECTORY_RUN_CHECK_ISBRK:
+
+	LD		TEMPWH, Y+															; Load Mapping Tachometer values
+	LD		TEMPWL, Y+															; ^
+
+	SBIW	YH:YL, 2															; Undo incrementation of Y Pointer
+
+	CBR		TEMPWH, (1<<MSB)													; Clear MSB for Calculations
+	
+	SBIW	TEMPWH:TEMPWL, TRAJECTORY_BRAKE_TOLERANCE							; Subtract Tolerance value
+
+	CP		TEMP2, TEMPWL														; Check if Current Tachometer >= Mapping Tachometer w/ Tolerance
+	CPC		TEMP1, TEMPWH														; ^
+	BRSH	TRAJECTORY_RUN_TURN													; ^	
+
+	RET																			; Return
+
+TRAJECTORY_RUN_CHECK_MSB:
+
+	LD		TEMPWH, X+															; Load Trajectory Tachometer values
+	LD		TEMPWL, X+															; ^
+
+	SBIW	XH:XL, 2															; Undo incrementation of X Pointer
+
+	LDI		TEMP3, (1<<MSB)														; Extract & Remove MSB of Trajectory Tachometer value
+	AND		TEMP3, TEMPWH														; ^
+	CBR		TEMPWH, (1<<MSB)													; ^
+
+	CP		TEMP2, TEMPWL														; Escape if Current Tachometer < Trajectory Tachometer
+	CPC		TEMP1, TEMPWH														; ^ 
+	BRLO	TRAJECTORY_RUN_ESC													; ^
+
+	SBRC	TEMP3, MSB															; Check MSB:
+	RJMP	TRAJECTORY_RUN_BREAK												; if 1 then Break
+	RJMP	TRAJECTORY_RUN_ACCELERATE											; if 0 then Accelerate
+
+TRAJECTORY_RUN_END:
+
+	CFLG	MTFLG, ISRUN														; Clear ISRUN in MTFLG
+	
+	CALL	MOVAVG_POINTER_RESET												; Reset Moving Average Pointer
+	CALL	MOVAVG_SRAM_SETUP													; Initialize allocated Moving Average SRAM to default
+
+	RET
+
+TRAJECTORY_RUN_BREAK:
+
+	CALL	TEST35
+
+	LDS		TEMPWH, LAST_TURN_H
+	LDS		TEMPWL, LAST_TURN_L
+
+	CP		TEMP2, TEMPWL														; Escape if Current Tachometer >= Last Swing
+	CPC		TEMP1, TEMPWH														; ^ 
+	BRSH	TRAJECTORY_RUN_ESC													; ^
+	
+	SFLG	MTFLG, ISBRK														; Set ISBRK in MTFLG
+	
+	CALL	SET_MOTOR_BREAK														; Set Motor to Brake PWM
+
+	RET																			; Return		
+
+TRAJECTORY_RUN_ACCELERATE:
+
+	CALL	TEST40
+	
+	LDI		TEMP3, TRAJECTORY_ACCLR_PWM											; Set Motor to Acceleration PWM
+	STS		RECENT_DAT, TEMP3													; ^
+	CALL	SET_MOTOR_PWM														; ^
+
+	ADIW	XH:XL, 2															; Increment Pointers
+	ADIW	YH:YL, 2															; ^
+
+	RET																			; Return
+
+TRAJECTORY_RUN_TURN:
+
+	CALL	TEST45
+	
+	CFLG	MTFLG, ISBRK														; Clear ISBRK flag in MTFLG
+
+	LDI		TEMP3, TRAJECTORY_TURN_PWM											; Set Motor to Turn PWM
+	STS		RECENT_DAT, TEMP3													; ^
+	CALL	SET_MOTOR_PWM														; ^
+
+	ADIW	XH:XL, 2															; Increment Pointers
+	ADIW	YH:YL, 2															; ^
+
+	RET																			; Return
+
+TRAJECTORY_RUN_ESC:
+	
 	RET																			; Return
 
 ; ____________________________________________________________________________________________________________________________________________________
@@ -842,9 +1044,7 @@ TELEGRAM_EXECUTE:
 
 	STS		RECENT_DAT, RXREG													; Store recieved data in SRAM
 
-	MOV		TEMP1, FNFLG														; Set CMDPD flag
-	SBR		TEMP1, (1<<CMDPD)													; ^
-	MOV		FNFLG, TEMP1														; ^
+	SFLG	FNFLG, CMDPD														; Set CMDPD flag in FNFLG
 
 TELEGRAM_RESET:
 	
@@ -865,9 +1065,7 @@ TELEGRAM_ERROR:
 
 	CLR		RXREG																; Clear reception register
 
-	MOV		TEMP1, FNFLG														; Clear CMDPD flag
-	CBR		TEMP1, (1<<CMDPD)													; ^
-	MOV		FNFLG, TEMP1														; ^
+	CFLG	FNFLG, CMDPD														; Clear CMDPD flag in FNFLG
 
 	RCALL	TELEGRAM_RESET														; Reset parse step counter
 	RCALL	TELEGRAM_CLRBUFFER													; Clear reception buffer
@@ -878,10 +1076,8 @@ TELEGRAM_ERROR:
 ;  > COMMANDS
 
 EXECUTE_COMMAND:
-	
-	MOV		TEMP1, FNFLG														; Clear CMDPD flag
-	CBR		TEMP1, (1<<CMDPD)													; ^
-	MOV		FNFLG, TEMP1														; ^
+
+	CFLG	FNFLG, CMDPD														; Clear CMDPD flag in FNFLG
 
 	ICALL																		; Call function (address) of Z-pointer
 
@@ -904,11 +1100,17 @@ BROADCAST_SET:
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
+AUTONOMOUS_SET:
+
+	SFLG	MDFLG, AUTO
+
+	RET
+
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
 MAPPING_SET:
-	
-	MOV		TEMP1, MDFLG														; Set MAP flag
-	SBR		TEMP1, (1<<MAP)														; ^
-	MOV		MDFLG, TEMP1														; ^
+
+	SFLG	MDFLG, MAP															; Set MAP flag in MDFLG
 
 	STS		MODE_FLG, MDFLG														; Store new mode flags to SRAM
 
@@ -917,6 +1119,14 @@ MAPPING_SET:
 	CALL	SET_MOTOR_PWM														; ^
 
 	RET																			; Return
+
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+TRAJECTORY_SET:
+
+	CALL	TRAJECTORY_COMPILE													; Compile Trajectory
+
+	RET
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
@@ -944,6 +1154,37 @@ MAPPING_GET_LOOP:
 	RJMP	MAPPING_GET_LOOP													; Loop
 
 MAPPING_GET_ESC:
+
+	RET																			; Return
+
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+TRAJECTORY_GET:
+
+	// If TRAJ > 512 bytes, then buffer will overflow in MatLab
+	
+	CALL	TRAJECTORY_COMPILER_SETUP											; Compile Trajectory
+	
+	LDI		YH, HIGH(TRAJ_TABLE)												; Initialize Y Pointer
+	LDI		YL,  LOW(TRAJ_TABLE)												; ^
+
+TRAJECTORY_GET_LOOP:
+
+	LD		TEMP1, Y+															; Load mapping values (HIGH & LOW)
+	LD		TEMP2, Y+															; ^
+
+	MOV		TXREG, TEMP1														; Transmit HIGH byte of mapping
+	CALL	SERIAL_WRITE														; ^
+
+	MOV		TXREG, TEMP2														; Transmit LOW byte of mapping
+	CALL	SERIAL_WRITE														; ^
+
+	CPI		TEMP1, 0xFF															; Escape if EoT has been reached
+	BREQ	TRAJECTORY_GET_ESC													; ^
+
+	RJMP	TRAJECTORY_GET_LOOP													; Loop
+
+TRAJECTORY_GET_ESC:
 
 	RET																			; Return
 
@@ -981,7 +1222,7 @@ SET_MOTOR_BREAK:
 
 	CBI 	PORTD, PD7															; Clear PD7 of PORTD
 		
-	CALL	DELAY_100uS															; Wait for 100 ?s
+	CALL	DELAY_100uS															; Wait for 100 us
 
 	SBI		PORTD, PD4															; Enable MOSFET Brake
 
@@ -1119,9 +1360,7 @@ CLOCK:
 
 	NOP																			; Do Something
 
-	MOV		TEMP1, FNFLG														; Clear TMR1 flag
-	CBR		TEMP1,  (1<<TMR1)													; ^
-	MOV		FNFLG, TEMP1														; ^
+	CFLG	FNFLG, TMR1															; Clear TMR1 flag in FNFLG
 
 	RET																			; Return
 
@@ -1182,7 +1421,7 @@ LOOP1:
     RET
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-;  > 10ms / 16MHz DELAY
+;  > 10ms DELAY
 
 DELAY_10MS:
 
@@ -1198,6 +1437,9 @@ DELAY_10MS_LOOP:
     NOP
 
 	RET
+
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+;  > 100us DELAY
 
 DELAY_100uS:
 

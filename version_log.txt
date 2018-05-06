@@ -42,9 +42,13 @@
 - Added:		Internal Mapping
 - Added:		Mapping SET & GET Commands
 
-# 1.2.1  <<
+# 1.2.1
 - Added:		Internal Trajectory Compiler
 - Added:		Internal Trajectory Runner
 - Added:		Autonomous Mode
 - Added:		Trajectory + Autonomous Mode SET & GET Commands
+
+# 1.2.2  <<
+- Modified:		Optimized Trajectory Exceptions [todo]
+- Added:		Test Mode + Commands
 

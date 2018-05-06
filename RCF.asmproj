@@ -104,6 +104,9 @@
     <Compile Include="files\main_1.1.2.asm">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="files\main_1.2.1.asm">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="files\mov_avg.asm">
       <SubType>Code</SubType>
     </Compile>
@@ -114,12 +117,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="main.asm">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="main_new.asm">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="main_traj_daniel.asm">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="ram_table.inc">
