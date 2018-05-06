@@ -321,7 +321,7 @@ LOG_FINISHLINE:
 	INC		TEMP1																; ^
 	STS		FINISHLINE, TEMP1													; ^
 
-	SBRS	MTFLG, MPRDY	 													; Skip reset if Mapping not ready
+	SBRC	MTFLG, ISMAP	 													; Skip reset if Mapping active
 	RET																			; ^
 
 	CLR		TEMP1																; Reset Tachometer
