@@ -50,5 +50,6 @@
 
 # 1.2.2  <<
 - Modified:		Optimized Trajectory Exceptions [todo]
-- Added:		Test Mode + Commands
+- Added:		Velocity Calculator [todo]
+- Added:		Test Mode + Commands [todo]
 

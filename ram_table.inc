@@ -55,6 +55,14 @@
 .EQU	LAST_TURN_H						= 0x007D
 .EQU	LAST_TURN_L						= 0x007E
 
+.EQU	VELOCITY_COUNTER				= 0x007F
+
+.EQU	VELOCITY_H						= 0x0080
+.EQU	VELOCITY_L						= 0x0081
+
+.EQU	VELOCITY_PREV_H					= 0x0080
+.EQU	VELOCITY_PREV_L					= 0x0081
+
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > Moving Average Filter [MOVAVG | 128B]
 

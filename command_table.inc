@@ -20,5 +20,6 @@ COMMANDS:
 	  .DW	  0x00_13, MAPPING_SET								; MAPP
 	  .DW	  0x00_14, BROADCAST_SET							; BROD
 	  .DW	  0x00_16, TRAJECTORY_SET							; TRAJ
+	  .DW	  0x00_17, TESTMODE_SET								; TEST
 
 	.DW		0xEE_EE, 0										; EoT

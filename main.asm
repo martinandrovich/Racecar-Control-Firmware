@@ -61,6 +61,12 @@
 	.EQU	MOVAVG_DIVS					= 6										; Number of division to perform (i.e. 2^5 = 32)
 	.EQU	MOVAVG_TABLE_END			= MOVAVG_TABLE + MOVAVG_SIZE			; EoT
 
+	; Velocity Calculation Constants
+
+	.EQU	VELOCITY_FREQ				= 256
+	.EQU	VELOCITY_SCALAR				= 1
+	.EQU	VELOCITY_DIVS				= LOG2(VELOCITY_FREQ/VELOCITY_SCALAR)	; Number of division to perform (i.e. 2^N = 256/S)	
+
 	; Mapping & Turn Detection Constants
 
 	.EQU	TURN_TH_IN_LEFT				= 122									; Left Turn IN Accelerometer Threshold
@@ -85,9 +91,9 @@
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > REGISTERS
 
-	.DEF	MDFLG		= R0													; Mode Flags
-	.DEF	FNFLG		= R1													; Function Flags for Interrupts
-	.DEF	MTFLG		= R2													; Mapping & Trajectory Flags
+	.DEF	MDFLG		= R2													; Mode Flags
+	.DEF	FNFLG		= R3													; Function Flags for Interrupts
+	.DEF	MTFLG		= R4													; Mapping & Trajectory Flags
 	
 	.DEF	TEMP1		= R16													; Temporary Register #1
 	.DEF	TEMP2		= R17													; Temporary Register #2
@@ -110,6 +116,7 @@
 	.EQU	BROD2		= 5														; Broadcast Mode
 	.EQU	BROD1		= 4														; ^
 	.EQU	BROD0		= 3														; ^
+	.EQU	TEST		= 2														; Test Mode
 
 	; FNFLG | Function Flags
 
@@ -157,6 +164,11 @@ INIT:
 	STS		ADC_H, TEMP1														; ^
 	STS		ADC_L, TEMP1														; ^
 	STS		FINISHLINE, TEMP1
+	STS		VELOCITY_PREV_H, TEMP1
+	STS		VELOCITY_PREV_L, TEMP1
+	STS		VELOCITY_H, TEMP1
+	STS		VELOCITY_L, TEMP1
+	STS		VELOCITY_COUNTER, TEMP1
 
 	CALL	MOVAVG_POINTER_RESET												; Reset Moving Average Pointer
 	CALL	MOVAVG_SRAM_SETUP													; Initialize allocated Moving Average SRAM to default
@@ -267,6 +279,9 @@ MAIN:
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > MODES
 
+	SBRC	MDFLG, TEST															; Test Mode
+	CALL	TESTMODE															; ^
+	
 	SBRC	MDFLG, AUTO															; Autonomous Mode
 	CALL	AUTONOMOUS															; ^
 
@@ -365,6 +380,15 @@ LOG_ACCELEROMETER:
 	RET																			; Return
 
 ; ____________________________________________________________________________________________________________________________________________________
+; >> TEST MODE
+
+TESTMODE:
+
+	CALL	VELOCITY
+
+	RET
+
+; ____________________________________________________________________________________________________________________________________________________
 ; >> AUTONOMOUS MODE
 
 AUTONOMOUS:
@@ -416,10 +440,10 @@ AUTONOMOUS_ESC:
 MAPPING:
 	
 	SBRC	FNFLG, FNLNE														; Check FNLNE flag
-	RJMP	MAPPING_ISMAP_CHECK													; If SET then check ISMAP
+	RJMP	MAPPING_ISMAP_CHECK													; If 1 then check ISMAP
 
 	SBRC	MTFLG, ISMAP														; Check ISMAP flag
-	RJMP	MAPPING_DEBOUNCE_CHECK												; If SET then continue mapping
+	RJMP	MAPPING_DEBOUNCE_CHECK												; If 1 then continue Mapping
 
 	RJMP	MAPPING_ESC															; Return
 
@@ -428,10 +452,10 @@ MAPPING_ISMAP_CHECK:
 	CFLG	FNFLG, FNLNE														; Clear FNFNE flag in FNFLG
 	
 	SBRC	MTFLG, ISMAP														; Check ISMAP flag
-	RJMP	MAPPING_END															; If SET then end mapping
+	RJMP	MAPPING_END															; If 1 then end Mapping
 
 	SBRS	MTFLG, ISMAP														; Check ISMAP flag
-	RJMP	MAPPING_BEGIN														; If CLR then begin mapping
+	RJMP	MAPPING_BEGIN														; If 0 then begin Mapping
 
 MAPPING_DEBOUNCE_CHECK:
 	
@@ -441,7 +465,7 @@ MAPPING_DEBOUNCE_CHECK:
 	LDS		TEMP2, MAPPING_DEBOUNCE_H											; Load Debounce Tachometer value
 	LDS		TEMP3, MAPPING_DEBOUNCE_L											; ^
 
-	CP		TEMPWL, TEMP3														; Check if debounce is reached
+	CP		TEMPWL, TEMP3														; Check if Debounce is reached
 	CPC		TEMPWH, TEMP2 														; ^
 	BRSH	MAPPING_CHECK_TURN													; ^
 	
@@ -512,8 +536,8 @@ MAPPING_CHECK_TURN:
 	LDS		TEMP2, ACCELEROMETER												; Load Accelerometer value
 
 	SBRC	MTFLG, INTURN														; Check INTURN flag
-	RJMP	MAPPING_CHECK_TURN_OUT												; If SET then check if a turn has been exited
-	RJMP	MAPPING_CHECK_TURN_IN												; If CLR then check if a turn has been detected
+	RJMP	MAPPING_CHECK_TURN_OUT												; If 1 then check if a turn has been exited
+	RJMP	MAPPING_CHECK_TURN_IN												; If 0 then check if a turn has been detected
 
 MAPPING_CHECK_TURN_IN:
 
@@ -522,7 +546,7 @@ MAPPING_CHECK_TURN_IN:
 	SFLG	MTFLG, TURNDIR														; Set TURNDIR flag in MTFLG
 
 	CPI		TEMP2, TURN_TH_IN_RIGHT												; Check Right Turn In
-	BRLO	MAPPING_ADD															; Create mapping entry if true
+	BRLO	MAPPING_ADD															; Create Mapping entry if true
 
 	; Check Left Turn
 
@@ -535,14 +559,14 @@ MAPPING_CHECK_TURN_IN:
 
 MAPPING_CHECK_TURN_OUT:
 
-	SBRC	MTFLG, TURNDIR														; Check TURNDIR flag
-	RJMP	MAPPING_CHECK_TURN_OUT_RIGHT										; If SET then check RIGHT turn out
-	RJMP	MAPPING_CHECK_TURN_OUT_LEFT											; If CLR then check LEFT turn out
+	SBRC	MTFLG, TURNDIR														; Check TURNDIR flag:
+	RJMP	MAPPING_CHECK_TURN_OUT_RIGHT										; If 1 then check RIGHT turn out
+	RJMP	MAPPING_CHECK_TURN_OUT_LEFT											; If 0 then check LEFT turn out
 
 MAPPING_CHECK_TURN_OUT_RIGHT:
 
 	CPI		TEMP2, TURN_TH_OUT_RIGHT											; Check Right Turn Out
-	BRSH	MAPPING_ADD															; Create mapping entry if true
+	BRSH	MAPPING_ADD															; Create Mapping entry if true
 
 	RJMP	MAPPING_ESC															; Return
 
@@ -565,10 +589,10 @@ MAPPING_ADD:
 	LDS		TEMPWH, TACHOMETER_H												; Load current Tachometer values
 	LDS		TEMPWL, TACHOMETER_L												; ^
 
-	SBRC	MTFLG, INTURN														; 
-	SBIW	TEMPWH:TEMPWL, MAPPING_OFFSET_IN									;
-	SBRS	MTFLG, INTURN														;
-	SBIW	TEMPWH:TEMPWL, MAPPING_OFFSET_OUT									;
+	SBRC	MTFLG, INTURN														; Calculate Offset (In/Out)
+	SBIW	TEMPWH:TEMPWL, MAPPING_OFFSET_IN									; ^
+	SBRS	MTFLG, INTURN														; ^
+	SBIW	TEMPWH:TEMPWL, MAPPING_OFFSET_OUT									; ^
 
 	SBRC	TEMP1, INTURN														; Set MSB of Tachometer (HIGH) to value of INTURN bit
 	ORI		TEMPWH, (1<<7)														; ^
@@ -617,6 +641,9 @@ TRAJECTORY_COMPILER_RUNUP:
 
 	ST		X+, TEMP1															; Store values into Trajectory SRAM
 	ST		X+, TEMP2															; ^
+
+	STS		LAST_TURN_H, TEMP1													; Store Last Turn into SRAM
+	STS		LAST_TURN_L, TEMP2													; ^
 
 	LDS		TEMPWH, TRACK_LENGTH_H 												; Load Track Length
 	LDS		TEMPWL, TRACK_LENGTH_L												; ^
@@ -704,7 +731,7 @@ TRAJECTORY_COMPILER_BREAK_OFFSET_LOOP:
 	CP		TEMP2, TEMP1														; Find matching Table value
 	BRSH	TRAJECTORY_COMPILER_BREAK_OFFSET_END								; ^
 
-	RJMP	TRAJECTORY_COMPILER_BREAK_OFFSET_LOOP
+	RJMP	TRAJECTORY_COMPILER_BREAK_OFFSET_LOOP								; Loop until found
 
 TRAJECTORY_COMPILER_BREAK_OFFSET_END:
 
@@ -738,9 +765,9 @@ TRAJECTORY_RUN:
 	LDS		TEMP1, TACHOMETER_H													; Load Tachometer values
 	LDS		TEMP2, TACHOMETER_L													; ^
 	
-	SBRC	MTFLG, ISBRK														; Check ISBRK FLAG
-	RJMP	TRAJECTORY_RUN_CHECK_ISBRK											;
-	RJMP	TRAJECTORY_RUN_CHECK_MSB											;
+	SBRC	MTFLG, ISBRK														; Check ISBRK flag:
+	RJMP	TRAJECTORY_RUN_CHECK_ISBRK											; if 1 then check breaking status
+	RJMP	TRAJECTORY_RUN_CHECK_MSB											; if 0 then check next MSB
 
 TRAJECTORY_RUN_SETUP:
 	
@@ -749,14 +776,6 @@ TRAJECTORY_RUN_SETUP:
 	
 	LDI		YH, HIGH(MAPP_TABLE)												; Load Y Pointer to Mapping Table
 	LDI		YL,  LOW(MAPP_TABLE)												; ^
-
-	LD		TEMP1, X+															; Load Last Turn (Runup) (Quick Fix)
-	LD		TEMP2, X+															; ^
-
-	SBIW	XH:XL, 2															; Undo incrementation of X Pointer
-			
-	STS		LAST_TURN_H, TEMP1													; Store Last Turn into SRAM
-	STS		LAST_TURN_L, TEMP2													; ^
 
 	SFLG	MTFLG, ISRUN														; Set ISRUN flag in MTFLG
 
@@ -1074,7 +1093,15 @@ BROADCAST_SET:
 
 AUTONOMOUS_SET:
 
-	SFLG	MDFLG, AUTO
+	SFLG	MDFLG, AUTO															; Set AUTO flag in MDFLG
+
+	RET
+
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+TESTMODE_SET:
+
+	SFLG	MDFLG, TEST															; Set TEST flag in MDFLG
 
 	RET
 
@@ -1305,6 +1332,72 @@ MOVAVG_DIVIDE_LOOP:
 
 	RET
 
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+;  > VELOCITY CALCULATOR
+
+VELOCITY:
+
+	SBRS	FNFLG, TMR1															; Check if with synchronized with CLOCK (Timer1)
+	RET
+
+	LDS		TEMP1, VELOCITY_COUNTER												; Load Velocity Counter
+	LDI		TEMP2, VELOCITY_SCALAR												; ^
+
+	ADD		TEMP1, TEMP2														; Increment by Scalar value
+	BRVS	VELOCITY_CALCULATE													; Perform calulations if counter has overflown
+
+	STS		VELOCITY_COUNTER, TEMP1												; Store (updated) Velocity Counter
+
+	RET																			; Return
+
+VELOCITY_CALCULATE:
+
+	CLR		TEMP1																; Reset Velocity Counter
+	STS		VELOCITY_COUNTER, TEMP1												; ^
+
+	LDS		TEMP1, TACHOMETER_H													; Load Current Tachometer values
+	LDS		TEMP2, TACHOMETER_L													; ^
+
+	LDS		TEMPWH, VELOCITY_PREV_H												; Load Previous Tachometer values
+	LDS		TEMPWL, VELOCITY_PREV_L												; ^
+
+	LDI		TEMP3, VELOCITY_DIVS												; Load Number of Divisions to perform
+
+	STS		VELOCITY_PREV_H, TEMP1												; Store current Tachometer values for next iteration
+	STS		VELOCITY_PREV_L, TEMP2												; ^
+
+	SUB		TEMP2, TEMPWL														; Calculate Delta Velocity
+	SBC		TEMP1, TEMPWH														; ^
+
+	RJMP	VELOCITY_CALULATE_ESC												; Skip Division and output delta
+
+	// !#!#!#!
+	// Multiply by a factor of 100 (or so) before division!
+
+VELOCITY_CALCULATE_LOOP:
+
+	ASR		TEMP1																; Perform Division (Temp 1 = HIGH)
+	ROR		TEMP2																; ^
+	
+	DEC		TEMP3																; Decrement Division counter
+	BREQ	VELOCITY_CALULATE_ESC												; Check if Zero
+
+	RJMP	VELOCITY_CALCULATE_LOOP												; Loop until Zero
+
+VELOCITY_CALULATE_ESC:
+
+	STS		VELOCITY_H, TEMP1													; Store calculated Velocity values
+	STS		VELOCITY_L, TEMP1													; ^
+	
+	MOV		TXREG, TEMP1														; Transmit values
+	CALL	SERIAL_WRITE														; ^
+
+	MOV		TXREG, TEMP2														; ^
+	CALL	SERIAL_WRITE														; ^
+
+	RET																			; Return
+
+
 ; ____________________________________________________________________________________________________________________________________________________
 ; >> CONTROL UNIT
 
@@ -1341,18 +1434,6 @@ CLOCK:
 
 EMPTY:
 	NOP
-	RET
-
-TEST:
-
-	LDI		TEMP1, 60
-	STS		RECENT_DAT, TEMP1
-
-	CALL	SET_MOTOR_PWM
-	CALL	DELAY
-	CALL	SET_MOTOR_BREAK
-	CALL	DELAY
-
 	RET
 
 TEST35:
