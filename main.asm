@@ -65,7 +65,7 @@
 
 	.EQU	VELOCITY_FREQ				= 256
 	.EQU	VELOCITY_SCALAR				= 1
-	.EQU	VELOCITY_DIVS				= LOG2(VELOCITY_FREQ/VELOCITY_SCALAR)	; Number of division to perform (i.e. 2^N = 256/S)	
+	.EQU	VELOCITY_DIVS				= LOG2(VELOCITY_FREQ/VELOCITY_SCALAR)	; Number of division to perform (i.e. 2^N = FREQ/S)	
 
 	; Mapping & Turn Detection Constants
 
@@ -125,6 +125,7 @@
 	.EQU	ACCLR		= 5														; Accelerometer Ready
 	.EQU	TMR1		= 4														; Timer1 Ready
 	.EQU	CMDPD		= 3														; Command Pending
+	.EQU	VEL			= 2														; Calculate Velocity
 
 	; MTFLG | Mapping & Trajectory Flags
 
@@ -163,12 +164,12 @@ INIT:
 	STS		ACCELEROMETER, TEMP1												; ^
 	STS		ADC_H, TEMP1														; ^
 	STS		ADC_L, TEMP1														; ^
-	STS		FINISHLINE, TEMP1
-	STS		VELOCITY_PREV_H, TEMP1
-	STS		VELOCITY_PREV_L, TEMP1
-	STS		VELOCITY_H, TEMP1
-	STS		VELOCITY_L, TEMP1
-	STS		VELOCITY_COUNTER, TEMP1
+	STS		FINISHLINE, TEMP1													; ^
+	STS		VELOCITY_PREV_H, TEMP1												; ^
+	STS		VELOCITY_PREV_L, TEMP1												; ^
+	STS		VELOCITY_H, TEMP1													; ^
+	STS		VELOCITY_L, TEMP1													; ^
+	STS		VELOCITY_COUNTER, TEMP1												; ^
 
 	CALL	MOVAVG_POINTER_RESET												; Reset Moving Average Pointer
 	CALL	MOVAVG_SRAM_SETUP													; Initialize allocated Moving Average SRAM to default
@@ -275,6 +276,9 @@ MAIN:
 
 	SBRC	FNFLG, ACCLR														; Accelerometer Ready
 	CALL	LOG_ACCELEROMETER													; ^
+
+	SBRC	FNFLG, VEL															; Accelerometer Ready
+	CALL	VELOCITY															; ^
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > MODES
@@ -609,6 +613,7 @@ MAPPING_ESC:
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > COMPILER
+
 TRAJECTORY_COMPILE:
 TRAJECTORY_COMPILER_SETUP:
 
@@ -911,6 +916,10 @@ BROADCAST_ACCELEROMETER:
 	RET																			; Return
 
 BROADCAST_FINISHLINE:
+
+	// !#!#!#!
+	// Should be changed to Velocity?
+	// Or add more Broadcast Modes?
 	
 	LDS		TXREG, FINISHLINE													; Load & transmit Finishline data
 	CALL	SERIAL_WRITE														; ^
@@ -1102,6 +1111,14 @@ AUTONOMOUS_SET:
 TESTMODE_SET:
 
 	SFLG	MDFLG, TEST															; Set TEST flag in MDFLG
+
+	RET
+
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+VELOCITY_SET:
+
+	SFLG	FNFLG, VEL															; Set TEST flag in MDFLG
 
 	RET
 
@@ -1357,6 +1374,9 @@ VELOCITY_CALCULATE:
 
 	LDS		TEMP1, TACHOMETER_H													; Load Current Tachometer values
 	LDS		TEMP2, TACHOMETER_L													; ^
+
+	// !#!#!#!
+	// If current tachometer values are zero, then escape (unchanged velocity)
 
 	LDS		TEMPWH, VELOCITY_PREV_H												; Load Previous Tachometer values
 	LDS		TEMPWL, VELOCITY_PREV_L												; ^
