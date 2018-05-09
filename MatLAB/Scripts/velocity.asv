@@ -23,19 +23,14 @@ while (true)
         dataBytes = fread(bmodule, 2);
         dataLong = bitor(bitshift(dataBytes(1), 8), dataBytes(2));
         
-        % Exit if EoT
-        if (dataLong == 65535)
-            break;
-        end
+        dataVelocity = cast(dataLong, int);
+        dataVelocity = round(dataLong * 1.92, 3);
         
-        % Extract turn bit
-        dataMapping(count, 2) = bitget(dataLong, 16);
-        
-        % Extract Tachometer value
-        dataMapping(count, 1) = bitset(dataLong, 16, 0);
-        
-        count = count + 1;
+        fprintf('Velocity: %d cm/s\n', cast(dataVelocity, int));
         
     end
     
 end
+
+% Close connection
+fclose(bmodule);

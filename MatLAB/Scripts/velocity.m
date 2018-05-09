@@ -23,12 +23,9 @@ while (true)
         dataBytes = fread(bmodule, 2);
         dataLong = bitor(bitshift(dataBytes(1), 8), dataBytes(2));
         
-        dataVelocity = round(dataLong * 1.92, 3);
+        dataVelocity = dataLong * 1.92;
         
-        %fprintf(repmat('\b', 1, lastsize));
-        %lastsize = fprintf('%Velocity: %d cm/s', dataVelocity);
-        
-        fprintf('Velocity: %d cm/s\n', dataLong);
+        fprintf('Velocity: %d cm/s\n', dataVelocity);
         
     end
     
