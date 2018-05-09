@@ -23,7 +23,7 @@ while (true)
         dataBytes = fread(bmodule, 2);
         dataLong = bitor(bitshift(dataBytes(1), 8), dataBytes(2));
         
-        dataVelocity = dataLong * 1.92;
+        dataVelocity = round(dataLong * 1.92);
         
         fprintf('Velocity: %d cm/s\n', dataVelocity);
         
