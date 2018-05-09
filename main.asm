@@ -706,11 +706,12 @@ TRAJECTORY_COMPILER_BREAK:
 
 	CBR		TEMP2, (1<<MSB)														; Clear MSB for Calculations
 
-	// !#!#!#!
-	// Needs to account for negative remainder!
-
 	SUB		TEMP1, TEMP3														; Subtract Brake Offset
 	SBCI	TEMP2, 0															; ^
+
+	BRMI	TRAJECTORY_COMPILER_BREAK_NEGATIVE									; Negative Remainder Exception
+
+TRAJECTORY_COMPILER_BREAK_STORE:
 
 	SBR		TEMP2, (1<<MSB)														; Set MSB
 
@@ -718,6 +719,21 @@ TRAJECTORY_COMPILER_BREAK:
 	ST		X+,	TEMP1															; ^
 
 	RJMP	TRAJECTORY_COMPILER_LOOP											; Loop
+
+TRAJECTORY_COMPILER_BREAK_NEGATIVE:		
+
+	NEG		TEMP1
+	INC		TEMP2		
+
+	LDS		TEMPWL, TRACK_LENGTH_L
+	LDS		TEMPWH, TRACK_LENGTH_H
+
+	SUB		TEMPWL, TEMP1
+	SBCI	TEMPWH, 0
+
+	MOVW	TEMPWH:TEMPWL, TEMP2:TEMP1
+														
+	RJMP	TRAJECTORY_COMPILER_BREAK_STORE
 
 TRAJECTORY_COMPILER_BREAK_OFFSET:
 	
