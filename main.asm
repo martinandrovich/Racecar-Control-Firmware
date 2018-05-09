@@ -64,7 +64,7 @@
 	; Velocity Calculation Constants
 
 	.EQU	VELOCITY_FREQ				= 256									; Frequency of Velocity Sampling (Hz)
-	.EQU	VELOCITY_SCALAR				= 4										; Sampling Scalar (Hz)
+	.EQU	VELOCITY_SCALAR				= 8										; Sampling Scalar (Hz)
 
 	; Mapping & Turn Detection Constants
 
@@ -73,7 +73,7 @@
 	.EQU	TURN_TH_OUT_LEFT			= 122									; Left Turn OUT Accelerometer Threshold
 	.EQU	TURN_TH_OUT_RIGHT			= 115									; Right Turn OUT Accelerometer Threshold
 
-	.EQU	MAPPING_SEEK_PWM			= 65									; Mapping Seek PWM (0-255)
+	.EQU	MAPPING_SEEK_PWM			= 90									; Mapping Seek PWM (0-255)
 	.EQU	MAPPING_PWM					= 90									; Mapping PWM (0-255)
 	.EQU	MAPPING_DEBOUNCE_VAL		= 10									; Mapping Debounce
 	.EQU	MAPPING_OFFSET_IN			= 8										; Mapping Offset In
@@ -82,10 +82,10 @@
 	; Trajectory Constants
 	
 	.EQU	TRAJECTORY_ACCLR_OFFSET		= 0										; Trajectory 'Out of Turn' Acceleration Offset
-	.EQU	TRAJECTORY_BRAKE_TOLERANCE	= 5										; Trajectory 'Before Turn' Brake Tolerance
+	.EQU	TRAJECTORY_BRAKE_TOLERANCE	= 10									; Trajectory 'Before Turn' Brake Tolerance
 
-	.EQU	TRAJECTORY_ACCLR_PWM		= 200									; Trajectory Acceleration PWM
-	.EQU	TRAJECTORY_TURN_PWM			= 101									; Trajectory Turn PWM
+	.EQU	TRAJECTORY_ACCLR_PWM		= 255									; Trajectory Acceleration PWM
+	.EQU	TRAJECTORY_TURN_PWM			= 110									; Trajectory Turn PWM
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > REGISTERS
@@ -1186,6 +1186,18 @@ MAPPING_GET_ESC:
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
+TACHOMETER_GET:
+	
+	LDS		TXREG, TACHOMETER_H
+	CALL	SERIAL_WRITE
+
+	LDS		TXREG, TACHOMETER_L
+	CALL	SERIAL_WRITE
+
+	RET
+		
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
 TRAJECTORY_GET:
 
 	// If TRAJ > 512 bytes, then buffer will overflow in MatLab
@@ -1270,6 +1282,10 @@ BREAKTEST:
 
 	CP		TEMP2, TEMP1														; Compare
 	BRLO	BREAKTEST_ESC														; Escape if Current < Break Value
+
+	CLR		TEMP1																; Reset Tachometer
+	STS		TACHOMETER_H, TEMP1													; ^
+	STS		TACHOMETER_L, TEMP1													; ^
 	
 	CALL	SET_MOTOR_BREAK														; Break Vehicle
 	
