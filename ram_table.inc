@@ -60,8 +60,10 @@
 .EQU	VELOCITY_H						= 0x0080
 .EQU	VELOCITY_L						= 0x0081
 
-.EQU	VELOCITY_PREV_H					= 0x0080
-.EQU	VELOCITY_PREV_L					= 0x0081
+.EQU	VELOCITY_PREV_H					= 0x0082
+.EQU	VELOCITY_PREV_L					= 0x0083
+
+.EQU	BREAK_TEST_VAL					= 0x0084
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > Moving Average Filter [MOVAVG | 128B]

@@ -63,9 +63,8 @@
 
 	; Velocity Calculation Constants
 
-	.EQU	VELOCITY_FREQ				= 256
-	.EQU	VELOCITY_SCALAR				= 1
-	.EQU	VELOCITY_DIVS				= LOG2(VELOCITY_FREQ/VELOCITY_SCALAR)	; Number of division to perform (i.e. 2^N = FREQ/S)	
+	.EQU	VELOCITY_FREQ				= 256									; Frequency of Velocity Sampling (Hz)
+	.EQU	VELOCITY_SCALAR				= 4										; Sampling Scalar (Hz)
 
 	; Mapping & Turn Detection Constants
 
@@ -125,7 +124,7 @@
 	.EQU	ACCLR		= 5														; Accelerometer Ready
 	.EQU	TMR1		= 4														; Timer1 Ready
 	.EQU	CMDPD		= 3														; Command Pending
-	.EQU	VEL			= 2														; Calculate Velocity
+	.EQU	VELOC		= 2														; Calculate Velocity
 
 	; MTFLG | Mapping & Trajectory Flags
 
@@ -277,7 +276,7 @@ MAIN:
 	SBRC	FNFLG, ACCLR														; Accelerometer Ready
 	CALL	LOG_ACCELEROMETER													; ^
 
-	SBRC	FNFLG, VEL															; Accelerometer Ready
+	SBRC	FNFLG, VELOC														; Velocity Calculation Pending
 	CALL	VELOCITY															; ^
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
@@ -388,7 +387,10 @@ LOG_ACCELEROMETER:
 
 TESTMODE:
 
-	CALL	VELOCITY
+	// !#!#!#!
+	// Should check for which test to run (currently only break test)
+	
+	CALL	BREAKTEST
 
 	RET
 
@@ -422,10 +424,6 @@ AUTONOMOUS_BEGIN_MAPPING:
 	RJMP	AUTONOMOUS_ESC														; Escape
 
 AUTONOMOUS_RUN:
-
-	// Can be disabled in order to only recompile mapping after each Run
-
-	;CFLG	MTFLG, MPRDY														; Clear MPRDY flag in MTFLG
 
 	LDI		TEMP1, MAPPING_SEEK_PWM												; Set Motor Speed to Sleep PWM
 	STS		RECENT_DAT, TEMP1													; ^
@@ -888,8 +886,8 @@ BROADCAST:
 	CPI		TEMP1, (1<<BROD1)													; Tachometer Mode		= (011)
 	BREQ	BROADCAST_TACHOMETER												; ^
 	
-	CPI		TEMP1, (1<<BROD2)|(1<<BROD1)										; Finishline Mode		= (111)
-	BREQ	BROADCAST_FINISHLINE												; ^
+	CPI		TEMP1, (1<<BROD2)|(1<<BROD1)										; Velocity Mode			= (111)
+	BREQ	BROADCAST_VELOCITY													; ^
 
 	CPI		TEMP1, (1<<BROD2)													; Accelerometer Mode	= (101)
 	BREQ	BROADCAST_ACCELEROMETER												; ^
@@ -915,13 +913,15 @@ BROADCAST_ACCELEROMETER:
 
 	RET																			; Return
 
-BROADCAST_FINISHLINE:
+BROADCAST_VELOCITY:
 
-	// !#!#!#!
-	// Should be changed to Velocity?
-	// Or add more Broadcast Modes?
+	SBRS	FNFLG, VELOC
+	CALL	VELOCITY_SET
 	
-	LDS		TXREG, FINISHLINE													; Load & transmit Finishline data
+	LDS		TXREG, VELOCITY_H													; Load & transmit Finishline data
+	CALL	SERIAL_WRITE														; ^
+
+	LDS		TXREG, VELOCITY_L													; Load & transmit Finishline data
 	CALL	SERIAL_WRITE														; ^
 
 	RET																			; Return
@@ -1108,8 +1108,19 @@ AUTONOMOUS_SET:
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-TESTMODE_SET:
+BREAKTEST_SET:
 
+	LDS		TEMP1, RECENT_DAT													; Set Breaktest Value
+	STS		BREAK_TEST_VAL, TEMP1												; ^
+
+	CLR		TEMP1																; Reset Tachometer
+	STS		TACHOMETER_H, TEMP1													; ^
+	STS		TACHOMETER_L, TEMP1													; ^
+	
+	LDI		TEMP3, TRAJECTORY_ACCLR_PWM											; Set Motor to Acceleration PWM
+	STS		RECENT_DAT, TEMP3													; ^
+	CALL	SET_MOTOR_PWM														; ^
+	
 	SFLG	MDFLG, TEST															; Set TEST flag in MDFLG
 
 	RET
@@ -1118,7 +1129,7 @@ TESTMODE_SET:
 
 VELOCITY_SET:
 
-	SFLG	FNFLG, VEL															; Set TEST flag in MDFLG
+	SFLG	FNFLG, VELOC														; Set VELOC flag in FNFLG
 
 	RET
 
@@ -1223,7 +1234,7 @@ SET_MOTOR_PWM:
 
 	CBI		PORTD, PD4															; Disable MOSFET Brake
 
-	CALL	DELAY_100uS															; Wait for 100 ?s
+	CALL	DELAY_20uS															; Wait for 100 ?s
 
 	OUT		OCR2, TEMP3															; Set Duty Cycle (PWM) (0-255) on Timer2
 
@@ -1238,7 +1249,7 @@ SET_MOTOR_BREAK:
 
 	CBI 	PORTD, PD7															; Clear PD7 of PORTD
 		
-	CALL	DELAY_100uS															; Wait for 100 us
+	CALL	DELAY_20uS															; Wait for 100 us
 
 	SBI		PORTD, PD4															; Enable MOSFET Brake
 
@@ -1248,6 +1259,25 @@ SET_MOTOR_MAX:
 
 	SBI 	PORTD, PD7															; Set PD7 of PORTD
 	RJMP	SET_MOTOR_PWM_ESC													; Return
+
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+;  > BREAK TEST
+
+BREAKTEST:
+
+	LDS		TEMP1, BREAK_TEST_VAL												; Load Break Tachometer value
+	LDS		TEMP2, TACHOMETER_L													; Load Current Tachometer value
+
+	CP		TEMP2, TEMP1														; Compare
+	BRLO	BREAKTEST_ESC														; Escape if Current < Break Value
+	
+	CALL	SET_MOTOR_BREAK														; Break Vehicle
+	
+	CFLG	MDFLG, TEST															; Clear TEST flag in MDFLG
+
+BREAKTEST_ESC:
+	
+	RET
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > MOVING AVERAGE
@@ -1378,8 +1408,6 @@ VELOCITY_CALCULATE:
 	LDS		TEMPWH, VELOCITY_PREV_H												; Load Previous Tachometer values
 	LDS		TEMPWL, VELOCITY_PREV_L												; ^
 
-	LDI		TEMP3, VELOCITY_DIVS												; Load Number of Divisions to perform
-
 	STS		VELOCITY_PREV_H, TEMP1												; Store current Tachometer values for next iteration
 	STS		VELOCITY_PREV_L, TEMP2												; ^
 
@@ -1389,39 +1417,17 @@ VELOCITY_CALCULATE:
 	SUB		TEMP2, TEMPWL														; Calculate Delta Velocity
 	SBC		TEMP1, TEMPWH														; ^
 
-	LDI		TEMP3, VELOCITY_SCALAR
+	LDI		TEMP3, VELOCITY_SCALAR												; Load Velocity Scalar
 
 	MUL		TEMP2, TEMP3														; Multiply (Low Byte) by Scalar
-	NOP																			; ^
-
-	RJMP	VELOCITY_CALULATE_ESC												; Skip Division and output delta
-
-	// !#!#!#!
-	// Multiply by a factor of 100 (or so) before division!
-
-VELOCITY_CALCULATE_LOOP:
-
-	ASR		TEMP1																; Perform Division (Temp 1 = HIGH)
-	ROR		TEMP2																; ^
-	
-	DEC		TEMP3																; Decrement Division counter
-	BREQ	VELOCITY_CALULATE_ESC												; Check if Zero
-
-	RJMP	VELOCITY_CALCULATE_LOOP												; Loop until Zero
+	MOVW	R17:R16, R1:R0														; ^
 
 VELOCITY_CALULATE_ESC:
 
-	STS		VELOCITY_H, TEMP1													; Store calculated Velocity values
+	STS		VELOCITY_H, TEMP2													; Store calculated Velocity values
 	STS		VELOCITY_L, TEMP1													; ^
-	
-	MOV		TXREG, TEMP1														; Transmit values
-	CALL	SERIAL_WRITE														; ^
-
-	MOV		TXREG, TEMP2														; ^
-	CALL	SERIAL_WRITE														; ^
 
 	RET																			; Return
-
 
 ; ____________________________________________________________________________________________________________________________________________________
 ; >> CONTROL UNIT
@@ -1514,6 +1520,20 @@ DELAY_10MS_LOOP:
     BRNE	DELAY_10MS_LOOP
     NOP
 
+	RET
+
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+;  > 20us DELAY
+
+DELAY_20uS:
+
+    LDI		TEMP1, 106
+
+DELAY_20uS_LOOP:
+
+	DEC		TEMP1
+    BRNE	DELAY_20uS_LOOP
+    
 	RET
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
