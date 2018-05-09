@@ -1375,9 +1375,6 @@ VELOCITY_CALCULATE:
 	LDS		TEMP1, TACHOMETER_H													; Load Current Tachometer values
 	LDS		TEMP2, TACHOMETER_L													; ^
 
-	// !#!#!#!
-	// If current tachometer values are zero, then escape (unchanged velocity)
-
 	LDS		TEMPWH, VELOCITY_PREV_H												; Load Previous Tachometer values
 	LDS		TEMPWL, VELOCITY_PREV_L												; ^
 
@@ -1386,8 +1383,16 @@ VELOCITY_CALCULATE:
 	STS		VELOCITY_PREV_H, TEMP1												; Store current Tachometer values for next iteration
 	STS		VELOCITY_PREV_L, TEMP2												; ^
 
+	// !#!#!#!
+	// If current tachometer values are zero, then escape (unchanged velocity) and reset previous values.
+
 	SUB		TEMP2, TEMPWL														; Calculate Delta Velocity
 	SBC		TEMP1, TEMPWH														; ^
+
+	LDI		TEMP3, VELOCITY_SCALAR
+
+	MUL		TEMP2, TEMP3														; Multiply (Low Byte) by Scalar
+	NOP																			; ^
 
 	RJMP	VELOCITY_CALULATE_ESC												; Skip Division and output delta
 
