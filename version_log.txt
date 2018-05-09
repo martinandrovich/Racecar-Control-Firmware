@@ -49,7 +49,9 @@
 - Added:		Trajectory + Autonomous Mode SET & GET Commands
 
 # 1.2.2  <<
-- Modified:		Optimized Trajectory Exceptions [todo]
-- Added:		Velocity Calculator [todo]
-- Added:		Test Mode + Commands [todo]
+- Modified:		Optimized Trajectory Exceptions
+- Added:		Velocity Calculator & Broadcast
+- Added:		Test Mode + Commands
+- Modified:		Optimized Trajectory Variables (semi)
+- Removed:		Finishline Broadcast
 
