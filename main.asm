@@ -1,6 +1,6 @@
 ; ###################################################################################################################################################
 ; Racecar Control Firmware
-; Version 1.2.2
+; Version 1.2.3
 ; 
 ; Sequential Flag Architecture
 
@@ -11,16 +11,16 @@
 	JMP		INIT																; ^
 
 .ORG 	0x02																	; INT0 Interrupt (PD2)
-	JMP		INT0_HANDLER														; ^
+	JMP		FNLNE_HANDLER														; ^
 	 
 .ORG	0x04																	; INT1 Interrupt (PD3)
-	JMP 	INT1_HANDLER														; ^
+	JMP 	TACHO_HANDLER														; ^
 
 .ORG	0x14																	; TIMER1 Compare Match Interrupt
 	JMP		TMR1_HANDLER														; ^
 
 .ORG	0x20																	; ADC Conversion Complete Interrupt (PAO)
-	JMP		ADC_HANDLER															; ^
+	JMP		ACCLR_HANDLER														; ^
 
 ; ____________________________________________________________________________________________________________________________________________________
 ; >> DEFINITIONS
@@ -73,7 +73,7 @@
 	.EQU	TURN_TH_OUT_LEFT			= 122									; Left Turn OUT Accelerometer Threshold
 	.EQU	TURN_TH_OUT_RIGHT			= 115									; Right Turn OUT Accelerometer Threshold
 
-	.EQU	MAPPING_SEEK_PWM			= 90									; Mapping Seek PWM (0-255)
+	.EQU	MAPPING_SEEK_PWM			= 75									; Mapping Seek PWM (0-255)
 	.EQU	MAPPING_PWM					= 90									; Mapping PWM (0-255)
 	.EQU	MAPPING_DEBOUNCE_VAL		= 10									; Mapping Debounce
 	.EQU	MAPPING_OFFSET_IN			= 8										; Mapping Offset In
@@ -1588,7 +1588,7 @@ DELAY_100uS_LOOP:
 ; ____________________________________________________________________________________________________________________________________________________
 ; >> INTERRUPT HANDLERS
 
-INT0_HANDLER:
+TACHO_HANDLER:
 	
 	LDS		TEMPI, FUNC_FLG														; Load Function Flags from SRAM into Temporary Interrupt Register
 	SET																			; Set T flag
@@ -1597,7 +1597,7 @@ INT0_HANDLER:
 
 	RETI																		; Return
 
-INT1_HANDLER:
+FNLNE_HANDLER:
 	
 	LDS		TEMPI, FUNC_FLG														; Load Function Flags from SRAM into Temporary Interrupt Register
 	SET																			; Set T flag
@@ -1615,7 +1615,7 @@ TMR1_HANDLER:
 
 	RETI																		; Return
 
-ADC_HANDLER:
+ACCLR_HANDLER:
 
 	LDS		TEMPI, FUNC_FLG														; Load Function Flags from SRAM into Temporary Interrupt Register
 	SET																			; Set T flag

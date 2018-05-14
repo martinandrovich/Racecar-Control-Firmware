@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.7  C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm Wed May 09 22:47:56 2018
+AVRASM ver. 2.2.7  C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm Mon May 14 21:29:35 2018
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.150\avrasm\inc\m32def.inc'
 C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(33): Including file 'C:\Users\Martin\Desktop\Racecar-Control-Firmware\macros.inc'
@@ -829,7 +829,7 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(36): Including file 'C
                                  
                                  
                                  ; Racecar Control Firmware
-                                 ; Version 1.2.2
+                                 ; Version 1.2.3
                                  ; 
                                  ; Sequential Flag Architecture
                                  
@@ -840,16 +840,16 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(36): Including file 'C
 000000 940c 0055                 	JMP		INIT																; ^
                                  
                                  .ORG 	0x02																	; INT0 Interrupt (PD2)
-000002 940c 03db                 	JMP		INT0_HANDLER														; ^
+000002 940c 03e2                 	JMP		FNLNE_HANDLER														; ^
                                  	 
                                  .ORG	0x04																	; INT1 Interrupt (PD3)
-000004 940c 03e2                 	JMP 	INT1_HANDLER														; ^
+000004 940c 03db                 	JMP 	TACHO_HANDLER														; ^
                                  
                                  .ORG	0x14																	; TIMER1 Compare Match Interrupt
 000014 940c 03e9                 	JMP		TMR1_HANDLER														; ^
                                  
                                  .ORG	0x20																	; ADC Conversion Complete Interrupt (PAO)
-000020 940c 03f0                 	JMP		ADC_HANDLER															; ^
+000020 940c 03f0                 	JMP		ACCLR_HANDLER														; ^
                                  
                                  ; ____________________________________________________________________________________________________________________________________________________
                                  ; >> DEFINITIONS
@@ -1064,7 +1064,7 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(36): Including file 'C
                                  	.EQU	TURN_TH_OUT_LEFT			= 122									; Left Turn OUT Accelerometer Threshold
                                  	.EQU	TURN_TH_OUT_RIGHT			= 115									; Right Turn OUT Accelerometer Threshold
                                  
-                                 	.EQU	MAPPING_SEEK_PWM			= 90									; Mapping Seek PWM (0-255)
+                                 	.EQU	MAPPING_SEEK_PWM			= 75									; Mapping Seek PWM (0-255)
                                  	.EQU	MAPPING_PWM					= 90									; Mapping PWM (0-255)
                                  	.EQU	MAPPING_DEBOUNCE_VAL		= 10									; Mapping Debounce
                                  	.EQU	MAPPING_OFFSET_IN			= 8										; Mapping Offset In
@@ -1416,7 +1416,7 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(36): Including file 'C
 000115 6400
 000116 2e20                      	SFLG	MDFLG, MAP															; Set MAPP flag in MDFLG
                                  
-000117 e50a                      	LDI		TEMP1, MAPPING_SEEK_PWM												; Start vehicle with mapping seek PWM
+000117 e40b                      	LDI		TEMP1, MAPPING_SEEK_PWM												; Start vehicle with mapping seek PWM
 000118 9300 0068                 	STS		RECENT_DAT, TEMP1													; ^	
 00011a 940e 032a                 	CALL	SET_MOTOR_PWM														; ^
                                  
@@ -1424,7 +1424,7 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(36): Including file 'C
                                  
                                  AUTONOMOUS_RUN:
                                  
-00011d e50a                      	LDI		TEMP1, MAPPING_SEEK_PWM												; Set Motor Speed to Sleep PWM
+00011d e40b                      	LDI		TEMP1, MAPPING_SEEK_PWM												; Set Motor Speed to Sleep PWM
 00011e 9300 0068                 	STS		RECENT_DAT, TEMP1													; ^
 000120 940e 032a                 	CALL	SET_MOTOR_PWM														; ^
                                  
@@ -2194,7 +2194,7 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(36): Including file 'C
                                  
 0002f8 9220 006f                 	STS		MODE_FLG, MDFLG														; Store new mode flags to SRAM
                                  
-0002fa e50a                      	LDI		TEMP1, MAPPING_SEEK_PWM												; Start vehicle with mapping seek PWM
+0002fa e40b                      	LDI		TEMP1, MAPPING_SEEK_PWM												; Start vehicle with mapping seek PWM
 0002fb 9300 0068                 	STS		RECENT_DAT, TEMP1													; ^	
 0002fd 940e 032a                 	CALL	SET_MOTOR_PWM														; ^
                                  
@@ -2629,7 +2629,7 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(36): Including file 'C
                                  ; ____________________________________________________________________________________________________________________________________________________
                                  ; >> INTERRUPT HANDLERS
                                  
-                                 INT0_HANDLER:
+                                 TACHO_HANDLER:
                                  	
 0003db 9130 006e                 	LDS		TEMPI, FUNC_FLG														; Load Function Flags from SRAM into Temporary Interrupt Register
 0003dd 9468                      	SET																			; Set T flag
@@ -2638,7 +2638,7 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(36): Including file 'C
                                  
 0003e1 9518                      	RETI																		; Return
                                  
-                                 INT1_HANDLER:
+                                 FNLNE_HANDLER:
                                  	
 0003e2 9130 006e                 	LDS		TEMPI, FUNC_FLG														; Load Function Flags from SRAM into Temporary Interrupt Register
 0003e4 9468                      	SET																			; Set T flag
@@ -2656,7 +2656,7 @@ C:\Users\Martin\Desktop\Racecar-Control-Firmware\main.asm(36): Including file 'C
                                  
 0003ef 9518                      	RETI																		; Return
                                  
-                                 ADC_HANDLER:
+                                 ACCLR_HANDLER:
                                  
 0003f0 9130 006e                 	LDS		TEMPI, FUNC_FLG														; Load Function Flags from SRAM into Temporary Interrupt Register
 0003f2 9468                      	SET																			; Set T flag

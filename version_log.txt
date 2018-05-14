@@ -48,10 +48,12 @@
 - Added:		Autonomous Mode
 - Added:		Trajectory + Autonomous Mode SET & GET Commands
 
-# 1.2.2  <<
+# 1.2.2
 - Modified:		Optimized Trajectory Exceptions
 - Added:		Velocity Calculator & Broadcast
 - Added:		Test Mode + Commands
 - Modified:		Optimized Trajectory Variables (semi)
 - Removed:		Finishline Broadcast
 
+# 1.2.3 <<
+- Modified:		Renamed Interrupt Handlers + Switched around PD2 & PD3
