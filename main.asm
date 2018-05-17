@@ -73,7 +73,7 @@
 	.EQU	TURN_TH_OUT_LEFT			= 122									; Left Turn OUT Accelerometer Threshold
 	.EQU	TURN_TH_OUT_RIGHT			= 115									; Right Turn OUT Accelerometer Threshold
 
-	.EQU	MAPPING_SEEK_PWM			= 75									; Mapping Seek PWM (0-255)
+	.EQU	MAPPING_SEEK_PWM			= 78									; Mapping Seek PWM (0-255)
 	.EQU	MAPPING_PWM					= 90									; Mapping PWM (0-255)
 	.EQU	MAPPING_DEBOUNCE_VAL		= 10									; Mapping Debounce
 	.EQU	MAPPING_OFFSET_IN			= 8										; Mapping Offset In
