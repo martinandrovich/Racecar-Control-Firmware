@@ -16,8 +16,8 @@ broadcastModes  = struct(...
                   );           
 
 
-% Circuit 1 OUT = 290
-% Circuit 1 IN  = 266
+% Circuit OUTER = 290
+% Circuit INNER = 266
 
 logDuration     = 10;
 logDistance     = 290;
