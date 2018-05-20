@@ -57,3 +57,4 @@
 
 # 1.2.3 <<
 - Modified:		Renamed Interrupt Handlers + Switched around PD2 & PD3
+- Fixed:		Trajectory Compiler Negative Remainder Exception
