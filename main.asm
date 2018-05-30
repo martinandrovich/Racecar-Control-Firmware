@@ -81,8 +81,8 @@
 
 	; Trajectory Constants
 	
-	.EQU	TRAJECTORY_ACCLR_OFFSET		= 0										; Trajectory 'Out of Turn' Acceleration Offset
-	.EQU	TRAJECTORY_BRAKE_TOLERANCE	= 10									; Trajectory 'Before Turn' Brake Tolerance
+	.EQU	TRAJECTORY_ACCLR_OFFSET		= 4										; Trajectory 'Out of Turn' Acceleration Offset
+	.EQU	TRAJECTORY_BRAKE_TOLERANCE	= 5										; Trajectory 'Before Turn' Brake Tolerance
 
 	.EQU	TRAJECTORY_ACCLR_PWM		= 255									; Trajectory Acceleration PWM
 	.EQU	TRAJECTORY_TURN_PWM			= 110									; Trajectory Turn PWM
@@ -249,6 +249,9 @@ INIT:
 	OUT 	GICR, TEMP1															; ^
 
 	SEI																			; Set Global Interrupt Flag
+
+	CALL	DELAY_2S															; Wait 2 seconds
+	SFLG	MDFLG, AUTO															; Set AUTO mode
 
 	RJMP	MAIN																; Start MAIN Program
 
@@ -639,23 +642,27 @@ TRAJECTORY_COMPILER_RUNUP:
 
 	SBIW	YH:YL, 4															; Offset the mapping to last outgoing turn in Mapping
 
-	LD		TEMP1, Y+															; Load Mapping values
-	LD		TEMP2, Y															; ^
+	LD		TEMP2, Y+															; Load Mapping values
+	LD		TEMP1, Y															; ^
 
-	ST		X+, TEMP1															; Store values into Trajectory SRAM
-	ST		X+, TEMP2															; ^
+	MOVW	TEMPWH:TEMPWL, TEMP2:TEMP1											; 
+	SBIW	TEMPWH:TEMPWL, TRAJECTORY_ACCLR_OFFSET								; Subtract Acceleration Offset
+	MOVW	TEMP2:TEMP1, TEMPWH:TEMPWL											;
 
-	STS		LAST_TURN_H, TEMP1													; Store Last Turn into SRAM
-	STS		LAST_TURN_L, TEMP2													; ^
+	ST		X+, TEMP2															; Store values into Trajectory SRAM
+	ST		X+, TEMP1															; ^
+
+	STS		LAST_TURN_H, TEMP2													; Store Last Turn into SRAM
+	STS		LAST_TURN_L, TEMP1													; ^
 
 	LDS		TEMPWH, TRACK_LENGTH_H 												; Load Track Length
 	LDS		TEMPWL, TRACK_LENGTH_L												; ^
 
-	SUB		TEMP2, TEMPWL														; Subtract Track Length from Last Turn value (negative expected)
-	SBC		TEMP1, TEMPWH														; ^
+	SUB		TEMP1, TEMPWL														; Subtract Track Length from Last Turn value (negative expected)
+	SBC		TEMP2, TEMPWH														; ^
 
-	STS		LATEST_STRAIGHT_L, TEMP2											; Store Latest Straight into SRAM
-	STS		LATEST_STRAIGHT_H, TEMP1											; ^
+	STS		LATEST_STRAIGHT_L, TEMP1											; Store Latest Straight into SRAM
+	STS		LATEST_STRAIGHT_H, TEMP2											; ^
 
 	LDI		YH, HIGH(MAPP_TABLE+2)												; Load Y Pointer to (offset) Mapping Table
 	LDI		YL,  LOW(MAPP_TABLE+2)												; ^
@@ -1530,6 +1537,27 @@ LOOP1:
     BRNE	LOOP3
 
     RET
+
+;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+;  > 2s DELAY
+
+DELAY_2S:
+
+    LDI		TEMP1, 163
+    LDI		TEMP2, 87
+    LDI		TEMP3, 3
+
+DELAY_2S_LOOP: 
+
+	DEC		TEMP3
+    BRNE	DELAY_2S_LOOP
+    DEC		TEMP2
+    BRNE	DELAY_2S_LOOP
+    DEC		TEMP1
+    BRNE	DELAY_2S_LOOP
+    NOP
+
+	RET
 
 ;  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ;  > 10ms DELAY
